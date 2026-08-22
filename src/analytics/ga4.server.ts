@@ -1,5 +1,6 @@
 import "@tanstack/react-start/server-only";
 
+import { aggregatePopularPosts, postPathToSlug } from "./popular-posts";
 import type { PopularPost } from "./types";
 
 const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -120,18 +121,6 @@ async function getAccessToken(configuration: Ga4Configuration) {
   return response.access_token;
 }
 
-function postPathToSlug(path: string) {
-  const pathname = path.split(/[?#]/, 1)[0] ?? path;
-  const match = /^\/posts\/([^/]+)\/?$/.exec(pathname);
-  if (!match?.[1]) return undefined;
-
-  try {
-    return decodeURIComponent(match[1]);
-  } catch {
-    return undefined;
-  }
-}
-
 async function runPopularPostsReport(
   configuration: Ga4Configuration,
   accessToken: string,
@@ -180,29 +169,7 @@ async function runPopularPostsReport(
     ];
   });
 
-  // GA4 returns one row for each dimension combination. For example, the
-  // canonical and trailing-slash paths can become separate rows even though
-  // they point to the same article. Aggregate after normalizing the path so
-  // the homepage never renders one article more than once.
-  const postsBySlug = new Map<string, PopularPost>();
-  for (const post of reportPosts) {
-    const existing = postsBySlug.get(post.slug);
-
-    if (!existing) {
-      postsBySlug.set(post.slug, post);
-      continue;
-    }
-
-    postsBySlug.set(post.slug, {
-      ...existing,
-      title: existing.title || post.title,
-      views: existing.views + post.views,
-    });
-  }
-
-  return [...postsBySlug.values()].sort(
-    (left, right) => right.views - left.views || left.slug.localeCompare(right.slug),
-  );
+  return aggregatePopularPosts(reportPosts);
 }
 
 /**
