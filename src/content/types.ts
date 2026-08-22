@@ -36,12 +36,22 @@ export type PostListOptions = {
  * API so a Markdown or headless-CMS adapter can be introduced later without
  * changing route components.
  */
-export interface PostRepository {
+export interface PostSummaryRepository {
   list(options?: PostListOptions): Promise<readonly PostSummary[]>;
+}
+
+export interface PostRepository extends PostSummaryRepository {
   listAll(): Promise<readonly Post[]>;
   findBySlug(slug: string): Promise<Post | undefined>;
 }
 
-export function getPostSourceText(post: Post) {
-  return post.content.markdown;
+const READING_CHARS_PER_MIN = 600;
+
+export function getPostReadingMinutes(post: Post) {
+  const text = post.content.html
+    .replace(/<pre[\s\S]*?<\/pre>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&[a-z]+;|&#\d+;/gi, "")
+    .replace(/\s+/g, "");
+  return Math.max(1, Math.ceil([...text].length / READING_CHARS_PER_MIN));
 }

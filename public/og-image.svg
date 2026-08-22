@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">satotek.dev</title>
+  <desc id="desc">satotek.dev — 個人ブログ・技術メモ</desc>
+  <style>
+    .sans {
+      font-family: Geist, "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .mono {
+      font-family: "Geist Mono", "SFMono-Regular", Consolas, monospace;
+    }
+  </style>
+  <rect width="1200" height="630" fill="#f3ece0"/>
+  <rect x="22" y="22" width="1156" height="586" rx="38" fill="none" stroke="#37322b" stroke-opacity=".14" stroke-width="3"/>
+
+  <g transform="translate(92 120)">
+    <rect width="294" height="294" rx="62" fill="#f8f3eb" stroke="#37322b" stroke-opacity=".16" stroke-width="3"/>
+    <text class="sans" x="147" y="207" fill="#37322b" font-size="224" font-weight="800" text-anchor="middle">s</text>
+    <circle cx="190" cy="207" r="13" fill="#ae543e"/>
+  </g>
+
+  <g transform="translate(480 152)">
+    <text class="mono" x="0" y="0" fill="#ae543e" font-size="22" font-weight="600" letter-spacing=".18em">PERSONAL NOTES</text>
+    <text class="sans" x="0" y="100" fill="#37322b" font-size="70" font-weight="800" letter-spacing=".025em">SATOTEK.DEV</text>
+    <text class="sans" x="0" y="172" fill="#736b61" font-size="30" font-weight="400">技術と日常を、すこしずつ記録しています。</text>
+  </g>
+
+  <g class="mono" fill="#736b61" font-size="20">
+    <text x="96" y="548">satotek.dev</text>
+    <text x="1104" y="548" text-anchor="end">notes / code / life</text>
+  </g>
+</svg>

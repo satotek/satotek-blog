@@ -1,7 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "satotek-blog-poc",
+  "name": "satotek",
   "compatibility_date": "2026-08-22",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
+  "routes": [
+    {
+      "pattern": "satotek.dev",
+      "custom_domain": true
+    }
+  ]
 }

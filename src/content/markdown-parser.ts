@@ -1,7 +1,20 @@
 import { toString } from "mdast-util-to-string";
 import type { Element, Root as HastRoot } from "hast";
 import { unified } from "unified";
+import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
+import {
+  transformerMetaHighlight,
+  transformerNotationDiff,
+  transformerNotationFocus,
+  transformerNotationHighlight,
+} from "@shikijs/transformers";
+import { createBundledHighlighter } from "@shikijs/core";
+import { createOnigurumaEngine } from "@shikijs/engine-oniguruma";
+import { bundledLanguages, type BundledLanguage } from "shiki/langs";
+import { bundledThemes } from "shiki/themes";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeExternalLinks from "rehype-external-links";
 import rehypeSlug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
@@ -100,24 +113,86 @@ function rehypeImageFigure() {
   };
 }
 
+function transformerCodeChrome() {
+  return {
+    name: "code-chrome",
+    pre(this: { options?: { lang?: string; meta?: { __raw?: string } } }, node: Element) {
+      const raw = this.options?.meta?.__raw;
+      const title = raw?.match(/title=("([^"]*)"|'([^']*)'|(\S+))/);
+      const value = title?.[2] ?? title?.[3] ?? title?.[4];
+      if (value) node.properties["data-title"] = value;
+
+      const lang = this.options?.lang;
+      if (lang && lang !== "text") node.properties["data-lang"] = lang;
+
+      // テーマの背景色は捨てて、サイト側の面色（--code-surface）で塗る。
+      const style = node.properties.style;
+      if (typeof style === "string") {
+        node.properties.style = style
+          .replace(/(?:^|;)\s*background-color:[^;]*/g, "")
+          .replace(/(?:^|;)\s*--shiki-(?:light|dark)-bg:[^;]*/g, "")
+          .replace(/^;+/, "");
+      }
+    },
+  };
+}
+
+function rehypeCodeBlocks() {
+  return (tree: HastRoot) => {
+    visit(tree, "element", (node, index, parent) => {
+      if (node.type !== "element" || node.tagName !== "pre" || !parent || index == null) return;
+
+      const title = node.properties["data-title"];
+      const lang = node.properties["data-lang"];
+      const name = typeof title === "string" ? title : typeof lang === "string" ? lang : "";
+
+      parent.children[index] = {
+        type: "element",
+        tagName: "div",
+        properties: { className: ["code-block"] },
+        children: [
+          {
+            type: "element",
+            tagName: "div",
+            properties: { className: ["code-block__bar"] },
+            children: [
+              {
+                type: "element",
+                tagName: "span",
+                properties: { className: ["code-block__name"] },
+                children: name ? [{ type: "text", value: name }] : [],
+              },
+            ],
+          },
+          node,
+        ],
+      } satisfies Element;
+    });
+  };
+}
+
+function rehypeHeadingLinks() {
+  return rehypeAutolinkHeadings({
+    behavior: "append",
+    properties: {
+      ariaHidden: "true",
+      className: ["heading-anchor"],
+      tabIndex: -1,
+    },
+    content: { type: "text", value: "#" } as const,
+  });
+}
+
 const sanitizeSchema = {
   ...defaultSchema,
   tagNames: [...(defaultSchema.tagNames ?? []), "figure", "figcaption"],
   attributes: {
     ...defaultSchema.attributes,
-    "*": [...(defaultSchema.attributes?.["*"] ?? []), "className"],
+    "*": [...(defaultSchema.attributes?.["*"] ?? []), "ariaHidden", "className"],
+    a: [...(defaultSchema.attributes?.a ?? []), "className", "rel", "target"],
+    pre: [...(defaultSchema.attributes?.pre ?? []), "dataTitle"],
   },
 };
-
-const markdownProcessor = unified()
-  .use(remarkParse)
-  .use(remarkGfm)
-  .use(remarkImageAttributes)
-  .use(remarkRehype, { allowDangerousHtml: false })
-  .use(rehypeImageFigure)
-  .use(rehypeSanitize, sanitizeSchema)
-  .use(rehypeSlug)
-  .use(rehypeStringify);
 
 function extractToc(tree: Root): TocItem[] {
   const slugger = new GithubSlugger();
@@ -137,10 +212,68 @@ function extractToc(tree: Root): TocItem[] {
   return toc;
 }
 
-export function renderMarkdown(markdown: string) {
-  const tree = markdownProcessor.parse(markdown);
-  const toc = extractToc(tree);
-  const html = String(markdownProcessor.processSync(markdown));
+type OnigurumaWasm = Parameters<typeof createOnigurumaEngine>[0];
 
-  return { html, toc };
+export function createMarkdownRenderer(onigWasm: OnigurumaWasm) {
+  const shikiLanguages = Object.keys(bundledLanguages) as BundledLanguage[];
+  const createShikiHighlighter = createBundledHighlighter({
+    engine: () => createOnigurumaEngine(onigWasm),
+    langs: bundledLanguages,
+    themes: bundledThemes,
+  });
+  let shikiHighlighterPromise: ReturnType<typeof createShikiHighlighter> | undefined;
+
+  function rehypeShiki(options: Parameters<typeof rehypeShikiFromHighlighter>[1]) {
+    return async (tree: HastRoot) => {
+      shikiHighlighterPromise ??= createShikiHighlighter({
+        langs: shikiLanguages,
+        themes: ["vitesse-light", "vitesse-dark"],
+      });
+
+      const highlighter = await shikiHighlighterPromise;
+      const transform = rehypeShikiFromHighlighter(highlighter, options) as unknown as (
+        currentTree: HastRoot,
+      ) => void | Promise<void>;
+      await transform(tree);
+    };
+  }
+
+  const markdownProcessor = unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkImageAttributes)
+    .use(remarkRehype, { allowDangerousHtml: false })
+    .use(rehypeImageFigure)
+    .use(rehypeSanitize, sanitizeSchema)
+    .use(rehypeSlug)
+    .use(rehypeHeadingLinks)
+    .use(rehypeExternalLinks, {
+      rel: ["noopener"],
+      target: "_blank",
+    })
+    .use(rehypeShiki, {
+      defaultColor: "light-dark()",
+      defaultLanguage: "text",
+      fallbackLanguage: "text",
+      themes: { dark: "vitesse-dark", light: "vitesse-light" },
+      transformers: [
+        transformerNotationDiff(),
+        transformerNotationHighlight(),
+        transformerNotationFocus(),
+        transformerMetaHighlight(),
+        transformerCodeChrome(),
+      ],
+    })
+    .use(rehypeCodeBlocks)
+    .use(rehypeStringify);
+
+  return {
+    async renderMarkdown(markdown: string) {
+      const tree = markdownProcessor.parse(markdown);
+      const toc = extractToc(tree);
+      const html = String(await markdownProcessor.process(markdown));
+
+      return { html, toc };
+    },
+  };
 }

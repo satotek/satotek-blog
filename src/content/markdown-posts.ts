@@ -1,5 +1,5 @@
 import { parseMarkdownSource, type MarkdownSource } from "./markdown-source";
-import type { Post, PostListOptions, PostRepository } from "./types";
+import type { PostListOptions, PostSummary, PostSummaryRepository } from "./types";
 
 const sources = import.meta.glob<string>("./posts/*/index.md", {
   eager: true,
@@ -28,35 +28,22 @@ function matches(source: MarkdownSource, options: PostListOptions) {
   return true;
 }
 
-async function render(source: MarkdownSource): Promise<Post> {
-  const { renderMarkdown } = await import("./markdown-parser");
-  const { html, toc } = renderMarkdown(source.markdown);
-
-  return {
-    ...source.summary,
-    content: {
-      format: "markdown",
-      markdown: source.markdown,
-      html,
-      toc,
-    },
-  };
+export function listMarkdownPostSummaries(options: PostListOptions = {}): readonly PostSummary[] {
+  return publishedSources
+    .filter((source) => matches(source, options))
+    .map((source) => source.summary);
 }
 
-export class MarkdownPostRepository implements PostRepository {
+export function getPublishedMarkdownSource(slug: string) {
+  return publishedSources.find((source) => source.slug === slug);
+}
+
+export function getPublishedMarkdownSources() {
+  return publishedSources;
+}
+
+export class MarkdownPostSummaryRepository implements PostSummaryRepository {
   async list(options: PostListOptions = {}) {
-    return markdownSources
-      .filter((source) => !source.draft)
-      .filter((source) => matches(source, options))
-      .map((source) => source.summary);
-  }
-
-  async listAll() {
-    return Promise.all(publishedSources.map(render));
-  }
-
-  async findBySlug(slug: string) {
-    const source = publishedSources.find((candidate) => candidate.slug === slug);
-    return source ? render(source) : undefined;
+    return listMarkdownPostSummaries(options);
   }
 }

@@ -2,14 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { siGithub, siInstagram, siX } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
+import { SITE_URL, createSocialMeta } from "#/lib/site";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
       { title: "プロフィール | satotek.dev" },
       { name: "description", content: "nosuke のプロフィール" },
+      ...createSocialMeta({
+        title: "プロフィール | satotek.dev",
+        description: "nosuke のプロフィール",
+        url: `${SITE_URL}/profile`,
+        imageAlt: "satotek.dev のプロフィール",
+      }),
     ],
-    links: [{ rel: "canonical", href: "https://satotek.dev/profile" }],
+    links: [{ rel: "canonical", href: `${SITE_URL}/profile` }],
   }),
   component: Profile,
 });

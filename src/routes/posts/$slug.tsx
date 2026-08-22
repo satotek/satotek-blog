@@ -1,33 +1,66 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Button as AriaButton } from "react-aria-components";
+import { useEffect, useRef, useState } from "react";
 
+import { CodeCopyButtons, ImageLightbox } from "#/components/ArticleEnhancers";
+import { ArticleFooter } from "#/components/ArticleFooter";
+import { TableOfContents } from "#/components/TableOfContents";
+import { getPostBySlug } from "#/content/posts.functions";
 import { postRepository } from "#/content/repository";
-import { getPostSourceText, type Post } from "#/content/types";
+import { getPostReadingMinutes, type Post, type PostSummary, type TocItem } from "#/content/types";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
-import { SITE_URL } from "#/lib/site";
+import { SITE_URL, createSocialMeta, generatedPostOgImageUrl } from "#/lib/site";
 
-const REACTIONS = ["👍", "❤️", "🎉", "👀"];
+const TOC_MIN = 3;
+const TOC_STATE_KEY = "toc-state";
+const READING_LINE = 120;
 
 export const Route = createFileRoute("/posts/$slug")({
-  loader: async ({ params }): Promise<{ post: Post }> => {
-    const post = await postRepository.findBySlug(params.slug);
+  loader: async ({ params }): Promise<{ post: Post; relatedPosts: readonly PostSummary[] }> => {
+    const post = await getPostBySlug({ data: { slug: params.slug } });
     if (!post) throw notFound();
-    return { post };
+
+    const relatedPosts = (await postRepository.list())
+      .filter((candidate) => candidate.slug !== post.slug)
+      .map((candidate) => ({
+        post: candidate,
+        score:
+          candidate.tags.filter((tag) => post.tags.includes(tag)).length * 2 +
+          (candidate.category === post.category ? 1 : 0),
+      }))
+      .filter(({ score }) => score > 0)
+      .sort(
+        (left, right) => right.score - left.score || right.post.date.localeCompare(left.post.date),
+      )
+      .slice(0, 3)
+      .map(({ post: candidate }) => candidate);
+
+    return { post, relatedPosts };
   },
   head: ({ params, loaderData }) => {
     const post = loaderData?.post;
     const title = post?.title ?? "記事";
     const description = post?.description ?? "satotek.devの記事";
+    const generatedImage = post ? generatedPostOgImageUrl(post.slug) : undefined;
+    const image = generatedImage ?? post?.cover;
 
     return {
       meta: [
         { title: `${title} | satotek.dev` },
         { name: "description", content: description },
-        { property: "og:type", content: "article" },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        ...(post ? [{ property: "article:published_time", content: post.date }] : []),
+        ...createSocialMeta({
+          title,
+          description,
+          url: `${SITE_URL}/posts/${params.slug}`,
+          image,
+          imageAlt: generatedImage
+            ? `${title} のOGP画像`
+            : post?.cover
+              ? `${title} のカバー画像`
+              : undefined,
+          type: "article",
+          publishedTime: post?.date,
+        }),
       ],
       links: [{ rel: "canonical", href: `${SITE_URL}/posts/${params.slug}` }],
     };
@@ -36,10 +69,10 @@ export const Route = createFileRoute("/posts/$slug")({
 });
 
 function PostPage() {
-  const { post } = Route.useLoaderData();
+  const { post, relatedPosts } = Route.useLoaderData();
 
   const category = categoryBySlug(post.category);
-  const readingMinutes = Math.max(1, Math.ceil(getPostSourceText(post).length / 500));
+  const readingMinutes = getPostReadingMinutes(post);
 
   return (
     <article className="w-full">
@@ -86,31 +119,151 @@ function PostPage() {
         </ul>
       </header>
 
-      <div
-        className="text-[1.0625rem] leading-[1.75] sm:text-[1.125rem] sm:leading-[1.85] [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-6 [&_blockquote]:border-l-4 [&_blockquote]:border-accent-border [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-accent-soft [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.9em] [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:text-[0.85rem] [&_figcaption]:text-muted [&_figure]:my-6 [&_h2]:mb-4 [&_h2]:mt-10 [&_h2:first-child]:mt-0 [&_h2]:text-[1.45rem] [&_h2]:font-bold [&_h3]:mb-3 [&_h3]:mt-8 [&_h3]:text-[1.2rem] [&_h3]:font-bold [&_img]:h-auto [&_img]:max-w-full [&_img.center]:mx-auto [&_li]:my-1 [&_ol]:my-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-[1.25em] [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_pre]:my-6 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-[#1f2429] [&_pre]:p-4 [&_pre]:text-[0.9em] [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:my-5 [&_ul]:list-disc [&_ul]:pl-6"
-        dangerouslySetInnerHTML={{ __html: post.content.html }}
-      />
-
-      <div
-        className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6"
-        aria-label="記事へのリアクション"
-      >
-        <div className="flex flex-wrap gap-2">
-          {REACTIONS.map((emoji) => (
-            <AriaButton
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line bg-transparent px-3 py-1.5 text-[0.95rem] text-ink transition-[background,border-color,transform] duration-150 hover:border-accent-border hover:bg-accent-soft active:scale-[0.94]"
-              type="button"
-              key={emoji}
-            >
-              <span className="text-[1.05rem] leading-none" aria-hidden="true">
-                {emoji}
-              </span>
-              <span className="min-w-[1ch] text-[0.85rem] tabular-nums text-muted">–</span>
-            </AriaButton>
-          ))}
-        </div>
-        <span className="text-[0.85rem] tabular-nums text-muted">– views</span>
-      </div>
+      <PostBody post={post} />
+      <ArticleFooter post={post} relatedPosts={relatedPosts} />
     </article>
   );
+}
+
+function PostBody({ post }: { post: Post }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const hasToc = post.content.toc.length >= TOC_MIN;
+  const activeId = useActiveHeading(contentRef, hasToc ? post.content.toc : []);
+  const [tocOpen, setTocOpen] = useState(true);
+
+  useEffect(() => {
+    try {
+      setTocOpen(localStorage.getItem(TOC_STATE_KEY) !== "close");
+    } catch {}
+  }, []);
+
+  const toggleToc = () => {
+    setTocOpen((open) => {
+      const next = !open;
+      try {
+        localStorage.setItem(TOC_STATE_KEY, next ? "open" : "close");
+      } catch {}
+      return next;
+    });
+  };
+
+  return (
+    <>
+      {hasToc ? (
+        <>
+          <div className="toc toc-mobile">
+            <TableOfContents
+              activeId={activeId}
+              isOpen={tocOpen}
+              items={post.content.toc}
+              onToggle={toggleToc}
+            />
+          </div>
+          <div className={`post-layout${tocOpen ? "" : " post-layout--toc-closed"}`}>
+            <div className="post-content">
+              <MarkdownContent containerRef={contentRef} post={post} />
+            </div>
+            <aside className="toc toc-desktop">
+              <TableOfContents
+                activeId={activeId}
+                isOpen={tocOpen}
+                items={post.content.toc}
+                onToggle={toggleToc}
+              />
+            </aside>
+          </div>
+        </>
+      ) : (
+        <>
+          <MarkdownContent containerRef={contentRef} post={post} />
+        </>
+      )}
+    </>
+  );
+}
+
+function MarkdownContent({
+  containerRef,
+  post,
+}: {
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  post: Post;
+}) {
+  return (
+    <>
+      <div className="markdown-content">
+        <div
+          ref={containerRef}
+          className="markdown-body"
+          dangerouslySetInnerHTML={{ __html: post.content.html }}
+        />
+        <CodeCopyButtons containerRef={containerRef} contentKey={post.slug} />
+        <ImageLightbox containerRef={containerRef} contentKey={post.slug} />
+      </div>
+    </>
+  );
+}
+
+function useActiveHeading(
+  contentRef: React.RefObject<HTMLDivElement | null>,
+  items: readonly TocItem[],
+) {
+  const [activeId, setActiveId] = useState<string | undefined>(items[0]?.id);
+
+  useEffect(() => {
+    setActiveId(items[0]?.id);
+    if (items.length === 0) return;
+
+    // 記事本文は再レンダリングで DOM ごと差し替わることがある。見出しの参照を
+    // 持ち回ると detached なノードを測り続けて追従が止まるので、毎回引き直す。
+    const readHeadings = () => {
+      const root = contentRef.current;
+      if (!root) return [];
+      return items
+        .map((item) => root.querySelector<HTMLElement>(`#${CSS.escape(item.id)}`))
+        .filter((heading): heading is HTMLElement => heading !== null);
+    };
+
+    // 「読んでいる行」を固定ヘッダーの少し下に置き、そこを最後に通過した見出しを
+    // 採用する。帯に見出しが無い時間があっても答えが必ず出る。
+    const update = () => {
+      const headings = readHeadings();
+      if (headings.length === 0) return;
+
+      const reachedBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      if (reachedBottom) {
+        setActiveId(headings.at(-1)?.id);
+        return;
+      }
+
+      let current = headings[0];
+      for (const heading of headings) {
+        if (heading.getBoundingClientRect().top > READING_LINE) break;
+        current = heading;
+      }
+      setActiveId(current?.id);
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        ticking = false;
+        update();
+      });
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [contentRef, items]);
+
+  return activeId;
 }

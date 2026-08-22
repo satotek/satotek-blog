@@ -1,18 +1,19 @@
-# satotek.dev PoC
+# satotek-blog
 
-現行の `satotek.dev` を、Vite+ と TanStack Start で作り直すための最小PoCです。
+[satotek.dev](https://satotek.dev) のWebアプリケーションです。Vite+ と TanStack Start を使い、Cloudflare Workersへデプロイします。
 
-現時点では、既存サイトのコンテンツと雰囲気を参考にした表示・ルーティングPoCです。
+本番の `satotek.dev` をこのリポジトリから直接デプロイできる構成にしています。
 
 - トップページとプロフィールページ
 - TanStack Router のファイルベースルーティング
-- `/posts/$slug` の動的ルート
+- `/posts/$slug` の記事ルート
 - カテゴリ／タグ一覧と記事一覧、`/page/N` のページ送り
 - `robots.txt`、サイトマップ、RSS、`llms.txt`、`security.txt`
 - `src/content/posts/<slug>/index.md` のfrontmatter付きMarkdown記事
+- 記事タイトル・カテゴリ・タグから生成する1200×630のOGP画像
 - レスポンシブ対応、キーボードフォーカス、OSのダークモード対応
 
-記事データは `PostRepository` の境界越しに取得しています。現在はGit管理のMarkdownをViteのglob importで取り込み、frontmatterを検証してremark/rehypeでHTMLと目次へ変換しています。CMSを導入する場合も、画面ルートから取得元を切り離したままアダプターを追加できます。
+記事データは `PostRepository` の境界越しに取得しています。現在はGit管理のMarkdownをViteのglob importで取り込み、frontmatterを検証してremark/rehypeとShikiでビルド時にHTMLと目次へ変換しています。公開済みの画面とテキスト配信物は静的アセットとして配信し、将来のCMSプレビューやAPI用にTanStack StartのWorker SSRも残しています。CMSを導入する場合も、画面ルートから取得元を切り離したままアダプターを追加できます。
 
 ## 技術スタック
 
@@ -47,6 +48,68 @@ VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 
 未設定のままでも動作し、ローカル開発やプレビューでは計測スクリプトを読み込みません。人気記事の取得は別の `AnalyticsRepository` に分けてあり、認証情報が必要なGA4 Data APIの接続は次段階で追加できます。
 
+### OGP画像（任意）
+
+記事ごとのOGP画像は `satori` と `@resvg/resvg-js` で生成し、Cloudflare R2へ `blog/ogp/<slug>.png` としてアップロードできます。生成処理はWorkerでは実行せず、ローカルまたはGitHub Actionsで実行します。
+
+まずR2バケットと、オブジェクトの読み書きができるS3 APIトークンを用意してください。R2のS3互換エンドポイントはアカウントIDから自動で組み立てます。
+
+```sh
+# まずローカルで画像を確認する（.ogp/ に出力）
+bun run generate-ogp:all
+
+# R2へ初回アップロードする
+R2_ACCOUNT_ID=... \
+R2_ACCESS_KEY_ID=... \
+R2_SECRET_ACCESS_KEY=... \
+R2_BUCKET_NAME=... \
+bun run generate-ogp:upload
+```
+
+R2の公開用カスタムドメインを用意したら、デプロイ時の環境変数に設定します。
+
+```sh
+VITE_OGP_BASE_URL=https://ogp.satotek.dev
+```
+
+設定後の記事ページは `https://ogp.satotek.dev/blog/ogp/<slug>.png` を `og:image` として使用します。未設定の場合は、既存のカバー画像または `public/og-image.png` にフォールバックします。
+
+記事Markdownが`main`へマージされると、`.github/workflows/generate-ogp.yaml` が変更された記事だけを生成してR2へアップロードします。GitHubリポジトリには次のActions Secretsを登録してください。
+
+- `R2_ACCOUNT_ID`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_BUCKET_NAME`
+
+## Cloudflare Workersへのデプロイ
+
+`wrangler.jsonc` は本番用の設定です。Worker名は `satotek`、Custom Domainは `satotek.dev` になっているため、デプロイすると現在のサイトをこのアプリで置き換えます。
+
+> `bun run deploy` はステージングではなく、本番の `satotek.dev` を更新します。実行するCloudflareアカウントが、現在のWorkerとドメインを管理していることを確認してください。
+
+Cloudflareへログイン後、次を実行します。
+
+```sh
+bun install
+bunx wrangler login
+bunx wrangler whoami
+bun run deploy
+```
+
+`bun run deploy` は、MarkdownのHTML生成、Vite+のチェック、Cloudflare向けビルド、`wrangler deploy` を順に実行します。実行前にローカルで表示と主要ルートを確認してください。
+
+GA4を有効にする場合は、デプロイする環境で測定IDを設定します。測定IDはブラウザへ公開される値なので、Worker Secretではなくビルド時の環境変数として扱います。
+
+```sh
+cp .env.example .env.local
+# .env.local
+VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+`.env.local`、`.env.*`、`.dev.vars*` はGit管理対象外です。APIキー、秘密鍵、サービスアカウント認証情報などをリポジトリへ追加しないでください。
+
+旧サイトで使っていたリアクション・PV用のD1は、新アプリケーションからは参照していません。このリポジトリのデプロイ処理にD1データベースを削除する操作は含まれていません。
+
 ## 検証
 
 ```sh
@@ -56,7 +119,7 @@ bun run build
 bun run preview
 ```
 
-`bun run check` は `src/` のVite+フォーマット・Lintに加えてTypeScriptの型検査も実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run dev` はCloudflare Vite Pluginとの開発時互換性を優先し、`vite dev`を直接起動します。
+`bun run check` はMarkdownのHTML生成、`src/` と `scripts/` のVite+フォーマット・Lint、TypeScriptの型検査を実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run dev` も起動時にMarkdownのHTMLを生成してから開発サーバーを起動します。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
 
 ## ディレクトリ構成
 
@@ -72,6 +135,8 @@ src/
 └── styles.css               Tailwind CSSのエントリーポイントとデザイントークン
 ```
 
+`scripts/generate-post-content.ts` は公開MarkdownをShikiで変換し、`src/content/generated/` にビルド用のHTMLと目次を生成します。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。これらのディレクトリは生成物のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
+
 `src/routeTree.gen.ts` はTanStack Routerが生成するファイルです。ルートファイルを追加したときは、必要に応じて次を実行します。
 
 ```sh
@@ -85,4 +150,4 @@ bun run generate-routes
 - Headless CMSは、複数人編集・Web上の執筆・承認フローなどが必要になった段階でRepositoryアダプターとして追加する
 - ElysiaなどのAPIフレームワークは、管理APIやWebhookなどの具体的な要件が出た段階で別Workerとして追加する
 - GA4 Data APIをWorkerから直接呼ぶか、集計結果を定期生成して静的データとして配るか
-- 検索、隠しゲーム、OG画像、記事本文のMarkdown表示をどの順番で復元するか
+- 検索、隠しゲーム、記事本文のMarkdown表示をどの順番で復元するか

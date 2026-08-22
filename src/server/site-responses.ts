@@ -1,6 +1,6 @@
 import { categoryBySlug, getCategories, getTags, tagPath } from "#/data/navigation";
 import { postRepository } from "#/content/repository";
-import { getPostSourceText } from "#/content/types";
+import { getPublishedMarkdownSources } from "#/content/markdown-posts";
 import { absoluteUrl, SITE_DESCRIPTION, SITE_URL } from "#/lib/site";
 
 function textResponse(body: string, contentType: string, maxAge: number) {
@@ -145,20 +145,20 @@ ${articles.join("\n")}
   );
 }
 
-export async function llmsFullResponse() {
-  const posts = await postRepository.listAll();
-  const sections = posts.map((post) => {
-    const category = categoryBySlug(post.category)?.name ?? post.category;
+export function llmsFullResponse() {
+  const sources = getPublishedMarkdownSources();
+  const sections = sources.map(({ summary, markdown }) => {
+    const category = categoryBySlug(summary.category)?.name ?? summary.category;
     const meta = [
-      `URL: ${SITE_URL}/posts/${post.slug}`,
-      `Date: ${post.date}`,
+      `URL: ${SITE_URL}/posts/${summary.slug}`,
+      `Date: ${summary.date}`,
       `Category: ${category}`,
-      post.tags.length ? `Tags: ${post.tags.join(", ")}` : "",
+      summary.tags.length ? `Tags: ${summary.tags.join(", ")}` : "",
     ]
       .filter(Boolean)
       .join("\n");
 
-    return `# ${post.title}\n\n${meta}\n\n${getPostSourceText(post)}`;
+    return `# ${summary.title}\n\n${meta}\n\n${markdown}`;
   });
 
   return textResponse(

@@ -6,12 +6,18 @@ import {
   createRootRoute,
   useRouterState,
 } from "@tanstack/react-router";
-import { Button as AriaButton } from "react-aria-components";
+import {
+  Button as AriaButton,
+  Dialog,
+  DialogTrigger,
+  Modal,
+  ModalOverlay,
+} from "react-aria-components";
 import { useEffect, useId, useState, type ReactNode } from "react";
 
 import { GA_INITIALIZER, GA_MEASUREMENT_ID, trackPageView } from "#/analytics/client";
 import { categories } from "#/data/navigation";
-import { SITE_URL } from "#/lib/site";
+import { SITE_DESCRIPTION, SITE_URL, createSocialMeta } from "#/lib/site";
 import appCss from "../styles.css?url";
 
 const THEME_INIT_SCRIPT = `(() => {
@@ -40,6 +46,12 @@ export const Route = createRootRoute({
         content: "個人ブログ・技術メモ",
       },
       { name: "theme-color", content: "#f3ece0" },
+      ...createSocialMeta({
+        title: "satotek.dev",
+        description: SITE_DESCRIPTION,
+        url: SITE_URL,
+        includeImageDimensions: false,
+      }),
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -167,18 +179,16 @@ function SiteChrome({ children }: { children: ReactNode }) {
 
   const closeDrawer = () => setDrawerOpen(false);
 
+  // ドロワーはモバイル専用。開いたまま desktop 幅に広がるとトリガーが消えるので閉じる。
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setDrawerOpen(false);
+    const media = window.matchMedia("(min-width: 641px)");
+    const handleChange = () => {
+      if (media.matches) setDrawerOpen(false);
     };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    handleChange();
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
   }, []);
-
-  useEffect(() => {
-    document.body.classList.toggle("overflow-hidden", drawerOpen);
-    return () => document.body.classList.remove("overflow-hidden");
-  }, [drawerOpen]);
 
   useEffect(() => {
     trackPageView(pathname);
@@ -318,16 +328,51 @@ function SiteChrome({ children }: { children: ReactNode }) {
                 <Bot className="size-5" aria-hidden="true" />
               </a>
               <ThemeToggle className="hidden sm:inline-flex" />
-              <AriaButton
-                className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[10px] border border-line bg-transparent text-ink transition-[background,border-color] duration-150 hover:border-accent-border hover:bg-accent-soft sm:hidden motion-reduce:transition-none"
-                type="button"
-                aria-label="メニュー"
-                aria-controls="site-drawer"
-                aria-expanded={drawerOpen}
-                onPress={() => setDrawerOpen((open) => !open)}
-              >
-                <Menu className="size-5" aria-hidden="true" />
-              </AriaButton>
+              <DialogTrigger isOpen={drawerOpen} onOpenChange={setDrawerOpen}>
+                <AriaButton
+                  className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[10px] border border-line bg-transparent text-ink transition-[background,border-color] duration-150 hover:border-accent-border hover:bg-accent-soft sm:hidden motion-reduce:transition-none"
+                  type="button"
+                  aria-label="メニュー"
+                >
+                  <Menu className="size-5" aria-hidden="true" />
+                </AriaButton>
+                <ModalOverlay className="drawer-overlay" isDismissable>
+                  <Modal className="drawer-panel">
+                    <Dialog aria-label="メニュー" className="drawer-dialog" id="site-drawer">
+                      <AriaButton
+                        className="mb-1 inline-flex h-9 w-9 self-end items-center justify-center rounded-lg border-0 bg-transparent text-muted hover:bg-hover hover:text-ink"
+                        type="button"
+                        aria-label="メニューを閉じる"
+                        onPress={closeDrawer}
+                      >
+                        <X className="size-5" aria-hidden="true" />
+                      </AriaButton>
+                      <NavigationLinks
+                        onNavigate={closeDrawer}
+                        navLinkClass={navLinkClass}
+                        drawer
+                      />
+                      <div className="mt-auto flex items-center justify-center gap-2.5 pt-3.5">
+                        <ThemeToggle className="inline-flex" />
+                        <a
+                          className={`${iconButtonClass} inline-flex`}
+                          href="/feed.xml"
+                          aria-label="RSS フィード"
+                        >
+                          <Rss className="size-5" aria-hidden="true" />
+                        </a>
+                        <a
+                          className={`${iconButtonClass} inline-flex`}
+                          href="/llms.txt"
+                          aria-label="llms.txt（LLM 向けサイト情報）"
+                        >
+                          <Bot className="size-5" aria-hidden="true" />
+                        </a>
+                      </div>
+                    </Dialog>
+                  </Modal>
+                </ModalOverlay>
+              </DialogTrigger>
             </div>
           </div>
           <nav className="hidden sm:block" aria-label="グローバルナビ">
@@ -337,47 +382,6 @@ function SiteChrome({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-
-      <div
-        className={`fixed inset-0 z-[998] bg-black/40 transition-[opacity,visibility] duration-300 ease-in-out motion-reduce:transition-none ${drawerOpen ? "visible opacity-100" : "pointer-events-none invisible opacity-0"}`}
-        aria-hidden={!drawerOpen}
-        onClick={closeDrawer}
-      />
-      <nav
-        className={`fixed right-0 top-0 z-[999] h-dvh w-[min(80vw,300px)] overflow-y-auto overscroll-contain border-l border-line bg-page shadow-[-10px_0_30px_rgba(0,0,0,0.16)] transition-[transform,visibility] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none sm:hidden ${drawerOpen ? "visible translate-x-0" : "invisible translate-x-full"}`}
-        id="site-drawer"
-        aria-label="メニュー"
-        aria-hidden={!drawerOpen}
-      >
-        <div className="flex min-h-full flex-col items-stretch gap-0.5 overflow-x-visible px-3.5 pb-6 pt-3.5">
-          <AriaButton
-            className="mb-1 inline-flex h-9 w-9 self-end items-center justify-center rounded-lg border-0 bg-transparent text-muted hover:bg-hover hover:text-ink"
-            type="button"
-            aria-label="メニューを閉じる"
-            onPress={closeDrawer}
-          >
-            <X className="size-5" aria-hidden="true" />
-          </AriaButton>
-          <NavigationLinks onNavigate={closeDrawer} navLinkClass={navLinkClass} drawer />
-          <div className="mt-auto flex items-center justify-center gap-2.5 pt-3.5">
-            <ThemeToggle className="inline-flex" />
-            <a
-              className={`${iconButtonClass} inline-flex`}
-              href="/feed.xml"
-              aria-label="RSS フィード"
-            >
-              <Rss className="size-5" aria-hidden="true" />
-            </a>
-            <a
-              className={`${iconButtonClass} inline-flex`}
-              href="/llms.txt"
-              aria-label="llms.txt（LLM 向けサイト情報）"
-            >
-              <Bot className="size-5" aria-hidden="true" />
-            </a>
-          </div>
-        </div>
-      </nav>
 
       {children}
 

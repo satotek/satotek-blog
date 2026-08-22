@@ -2,6 +2,7 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 import { TagPageContent } from "#/components/TaxonomyPage";
 import { postRepository } from "#/content/repository";
+import { SITE_URL, createSocialMeta } from "#/lib/site";
 import { parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
 
 export const Route = createFileRoute("/tags/$tag/page/$page")({
@@ -22,6 +23,29 @@ export const Route = createFileRoute("/tags/$tag/page/$page")({
       });
     }
     return { posts };
+  },
+  head: ({ params }) => {
+    const tag = decodeURIComponent(params.tag);
+    const title = `タグ: ${tag}（${params.page}ページ目） | satotek.dev`;
+    const description = `「${tag}」の記事一覧（${params.page}ページ目）`;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        ...createSocialMeta({
+          title,
+          description,
+          url: `${SITE_URL}/tags/${encodeURIComponent(tag)}/page/${params.page}`,
+        }),
+      ],
+      links: [
+        {
+          rel: "canonical",
+          href: `${SITE_URL}/tags/${encodeURIComponent(tag)}/page/${params.page}`,
+        },
+      ],
+    };
   },
   component: TagNumberedPage,
 });

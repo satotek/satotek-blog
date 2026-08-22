@@ -8,7 +8,7 @@ import { analyticsRepository } from "#/analytics/repository";
 import { getCategories, getTags } from "#/data/navigation";
 import { PICKED_POST_SLUGS } from "#/data/home";
 import { postRepository } from "#/content/repository";
-import { SITE_URL } from "#/lib/site";
+import { SITE_URL, createSocialMeta } from "#/lib/site";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,6 +18,11 @@ export const Route = createFileRoute("/")({
         name: "description",
         content: "nosukeの個人ブログ。技術、ガジェット、旅行、日常についての記録。",
       },
+      ...createSocialMeta({
+        title: "satotek.dev",
+        description: "nosukeの個人ブログ。技術、ガジェット、旅行、日常についての記録。",
+        url: SITE_URL,
+      }),
     ],
     links: [{ rel: "canonical", href: SITE_URL }],
   }),
