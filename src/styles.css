@@ -37,6 +37,10 @@
   --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
   --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
   --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
+  --theme-toggle-core: scale(1);
+  --theme-toggle-cutout: translate(8.5px, -8.5px);
+  --theme-toggle-rays: rotate(0deg) scale(1);
+  --theme-toggle-rays-opacity: 1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -53,6 +57,10 @@
     --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
     --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
     --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
+    --theme-toggle-core: scale(2.15);
+    --theme-toggle-cutout: translate(5.6px, -3.2px);
+    --theme-toggle-rays: rotate(90deg) scale(0.15);
+    --theme-toggle-rays-opacity: 0;
   }
 }
 
@@ -69,10 +77,65 @@
   --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
   --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
   --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
+  --theme-toggle-core: scale(2.15);
+  --theme-toggle-cutout: translate(5.6px, -3.2px);
+  --theme-toggle-rays: rotate(90deg) scale(0.15);
+  --theme-toggle-rays-opacity: 0;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
+  --theme-toggle-core: scale(1);
+  --theme-toggle-cutout: translate(8.5px, -8.5px);
+  --theme-toggle-rays: rotate(0deg) scale(1);
+  --theme-toggle-rays-opacity: 1;
+}
+
+@layer components {
+  .theme-toggle-glyph {
+    overflow: visible;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theme-toggle:hover .theme-toggle-glyph {
+    transform: rotate(16deg);
+  }
+
+  .theme-toggle:active .theme-toggle-glyph {
+    transform: rotate(28deg);
+  }
+
+  .theme-toggle-core,
+  .theme-toggle-cutout,
+  .theme-toggle-rays {
+    transform-box: view-box;
+    transform-origin: 12px 12px;
+    transition:
+      transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.35s ease;
+  }
+
+  .theme-toggle-core {
+    transform: var(--theme-toggle-core);
+  }
+
+  .theme-toggle-cutout {
+    transform: var(--theme-toggle-cutout);
+  }
+
+  .theme-toggle-rays {
+    transform: var(--theme-toggle-rays);
+    opacity: var(--theme-toggle-rays-opacity);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle-glyph,
+    .theme-toggle-core,
+    .theme-toggle-cutout,
+    .theme-toggle-rays {
+      transition: none;
+    }
+  }
 }
 
 @layer base {

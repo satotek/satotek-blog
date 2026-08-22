@@ -18,7 +18,8 @@
     "@tanstack/react-start": "latest",
     "lucide-react": "^1.33.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "simple-icons": "^16.28.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.53.1",

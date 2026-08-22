@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AtSign, Camera, CodeXml } from "lucide-react";
+import { siGithub, siInstagram, siX } from "simple-icons";
+
+import { BrandIcon } from "#/components/BrandIcon";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -64,7 +66,7 @@ function Profile() {
           rel="noreferrer"
           aria-label="GitHub"
         >
-          <CodeXml className="size-5" aria-hidden="true" />
+          <BrandIcon icon={siGithub} className="size-5" />
         </a>
         <a
           className="inline-flex h-[42px] w-[42px] items-center justify-center rounded-xl border border-line text-muted transition-[background,border-color,color] duration-150 hover:border-accent-border hover:bg-accent-soft hover:text-accent"
@@ -73,7 +75,7 @@ function Profile() {
           rel="noreferrer"
           aria-label="X"
         >
-          <AtSign className="size-5" aria-hidden="true" />
+          <BrandIcon icon={siX} className="size-5" />
         </a>
         <a
           className="inline-flex h-[42px] w-[42px] items-center justify-center rounded-xl border border-line text-muted transition-[background,border-color,color] duration-150 hover:border-accent-border hover:bg-accent-soft hover:text-accent"
@@ -82,7 +84,7 @@ function Profile() {
           rel="noreferrer"
           aria-label="Instagram"
         >
-          <Camera className="size-5" aria-hidden="true" />
+          <BrandIcon icon={siInstagram} className="size-5" />
         </a>
       </div>
 
@@ -134,6 +136,13 @@ function Profile() {
             Google Fonts
           </a>
           ）
+        </li>
+        <li>
+          SNSブランドアイコン —{" "}
+          <a href="https://simpleicons.org/" target="_blank" rel="noreferrer">
+            Simple Icons
+          </a>
+          。各ブランドの商標・ガイドラインに従って使用しています。
         </li>
       </ul>
 

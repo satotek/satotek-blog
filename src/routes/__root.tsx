@@ -1,4 +1,4 @@
-import { Bot, Menu, Rss, SunMoon, X } from "lucide-react";
+import { Bot, Menu, Rss, X } from "lucide-react";
 import {
   HeadContent,
   Link,
@@ -6,7 +6,7 @@ import {
   createRootRoute,
   useRouterState,
 } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 
 import { categories } from "#/data/navigation";
 import { SITE_URL } from "#/lib/site";
@@ -90,20 +90,68 @@ function RootDocument({ children }: { children: ReactNode }) {
   );
 }
 
+function toggleTheme() {
+  const root = document.documentElement;
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  const current = root.getAttribute("data-theme") ?? (media.matches ? "dark" : "light");
+  const next = current === "dark" ? "light" : "dark";
+  root.setAttribute("data-theme", next);
+  try {
+    localStorage.setItem("theme", next);
+  } catch {}
+}
+
+function ThemeToggle({ className }: { className?: string }) {
+  const reactId = useId();
+  const maskId = `theme-moon-${reactId.replace(/:/g, "")}`;
+
+  return (
+    <button
+      className={`${iconButtonClass} theme-toggle ${className ?? ""}`}
+      type="button"
+      aria-label="テーマを切り替え"
+      onClick={toggleTheme}
+    >
+      <svg className="theme-toggle-glyph size-5" viewBox="0 0 24 24" aria-hidden="true">
+        <mask id={maskId}>
+          <rect width="24" height="24" fill="#fff" />
+          <circle className="theme-toggle-cutout" cx="12" cy="12" r="8" fill="#000" />
+        </mask>
+        <circle
+          className="theme-toggle-core"
+          cx="12"
+          cy="12"
+          r="5.4"
+          fill="currentColor"
+          mask={`url(#${maskId})`}
+        />
+        <g
+          className="theme-toggle-rays"
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="1.7"
+        >
+          {Array.from({ length: 8 }, (_, index) => (
+            <line
+              key={index}
+              x1="12"
+              y1="2.4"
+              x2="12"
+              y2="5.1"
+              transform={`rotate(${index * 45} 12 12)`}
+            />
+          ))}
+        </g>
+      </svg>
+    </button>
+  );
+}
+
 function SiteChrome({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const closeDrawer = () => setDrawerOpen(false);
-  const toggleTheme = () => {
-    const root = document.documentElement;
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const current = root.getAttribute("data-theme") ?? (media.matches ? "dark" : "light");
-    const next = current === "dark" ? "light" : "dark";
-    root.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem("theme", next);
-    } catch {}
-  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -251,14 +299,7 @@ function SiteChrome({ children }: { children: ReactNode }) {
               >
                 <Bot className="size-5" aria-hidden="true" />
               </a>
-              <button
-                className={`${iconButtonClass} hidden sm:inline-flex`}
-                type="button"
-                aria-label="テーマを切り替え"
-                onClick={toggleTheme}
-              >
-                <SunMoon className="size-5" strokeWidth={1.8} aria-hidden="true" />
-              </button>
+              <ThemeToggle className="hidden sm:inline-flex" />
               <button
                 className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[10px] border border-line bg-transparent text-ink transition-[background,border-color] duration-150 hover:border-accent-border hover:bg-accent-soft sm:hidden motion-reduce:transition-none"
                 type="button"
@@ -301,14 +342,7 @@ function SiteChrome({ children }: { children: ReactNode }) {
           </button>
           <NavigationLinks onNavigate={closeDrawer} navLinkClass={navLinkClass} drawer />
           <div className="mt-auto flex items-center justify-center gap-2.5 pt-3.5">
-            <button
-              className={`${iconButtonClass} inline-flex`}
-              type="button"
-              aria-label="テーマを切り替え"
-              onClick={toggleTheme}
-            >
-              <SunMoon className="size-5" strokeWidth={1.8} aria-hidden="true" />
-            </button>
+            <ThemeToggle className="inline-flex" />
             <a
               className={`${iconButtonClass} inline-flex`}
               href="/feed.xml"
@@ -420,7 +454,7 @@ function SiteLogo() {
                 />
               ) : (
                 <text
-                  className="letter-scroll [transform-box:fill-box] origin-center font-mono text-[14px] font-extrabold [fill:var(--fg)] [will-change:transform,opacity,filter]"
+                  className="letter-scroll [transform-box:fill-box] origin-center font-sans text-[14px] font-extrabold [fill:var(--fg)] [will-change:transform,opacity,filter]"
                   data-index={index}
                   textAnchor="middle"
                   x={index * 10 + 5}

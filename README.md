@@ -23,6 +23,7 @@ Markdownの解析、CMS、OG画像、記事ごとの追加機能は、ルート�
 - Bun 1.3 — パッケージ管理とスクリプト実行
 - Tailwind CSS 4 — ViteプラグインでユーティリティCSSを生成
 - lucide-react — RSS、メニュー、テーマ切替などのUIアイコン
+- Simple Icons — GitHub、X、Instagramなどのブランドアイコン
 
 ## 開発
 
