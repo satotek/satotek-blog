@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme inline {
+  --breakpoint-sm: 641px;
+  --font-sans:
+    "Geist", "Zen Kaku Gothic New", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  --color-page: var(--bg);
+  --color-ink: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-line: var(--border);
+  --color-card: var(--card);
+  --color-code: var(--code-bg);
+  --color-hover: var(--hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-border: var(--accent-border);
+  --radius-site: 14px;
+}
+
+:root {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  --bg: #f3ece0;
+  --fg: #2e2820;
+  --muted: #6f6657;
+  --accent: #a0412a;
+  --border: color-mix(in srgb, var(--fg) 12%, transparent);
+  --card: color-mix(in srgb, var(--fg) 3%, transparent);
+  --code-bg: color-mix(in srgb, var(--fg) 6%, transparent);
+  --hover: color-mix(in srgb, var(--fg) 7%, transparent);
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
+  --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #1f1e1d;
+    --fg: #edeae2;
+    --muted: #a39e94;
+    --accent: #e0876a;
+    --border: color-mix(in srgb, var(--fg) 14%, transparent);
+    --card: color-mix(in srgb, var(--fg) 5%, transparent);
+    --code-bg: color-mix(in srgb, var(--fg) 8%, transparent);
+    --hover: color-mix(in srgb, var(--fg) 7%, transparent);
+    --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
+    --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
+    --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1f1e1d;
+  --fg: #edeae2;
+  --muted: #a39e94;
+  --accent: #e0876a;
+  --border: color-mix(in srgb, var(--fg) 14%, transparent);
+  --card: color-mix(in srgb, var(--fg) 5%, transparent);
+  --code-bg: color-mix(in srgb, var(--fg) 8%, transparent);
+  --hover: color-mix(in srgb, var(--fg) 7%, transparent);
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
+  --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+@layer base {
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply m-0 bg-page font-sans leading-[1.75] text-ink antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-color: var(--border);
+    text-underline-offset: 3px;
+    transition: color 150ms ease;
+  }
+
+  a:hover {
+    color: var(--accent);
+  }
+
+  button {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+}
