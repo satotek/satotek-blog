@@ -3,22 +3,16 @@ import { siGithub, siInstagram, siX } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
 import { ResponsiveImage } from "#/components/ResponsiveImage";
-import { SITE_URL, createSocialMeta, mediaUrl } from "#/lib/site";
+import { createPageHead, mediaUrl, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({
-    meta: [
-      { title: "プロフィール | satotek.dev" },
-      { name: "description", content: "nosuke のプロフィール" },
-      ...createSocialMeta({
-        title: "プロフィール | satotek.dev",
-        description: "nosuke のプロフィール",
-        url: `${SITE_URL}/profile`,
-        imageAlt: "satotek.dev のプロフィール",
-      }),
-    ],
-    links: [{ rel: "canonical", href: `${SITE_URL}/profile` }],
-  }),
+  head: () =>
+    createPageHead({
+      title: withSiteName("プロフィール"),
+      description: "nosuke のプロフィール",
+      path: "/profile",
+      imageAlt: "satotek.dev のプロフィール",
+    }),
   component: Profile,
 });
 

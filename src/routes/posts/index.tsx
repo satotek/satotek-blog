@@ -3,21 +3,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PostList } from "#/components/PostList";
 import { SectionHeading } from "#/components/SectionHeading";
 import { postRepository } from "#/content/repository";
-import { SITE_URL, createSocialMeta } from "#/lib/site";
+import { createPageHead, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/posts/")({
-  head: () => ({
-    meta: [
-      { title: "記事一覧 | satotek.dev" },
-      { name: "description", content: "satotek.devの記事一覧" },
-      ...createSocialMeta({
-        title: "記事一覧 | satotek.dev",
-        description: "satotek.devの記事一覧",
-        url: `${SITE_URL}/posts`,
-      }),
-    ],
-    links: [{ rel: "canonical", href: `${SITE_URL}/posts` }],
-  }),
+  head: () =>
+    createPageHead({
+      title: withSiteName("記事一覧"),
+      description: "satotek.devの記事一覧",
+      path: "/posts",
+    }),
   loader: async () => ({ posts: await postRepository.list() }),
   component: PostsIndexPage,
 });

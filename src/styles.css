@@ -23,175 +23,79 @@
   --radius-site: 14px;
 }
 
+/* パレットは light-dark() で1箇所定義。テーマ切り替えは color-scheme の変更だけで効く。 */
 :root {
   color-scheme: light dark;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  --bg: #f3ece0;
-  --fg: #2e2820;
-  --muted: #6f6657;
-  --accent: #a0412a;
-  --border: color-mix(in srgb, var(--fg) 12%, transparent);
-  --card: color-mix(in srgb, var(--fg) 3%, transparent);
-  --code-bg: color-mix(in srgb, var(--fg) 6%, transparent);
-  --code-surface: color-mix(in srgb, #fffdf8 62%, var(--bg));
-  --code-bar: color-mix(in srgb, var(--fg) 5%, var(--code-surface));
-  --code-border: color-mix(in srgb, var(--fg) 11%, transparent);
-  --code-add: oklch(0.5 0.11 150);
-  --code-remove: oklch(0.5 0.14 25);
+  /* テーマ切り替えアニメーションの進行度。light-dark() は色専用なので数値はここで分岐する。 */
+  --dark: 0;
+  --bg: light-dark(#f3ece0, #1f1e1d);
+  --fg: light-dark(#2e2820, #edeae2);
+  --muted: light-dark(#6f6657, #a39e94);
+  --accent: light-dark(#a0412a, #e0876a);
+  --border: light-dark(
+    color-mix(in srgb, var(--fg) 12%, transparent),
+    color-mix(in srgb, var(--fg) 14%, transparent)
+  );
+  --card: light-dark(
+    color-mix(in srgb, var(--fg) 3%, transparent),
+    color-mix(in srgb, var(--fg) 5%, transparent)
+  );
+  --code-bg: light-dark(
+    color-mix(in srgb, var(--fg) 6%, transparent),
+    color-mix(in srgb, var(--fg) 8%, transparent)
+  );
+  --code-surface: light-dark(
+    color-mix(in srgb, #fffdf8 62%, var(--bg)),
+    color-mix(in srgb, #000 26%, var(--bg))
+  );
+  --code-bar: light-dark(
+    color-mix(in srgb, var(--fg) 5%, var(--code-surface)),
+    color-mix(in srgb, var(--fg) 6%, var(--code-surface))
+  );
+  --code-border: light-dark(
+    color-mix(in srgb, var(--fg) 11%, transparent),
+    color-mix(in srgb, var(--fg) 13%, transparent)
+  );
+  --code-add: light-dark(oklch(0.5 0.11 150), oklch(0.74 0.12 150));
+  --code-remove: light-dark(oklch(0.5 0.14 25), oklch(0.72 0.13 25));
   --hover: color-mix(in srgb, var(--fg) 7%, transparent);
   --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
   --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
   --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
-  --surface: color-mix(in srgb, #fffdf8 66%, transparent);
-  --surface-shadow: 0 1px 2px rgb(46 40 32 / 0.04), 0 8px 24px -18px rgb(46 40 32 / 0.35);
-  --theme-toggle-core: scale(1);
-  --theme-toggle-cutout: translate(8.5px, -8.5px);
-  --theme-toggle-rays: rotate(0deg) scale(1);
-  --theme-toggle-rays-opacity: 1;
+  --surface: light-dark(
+    color-mix(in srgb, #fffdf8 66%, transparent),
+    color-mix(in srgb, var(--fg) 5%, transparent)
+  );
+  /* ダークでは影を透明にして実質 none にする（色なので light-dark() で表現できる）。 */
+  --surface-shadow:
+    0 1px 2px light-dark(rgb(46 40 32 / 0.04), transparent),
+    0 8px 24px -18px light-dark(rgb(46 40 32 / 0.35), transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #1f1e1d;
-    --fg: #edeae2;
-    --muted: #a39e94;
-    --accent: #e0876a;
-    --border: color-mix(in srgb, var(--fg) 14%, transparent);
-    --card: color-mix(in srgb, var(--fg) 5%, transparent);
-    --code-bg: color-mix(in srgb, var(--fg) 8%, transparent);
-    --code-surface: color-mix(in srgb, #000 26%, var(--bg));
-    --code-bar: color-mix(in srgb, var(--fg) 6%, var(--code-surface));
-    --code-border: color-mix(in srgb, var(--fg) 13%, transparent);
-    --code-add: oklch(0.74 0.12 150);
-    --code-remove: oklch(0.72 0.13 25);
-    --hover: color-mix(in srgb, var(--fg) 7%, transparent);
-    --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
-    --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
-    --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
-    --surface: color-mix(in srgb, var(--fg) 5%, transparent);
-    --surface-shadow: none;
-    --theme-toggle-core: scale(2.15);
-    --theme-toggle-cutout: translate(5.6px, -3.2px);
-    --theme-toggle-rays: rotate(90deg) scale(0.15);
-    --theme-toggle-rays-opacity: 0;
+    --dark: 1;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #1f1e1d;
-  --fg: #edeae2;
-  --muted: #a39e94;
-  --accent: #e0876a;
-  --border: color-mix(in srgb, var(--fg) 14%, transparent);
-  --card: color-mix(in srgb, var(--fg) 5%, transparent);
-  --code-bg: color-mix(in srgb, var(--fg) 8%, transparent);
-  --code-surface: color-mix(in srgb, #000 26%, var(--bg));
-  --code-bar: color-mix(in srgb, var(--fg) 6%, var(--code-surface));
-  --code-border: color-mix(in srgb, var(--fg) 13%, transparent);
-  --code-add: oklch(0.74 0.12 150);
-  --code-remove: oklch(0.72 0.13 25);
-  --hover: color-mix(in srgb, var(--fg) 7%, transparent);
-  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
-  --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
-  --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
-  --surface: color-mix(in srgb, var(--fg) 5%, transparent);
-  --surface-shadow: none;
-  --theme-toggle-core: scale(2.15);
-  --theme-toggle-cutout: translate(5.6px, -3.2px);
-  --theme-toggle-rays: rotate(90deg) scale(0.15);
-  --theme-toggle-rays-opacity: 0;
+  --dark: 1;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --theme-toggle-core: scale(1);
-  --theme-toggle-cutout: translate(8.5px, -8.5px);
-  --theme-toggle-rays: rotate(0deg) scale(1);
-  --theme-toggle-rays-opacity: 1;
+  --dark: 0;
 }
 
 @layer components {
-  .home-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 296px;
-    gap: clamp(2rem, 4vw, 3rem);
-    align-items: start;
-    margin-top: 2.25rem;
-  }
-
   .panel {
     border: 1px solid var(--border);
     border-radius: 16px;
     background: var(--surface);
     box-shadow: var(--surface-shadow);
-  }
-
-  .featured-post {
-    display: grid;
-    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-    overflow: hidden;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-site);
-    background: var(--card);
-  }
-
-  .featured-post__cover {
-    min-height: 300px;
-    border: 0;
-    border-radius: 0;
-  }
-
-  .featured-post__body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    padding: clamp(1.25rem, 4vw, 3.5rem);
-  }
-
-  .post-card {
-    min-width: 0;
-  }
-
-  .post-card--grid {
-    transition: transform 180ms ease;
-  }
-
-  .post-card--grid:hover {
-    transform: translateY(-2px);
-  }
-
-  .post-card--panel {
-    display: grid;
-    grid-template-columns: 176px minmax(0, 1fr);
-    gap: 1.25rem;
-    padding: 1rem;
-  }
-
-  .post-card--list {
-    display: flex;
-    align-items: center;
-    gap: clamp(1rem, 3vw, 2rem);
-    padding: 1.75rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .post-card__cover--grid {
-    aspect-ratio: 1.45;
-  }
-
-  .post-card__cover--panel {
-    height: 118px;
-    border-radius: 12px;
-  }
-
-  .post-card__cover--list {
-    width: clamp(125px, 23vw, 220px);
-    height: clamp(90px, 13vw, 145px);
-    flex: 0 0 auto;
   }
 
   .post-cover__fallback {
@@ -255,44 +159,6 @@
     letter-spacing: 0.14em;
   }
 
-  @media (max-width: 640px) {
-    .home-layout {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .post-card--panel {
-      grid-template-columns: 118px minmax(0, 1fr);
-      gap: 0.875rem;
-    }
-
-    .post-card__cover--panel {
-      height: 88px;
-    }
-
-    .featured-post {
-      display: block;
-    }
-
-    .featured-post__cover {
-      min-height: 210px;
-      aspect-ratio: 1.4;
-    }
-
-    .featured-post__body {
-      padding: 1.5rem;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .post-card--grid {
-      transition: none;
-    }
-
-    .post-card--grid:hover {
-      transform: none;
-    }
-  }
-
   .theme-toggle-glyph {
     overflow: visible;
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -316,17 +182,18 @@
       opacity 0.35s ease;
   }
 
+  /* --dark: 0（ライト＝太陽）→ 1（ダーク＝月）を補間する。 */
   .theme-toggle-core {
-    transform: var(--theme-toggle-core);
+    transform: scale(calc(1 + 1.15 * var(--dark)));
   }
 
   .theme-toggle-cutout {
-    transform: var(--theme-toggle-cutout);
+    transform: translate(calc(8.5px - 2.9px * var(--dark)), calc(-8.5px + 5.3px * var(--dark)));
   }
 
   .theme-toggle-rays {
-    transform: var(--theme-toggle-rays);
-    opacity: var(--theme-toggle-rays-opacity);
+    transform: rotate(calc(90deg * var(--dark))) scale(calc(1 - 0.85 * var(--dark)));
+    opacity: calc(1 - var(--dark));
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -19,10 +19,10 @@ export function PostCard({
 
   if (variant === "panel") {
     return (
-      <li className="post-card post-card--panel panel group">
+      <li className="panel group grid min-w-0 grid-cols-[118px_minmax(0,1fr)] gap-3.5 p-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-5">
         <PostCover
           post={post}
-          className="post-card__cover post-card__cover--panel"
+          className="h-[88px] rounded-xl border border-line sm:h-[118px]"
           sizes="(max-width: 640px) 100vw, 280px"
         />
         <div className="min-w-0 pr-1">
@@ -42,7 +42,7 @@ export function PostCard({
 
   if (variant === "list") {
     return (
-      <li className="post-card post-card--list group">
+      <li className="group flex min-w-0 items-center gap-[clamp(1rem,3vw,2rem)] border-b border-line py-7">
         <div className="min-w-0 flex-1">
           <PostMeta post={post} category={category?.name ?? post.category} />
           <PostTitle post={post} className="mt-2 block text-[1.15rem]" />
@@ -51,16 +51,20 @@ export function PostCard({
           </p>
           <PostTags post={post} />
         </div>
-        <PostCover post={post} className="post-card__cover post-card__cover--list" sizes="160px" />
+        <PostCover
+          post={post}
+          className="h-[clamp(90px,13vw,145px)] w-[clamp(125px,23vw,220px)] flex-none rounded-site border border-line"
+          sizes="160px"
+        />
       </li>
     );
   }
 
   return (
-    <li className="post-card post-card--grid group">
+    <li className="group min-w-0 transition-transform duration-[180ms] hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <PostCover
         post={post}
-        className="post-card__cover post-card__cover--grid"
+        className="aspect-[1.45] rounded-site border border-line"
         sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) 50vw, 33vw"
       />
       <div className="pt-4">
@@ -73,6 +77,8 @@ export function PostCard({
   );
 }
 
+// 枠線と角丸は呼び出し側が渡す。ここで既定値を持つと Tailwind の同カテゴリ
+// ユーティリティ同士がぶつかり、どちらが勝つかがクラスの並び順で決まらなくなるため。
 export function PostCover({
   post,
   className,
@@ -86,7 +92,7 @@ export function PostCover({
 
   return (
     <Link
-      className={`post-cover group block overflow-hidden rounded-site border border-line no-underline ${className}`}
+      className={`post-cover group block overflow-hidden no-underline ${className}`}
       to="/posts/$slug"
       params={{ slug: post.slug }}
       aria-label={`${post.title}を読む`}
@@ -123,7 +129,7 @@ function PostTitle({ post, className }: { post: PostSummary; className: string }
   );
 }
 
-function PostMeta({ post, category }: { post: PostSummary; category: string }) {
+export function PostMeta({ post, category }: { post: PostSummary; category: string }) {
   return (
     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-muted">
       <time dateTime={post.date}>{formatDate(post.date)}</time>

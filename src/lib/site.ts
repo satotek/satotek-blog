@@ -1,4 +1,5 @@
 export const SITE_URL = "https://satotek.dev";
+export const SITE_NAME = "satotek.dev";
 export const SITE_DESCRIPTION = "個人ブログ・技術メモ";
 export const SOURCE_REPOSITORY_URL = "https://github.com/satotek/satotek-blog";
 export const MEDIA_BASE_URL = (import.meta.env.VITE_MEDIA_BASE_URL ?? "https://img.satotek.dev")
@@ -72,4 +73,40 @@ export function createSocialMeta({
 
 export function postSourceUrl(slug: string) {
   return `${SOURCE_REPOSITORY_URL}/blob/main/content/posts/${encodeURIComponent(slug)}/index.md`;
+}
+
+type PageHeadOptions = Omit<SocialMetaOptions, "url"> & {
+  /** サイトルートからの絶対パス。canonical と og:url の両方に使う。 */
+  path: string;
+  /** OGP 用のタイトル。省略時は title と同じ。 */
+  socialTitle?: string;
+};
+
+/**
+ * ルートの head() 用。title / description / canonical / OGP の組み立てを1箇所にまとめる。
+ * 各ルートで meta 配列を手書きすると canonical のエンコード漏れなどがズレるため。
+ */
+export function createPageHead({
+  title,
+  description,
+  path,
+  socialTitle,
+  ...social
+}: PageHeadOptions) {
+  // 末尾スラッシュを落として canonical を1つの形に揃える（"/" はサイトルート）。
+  const url = absoluteUrl(path).replace(/\/+$/, "");
+
+  return {
+    meta: [
+      { title },
+      { name: "description", content: description },
+      ...createSocialMeta({ ...social, title: socialTitle ?? title, description, url }),
+    ],
+    links: [{ rel: "canonical", href: url }],
+  };
+}
+
+/** ページ固有のタイトルにサイト名を付ける。付け方を1箇所に固定するためのもの。 */
+export function withSiteName(title: string) {
+  return `${title} | ${SITE_NAME}`;
 }

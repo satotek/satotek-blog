@@ -3,7 +3,7 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { CategoryPageContent } from "#/components/TaxonomyPage";
 import { postRepository } from "#/content/repository";
 import { categoryBySlug } from "#/data/navigation";
-import { SITE_URL, createSocialMeta } from "#/lib/site";
+import { createPageHead, withSiteName } from "#/lib/site";
 import { parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
 
 export const Route = createFileRoute("/categories/$slug/page/$page")({
@@ -26,25 +26,13 @@ export const Route = createFileRoute("/categories/$slug/page/$page")({
     return { posts };
   },
   head: ({ params }) => {
-    const category = categoryBySlug(params.slug);
-    const name = category?.name ?? "カテゴリ";
-    const title = `カテゴリ: ${name}（${params.page}ページ目） | satotek.dev`;
-    const description = `「${name}」の記事一覧（${params.page}ページ目）`;
+    const name = categoryBySlug(params.slug)?.name ?? "カテゴリ";
 
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        ...createSocialMeta({
-          title,
-          description,
-          url: `${SITE_URL}/categories/${params.slug}/page/${params.page}`,
-        }),
-      ],
-      links: [
-        { rel: "canonical", href: `${SITE_URL}/categories/${params.slug}/page/${params.page}` },
-      ],
-    };
+    return createPageHead({
+      title: withSiteName(`カテゴリ: ${name}（${params.page}ページ目）`),
+      description: `「${name}」の記事一覧（${params.page}ページ目）`,
+      path: `/categories/${encodeURIComponent(params.slug)}/page/${params.page}`,
+    });
   },
   component: CategoryNumberedPage,
 });

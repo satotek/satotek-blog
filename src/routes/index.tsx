@@ -8,24 +8,15 @@ import { analyticsRepository } from "#/analytics/repository";
 import { getCategories, getTags } from "#/data/navigation";
 import { PICKED_POST_SLUGS } from "#/data/home";
 import { postRepository } from "#/content/repository";
-import { SITE_URL, createSocialMeta } from "#/lib/site";
+import { SITE_NAME, createPageHead } from "#/lib/site";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "satotek.dev" },
-      {
-        name: "description",
-        content: "nosukeの個人ブログ。技術、ガジェット、旅行、日常についての記録。",
-      },
-      ...createSocialMeta({
-        title: "satotek.dev",
-        description: "nosukeの個人ブログ。技術、ガジェット、旅行、日常についての記録。",
-        url: SITE_URL,
-      }),
-    ],
-    links: [{ rel: "canonical", href: SITE_URL }],
-  }),
+  head: () =>
+    createPageHead({
+      title: SITE_NAME,
+      description: "nosukeの個人ブログ。技術、ガジェット、旅行、日常についての記録。",
+      path: "/",
+    }),
   loader: async () => {
     const [posts, categories, tags, popular] = await Promise.all([
       postRepository.list(),
@@ -58,7 +49,7 @@ function Home() {
     <div>
       <HomeHero total={total} topics={categories.length} />
 
-      <div className="home-layout">
+      <div className="mt-9 grid grid-cols-1 items-start gap-[clamp(2rem,4vw,3rem)] sm:grid-cols-[minmax(0,1fr)_296px]">
         <main aria-labelledby="latest-title">
           <div className="mb-3.5 flex items-baseline justify-between gap-4">
             <h2 className="m-0 text-[1rem] font-bold tracking-[-0.01em]" id="latest-title">

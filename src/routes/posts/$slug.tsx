@@ -9,7 +9,7 @@ import { postRepository } from "#/content/repository";
 import { getPostReadingMinutes, type Post, type PostSummary, type TocItem } from "#/content/types";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
-import { SITE_URL, createSocialMeta, generatedPostOgImageUrl } from "#/lib/site";
+import { createPageHead, generatedPostOgImageUrl, withSiteName } from "#/lib/site";
 
 const TOC_MIN = 3;
 const TOC_STATE_KEY = "toc-state";
@@ -44,26 +44,21 @@ export const Route = createFileRoute("/posts/$slug")({
     const generatedImage = post ? generatedPostOgImageUrl(post.slug) : undefined;
     const image = generatedImage ?? post?.cover;
 
-    return {
-      meta: [
-        { title: `${title} | satotek.dev` },
-        { name: "description", content: description },
-        ...createSocialMeta({
-          title,
-          description,
-          url: `${SITE_URL}/posts/${params.slug}`,
-          image,
-          imageAlt: generatedImage
-            ? `${title} のOGP画像`
-            : post?.cover
-              ? `${title} のカバー画像`
-              : undefined,
-          type: "article",
-          publishedTime: post?.date,
-        }),
-      ],
-      links: [{ rel: "canonical", href: `${SITE_URL}/posts/${params.slug}` }],
-    };
+    return createPageHead({
+      title: withSiteName(title),
+      // OGP はサイト名の接尾辞なしで記事タイトルだけを見せる。
+      socialTitle: title,
+      description,
+      path: `/posts/${encodeURIComponent(params.slug)}`,
+      image,
+      imageAlt: generatedImage
+        ? `${title} のOGP画像`
+        : post?.cover
+          ? `${title} のカバー画像`
+          : undefined,
+      type: "article",
+      publishedTime: post?.date,
+    });
   },
   component: PostPage,
 });
