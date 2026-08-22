@@ -163,24 +163,46 @@ async function runPopularPostsReport(
     },
   );
 
-  return (response.rows ?? [])
-    .flatMap((row) => {
-      const path = row.dimensionValues?.[0]?.value;
-      const slug = path ? postPathToSlug(path) : undefined;
-      const views = Number(row.metricValues?.[0]?.value ?? 0);
+  const reportPosts = (response.rows ?? []).flatMap((row) => {
+    const path = row.dimensionValues?.[0]?.value;
+    const slug = path ? postPathToSlug(path) : undefined;
+    const views = Number(row.metricValues?.[0]?.value ?? 0);
 
-      if (!path || !slug || !Number.isFinite(views)) return [];
+    if (!path || !slug || !Number.isFinite(views)) return [];
 
-      return [
-        {
-          slug,
-          title: row.dimensionValues?.[1]?.value ?? "",
-          path,
-          views,
-        },
-      ];
-    })
-    .sort((left, right) => right.views - left.views || left.slug.localeCompare(right.slug));
+    return [
+      {
+        slug,
+        title: row.dimensionValues?.[1]?.value ?? "",
+        path,
+        views,
+      },
+    ];
+  });
+
+  // GA4 returns one row for each dimension combination. For example, the
+  // canonical and trailing-slash paths can become separate rows even though
+  // they point to the same article. Aggregate after normalizing the path so
+  // the homepage never renders one article more than once.
+  const postsBySlug = new Map<string, PopularPost>();
+  for (const post of reportPosts) {
+    const existing = postsBySlug.get(post.slug);
+
+    if (!existing) {
+      postsBySlug.set(post.slug, post);
+      continue;
+    }
+
+    postsBySlug.set(post.slug, {
+      ...existing,
+      title: existing.title || post.title,
+      views: existing.views + post.views,
+    });
+  }
+
+  return [...postsBySlug.values()].sort(
+    (left, right) => right.views - left.views || left.slug.localeCompare(right.slug),
+  );
 }
 
 /**
