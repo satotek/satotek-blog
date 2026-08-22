@@ -1,7 +1,10 @@
-import { readdir, stat } from "node:fs/promises";
-import { extname, relative, resolve, sep } from "node:path";
+import { mkdtemp, readdir, rm, stat } from "node:fs/promises";
+import { extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
+import { tmpdir } from "node:os";
+
+import { generateMediaVariants } from "@satotek/content-pipeline";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const defaultBucket = "satotek-media";
@@ -26,6 +29,7 @@ type Options = {
   help: boolean;
   key?: string;
   prefix: string;
+  variants: boolean;
 };
 
 type Upload = {
@@ -43,6 +47,7 @@ Options:
   --key <r2-key>      Destination key, for example first-post/photo.webp.
   --directory <path>  Upload every file under a local directory.
   --prefix <prefix>   Prefix for directory uploads.
+  --no-variants       Upload only the original files.
   --bucket <name>     R2 bucket (default: R2_BUCKET_NAME or ${defaultBucket}).
   --help              Show this help.
 
@@ -64,6 +69,7 @@ function parseArgs(args: readonly string[]): Options {
     bucket: process.env.R2_BUCKET_NAME?.trim() || defaultBucket,
     help: false,
     prefix: "",
+    variants: true,
   };
 
   for (let index = 0; index < args.length; index += 1) {
@@ -87,6 +93,9 @@ function parseArgs(args: readonly string[]): Options {
         break;
       case "--prefix":
         options.prefix = requiredValue(args, ++index, "--prefix");
+        break;
+      case "--no-variants":
+        options.variants = false;
         break;
       default:
         throw new Error(`Unknown option: ${argument}`);
@@ -162,6 +171,21 @@ function contentType(file: string) {
   return contentTypes[extname(file).toLowerCase()] ?? "application/octet-stream";
 }
 
+async function expandUploads(uploads: Upload[], outputDirectory: string, variants: boolean) {
+  if (!variants) return uploads;
+
+  const expanded = [...uploads];
+  for (const upload of uploads) {
+    const generated = await generateMediaVariants({
+      sourcePath: upload.file,
+      key: upload.key,
+      outputDirectory,
+    });
+    expanded.push(...generated.map(({ file, key }) => ({ file, key })));
+  }
+  return expanded;
+}
+
 function publicUrl(key: string) {
   const baseUrl = (
     process.env.R2_PUBLIC_BASE_URL?.trim() ||
@@ -217,10 +241,19 @@ async function main() {
     throw new Error("No files found to upload");
   }
 
-  for (const upload of uploads) {
-    console.log(`${upload.file} -> ${options.bucket}/${upload.key}`);
-    await uploadWithWrangler(upload, options.bucket);
-    console.log(publicUrl(upload.key));
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), "satotek-media-"));
+  try {
+    const expandedUploads = await expandUploads(uploads, temporaryDirectory, options.variants);
+    const variantCount = expandedUploads.length - uploads.length;
+    if (variantCount > 0) console.log(`Generated ${variantCount} responsive image variants.`);
+
+    for (const upload of expandedUploads) {
+      console.log(`${upload.file} -> ${options.bucket}/${upload.key}`);
+      await uploadWithWrangler(upload, options.bucket);
+      console.log(publicUrl(upload.key));
+    }
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
   }
 }
 

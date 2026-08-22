@@ -23,8 +23,20 @@ import remarkRehype from "remark-rehype";
 import GithubSlugger from "github-slugger";
 import { visit } from "unist-util-visit";
 
-import type { TocItem } from "./types";
 import type { Heading, Paragraph, Root } from "mdast";
+export { MEDIA_VARIANT_WIDTHS, generateMediaVariants } from "./media";
+export type { GeneratedMediaVariant, GenerateMediaVariantsOptions } from "./media";
+
+export type TocItem = {
+  id: string;
+  text: string;
+  level: number;
+};
+
+export type RenderedMarkdown = {
+  html: string;
+  toc: readonly TocItem[];
+};
 
 type ImageAttribute = string | number | boolean | string[];
 
@@ -214,7 +226,41 @@ function extractToc(tree: Root): TocItem[] {
 
 type OnigurumaWasm = Parameters<typeof createOnigurumaEngine>[0];
 
-export function createMarkdownRenderer(onigWasm: OnigurumaWasm) {
+export type ResolvedImage = {
+  srcSet: string;
+  sizes: string;
+};
+
+export type MarkdownRendererOptions = {
+  resolveImage?: (source: string) => ResolvedImage | undefined;
+};
+
+function rehypeResponsiveImages(resolveImage: MarkdownRendererOptions["resolveImage"]) {
+  return (tree: HastRoot) => {
+    if (!resolveImage) return;
+
+    visit(tree, "element", (node) => {
+      if (node.type !== "element" || node.tagName !== "img") return;
+
+      const source = node.properties.src;
+      if (typeof source !== "string") return;
+
+      const resolved = resolveImage(source);
+      if (!resolved) return;
+
+      node.properties.srcSet = resolved.srcSet;
+      node.properties.sizes = resolved.sizes;
+      node.properties.loading = "lazy";
+      node.properties.decoding = "async";
+      node.properties["data-full-src"] = source;
+    });
+  };
+}
+
+export function createMarkdownRenderer(
+  onigWasm: OnigurumaWasm,
+  options: MarkdownRendererOptions = {},
+) {
   const shikiLanguages = Object.keys(bundledLanguages) as BundledLanguage[];
   const createShikiHighlighter = createBundledHighlighter({
     engine: () => createOnigurumaEngine(onigWasm),
@@ -245,6 +291,7 @@ export function createMarkdownRenderer(onigWasm: OnigurumaWasm) {
     .use(remarkRehype, { allowDangerousHtml: false })
     .use(rehypeImageFigure)
     .use(rehypeSanitize, sanitizeSchema)
+    .use(rehypeResponsiveImages, options.resolveImage)
     .use(rehypeSlug)
     .use(rehypeHeadingLinks)
     .use(rehypeExternalLinks, {
@@ -273,7 +320,7 @@ export function createMarkdownRenderer(onigWasm: OnigurumaWasm) {
       const toc = extractToc(tree);
       const html = String(await markdownProcessor.process(markdown));
 
-      return { html, toc };
+      return { html, toc } satisfies RenderedMarkdown;
     },
   };
 }

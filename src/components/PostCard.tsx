@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import type { PostSummary } from "#/content/types";
+import { ResponsiveImage } from "#/components/ResponsiveImage";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
 
@@ -19,7 +20,11 @@ export function PostCard({
   if (variant === "panel") {
     return (
       <li className="post-card post-card--panel panel group">
-        <PostCover post={post} className="post-card__cover post-card__cover--panel" />
+        <PostCover
+          post={post}
+          className="post-card__cover post-card__cover--panel"
+          sizes="(max-width: 640px) 100vw, 280px"
+        />
         <div className="min-w-0 pr-1">
           <PostMeta post={post} category={category?.name ?? post.category} />
           <PostTitle
@@ -46,14 +51,18 @@ export function PostCard({
           </p>
           <PostTags post={post} />
         </div>
-        <PostCover post={post} className="post-card__cover post-card__cover--list" />
+        <PostCover post={post} className="post-card__cover post-card__cover--list" sizes="160px" />
       </li>
     );
   }
 
   return (
     <li className="post-card post-card--grid group">
-      <PostCover post={post} className="post-card__cover post-card__cover--grid" />
+      <PostCover
+        post={post}
+        className="post-card__cover post-card__cover--grid"
+        sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) 50vw, 33vw"
+      />
       <div className="pt-4">
         <PostMeta post={post} category={category?.name ?? post.category} />
         <PostTitle post={post} className="mt-2 block text-[1.1rem]" />
@@ -64,7 +73,15 @@ export function PostCard({
   );
 }
 
-export function PostCover({ post, className }: { post: PostSummary; className: string }) {
+export function PostCover({
+  post,
+  className,
+  sizes,
+}: {
+  post: PostSummary;
+  className: string;
+  sizes: string;
+}) {
   const [imageError, setImageError] = useState(false);
 
   return (
@@ -75,9 +92,10 @@ export function PostCover({ post, className }: { post: PostSummary; className: s
       aria-label={`${post.title}を読む`}
     >
       {post.cover && !imageError ? (
-        <img
+        <ResponsiveImage
           className="block h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           src={post.cover}
+          sizes={sizes}
           alt=""
           loading="lazy"
           decoding="async"

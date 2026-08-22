@@ -12,6 +12,7 @@ dist-ssr
 .nitro
 .tanstack
 .wrangler
+worker-configuration.d.ts
 .output
 .vinxi
 .design-home

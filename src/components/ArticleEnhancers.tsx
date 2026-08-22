@@ -137,6 +137,9 @@ export function CodeCopyButtons({
 }
 
 function bestImageSource(image: HTMLImageElement) {
+  const fullSource = image.dataset.fullSrc;
+  if (fullSource) return fullSource;
+
   const source = image.closest("picture")?.querySelector<HTMLSourceElement>("source[srcset]");
   if (source) {
     let best = "";

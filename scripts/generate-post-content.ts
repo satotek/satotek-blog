@@ -2,13 +2,19 @@ import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createMarkdownRenderer } from "../src/content/markdown-parser";
+import { createMarkdownRenderer } from "@satotek/content-pipeline";
 import { parseMarkdownSource, type MarkdownSource } from "../src/content/markdown-source";
+import { createResponsiveMedia } from "../src/lib/media-variants";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const postsDirectory = join(projectRoot, "content/posts");
 const generatedDirectory = join(projectRoot, "content/.generated");
-const wasmPath = join(projectRoot, "src/assets/onig.wasm");
+const wasmPath = join(projectRoot, "packages/content-pipeline/assets/onig.wasm");
+const mediaBaseUrl = (
+  process.env.R2_PUBLIC_BASE_URL?.trim() ||
+  process.env.VITE_MEDIA_BASE_URL?.trim() ||
+  "https://img.satotek.dev"
+).replace(/\/+$/, "");
 
 async function readMarkdownSources(): Promise<MarkdownSource[]> {
   const entries = await readdir(postsDirectory, { withFileTypes: true });
@@ -34,7 +40,13 @@ async function readMarkdownSources(): Promise<MarkdownSource[]> {
 
 async function main() {
   const [sources, wasm] = await Promise.all([readMarkdownSources(), readFile(wasmPath)]);
-  const renderer = createMarkdownRenderer(wasm);
+  const renderer = createMarkdownRenderer(wasm, {
+    resolveImage: (source) =>
+      createResponsiveMedia(source, {
+        baseUrl: mediaBaseUrl,
+        sizes: "(max-width: 768px) 100vw, 768px",
+      }),
+  });
 
   await rm(generatedDirectory, { recursive: true, force: true });
   await mkdir(generatedDirectory, { recursive: true });

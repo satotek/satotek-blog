@@ -20,7 +20,8 @@ declare global {
 
 export const GA_INITIALIZER = GA_MEASUREMENT_ID
   ? `window.dataLayer = window.dataLayer || [];
-window.gtag = function gtag() { window.dataLayer.push(Array.from(arguments)); };
+function gtag(){window.dataLayer.push(arguments);}
+window.gtag = gtag;
 window.gtag('js', new Date());
 window.gtag('config', ${JSON.stringify(GA_MEASUREMENT_ID)}, { send_page_view: false });`
   : "";

@@ -29,6 +29,21 @@ const THEME_INIT_SCRIPT = `(() => {
   } catch {}
 })();`;
 
+const FONTS_HREF = "/fonts.css";
+
+const FONTS_LOAD_SCRIPT = `(() => {
+  const href = ${JSON.stringify(FONTS_HREF)};
+  if (document.querySelector('link[rel="stylesheet"][href="' + href + '"]')) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  link.media = "print";
+  link.onload = () => {
+    link.media = "all";
+  };
+  document.head.appendChild(link);
+})();`;
+
 const iconButtonClass =
   "h-[38px] w-[38px] items-center justify-center rounded-full border border-line bg-transparent text-muted no-underline transition-[background,border-color,color,transform] duration-200 [-webkit-tap-highlight-color:transparent] hover:border-accent-border hover:bg-accent-soft hover:text-ink active:scale-[0.92] motion-reduce:transition-none";
 
@@ -55,7 +70,6 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "stylesheet", href: "/fonts.css" },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/icons/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
@@ -91,7 +105,10 @@ function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="ja">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: `${THEME_INIT_SCRIPT}${FONTS_LOAD_SCRIPT}` }} />
+        <noscript>
+          <link rel="stylesheet" href={FONTS_HREF} />
+        </noscript>
         {GA_MEASUREMENT_ID ? (
           <>
             <script
@@ -376,7 +393,7 @@ function SiteChrome({ children }: { children: ReactNode }) {
             </div>
           </div>
           <nav className="hidden sm:block" aria-label="グローバルナビ">
-            <div className="flex flex-nowrap items-center gap-[clamp(0px,0.8vw,4px)] overflow-x-auto text-[clamp(0.8rem,3vw,0.95rem)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="-m-1.5 flex flex-nowrap items-center gap-[clamp(0px,0.8vw,4px)] overflow-x-auto p-1.5 text-[clamp(0.8rem,3vw,0.95rem)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <NavigationLinks onNavigate={closeDrawer} navLinkClass={navLinkClass} />
             </div>
           </nav>

@@ -12,7 +12,11 @@ export function FeaturedPostCard({ post }: { post: PostSummary }) {
 
   return (
     <li className="featured-post group">
-      <PostCover post={post} className="featured-post__cover" />
+      <PostCover
+        post={post}
+        className="featured-post__cover"
+        sizes="(max-width: 800px) 100vw, 50vw"
+      />
       <div className="featured-post__body">
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-muted">
           <time dateTime={post.date}>{formatDate(post.date)}</time>

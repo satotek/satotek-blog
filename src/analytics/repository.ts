@@ -1,4 +1,7 @@
-import { LocalAnalyticsRepository } from "./local-repository";
+import type { AnalyticsRepository } from "./types";
+import { getPopularPosts } from "./functions";
 
-/** Keep popular-post data behind a replaceable boundary. */
-export const analyticsRepository = new LocalAnalyticsRepository();
+/** Keep the GA4-backed data source behind a replaceable boundary. */
+export const analyticsRepository = {
+  getPopularPosts,
+} satisfies AnalyticsRepository;

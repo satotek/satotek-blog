@@ -30,9 +30,7 @@ export function HomeSidebar({
               {hasPopularPosts ? "よく読まれている" : "Pick up"}
             </h2>
             {hasPopularPosts && (
-              <span className="font-mono text-[0.66rem] tracking-[0.06em] text-muted">
-                直近30日
-              </span>
+              <span className="font-mono text-[0.66rem] tracking-[0.06em] text-muted">直近7日</span>
             )}
           </div>
           <ol className="m-0 mt-3 grid list-none gap-0.5 p-0">

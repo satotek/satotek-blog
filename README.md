@@ -50,7 +50,29 @@ cp .env.example .env.local
 
 `bun run deploy` は `.env.local` を読んだ Vite ビルドのあとに `wrangler deploy` します。測定IDを変えたら、再ビルドしてからデプロイしてください。ローカルで ID を空にすると gtag は出ません。
 
-ホームページの人気記事は `AnalyticsRepository` 経由です。いまの実装は空配列を返すローカルスタブで、集計スナップショットへ差し替えられるようにしてあります。
+ホームページの人気記事は `AnalyticsRepository` 経由で、サーバー側のGA4 Data APIから取得します。`screenPageViews` を使い、直近7日間の `/posts/<slug>` をPV降順で最大10件取得します。GA4の認証情報はWorkerのSecretからのみ読み、ブラウザへは渡しません。認証情報が未設定・取得失敗・記事が存在しない場合は、`src/data/home.ts` の固定Pick upへフォールバックします。
+
+ローカルでGA4連携まで確認する場合は、サービスアカウントへ対象GA4プロパティの閲覧権限を付与し、`.dev.vars` を作成します。
+
+```sh
+cp .dev.vars.example .dev.vars
+```
+
+```dotenv
+GA4_PROPERTY_ID=123456789
+GA4_CLIENT_EMAIL=analytics-reader@your-project.iam.gserviceaccount.com
+GA4_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
+```
+
+本番Workerには、初回だけ次のコマンドでSecretを登録します。値はプロンプトから入力され、Gitには保存されません。
+
+```sh
+bunx wrangler secret put GA4_PROPERTY_ID
+bunx wrangler secret put GA4_CLIENT_EMAIL
+bunx wrangler secret put GA4_PRIVATE_KEY
+```
+
+ホームは現在のGA4スナップショットをリクエスト時に表示するため、prerender対象から外しています。記事・一覧・配信物など、内容がビルド時に確定するページは引き続きprerenderされます。
 
 ### 記事・サイト画像（R2）
 
@@ -75,6 +97,8 @@ bun run upload-media -- --directory .r2-media
 ```
 
 `bun run deploy` はWorkerのデプロイだけを行い、画像を自動アップロードしません。画像を追加・差し替えたときは先に `bun run upload-media` を実行します。`upload-media` はS3 APIキーを直接扱わず、WranglerのCloudflare OAuth（CIでは `CLOUDFLARE_API_TOKEN`）を利用します。バケットを変更する場合は `R2_BUCKET_NAME` で上書きできます。
+
+`upload-media` は元画像に加えて、幅320 / 480 / 768 / 1200pxのWebP派生画像も同時にアップロードします。サイト側は記事やカードの `srcset` で派生画像を利用します。OGP画像など派生画像が不要なファイルは `--no-variants` を付けてください。通常のビルドやデプロイでは、R2から画像を取得したり派生画像を生成したりしません。
 
 ### OGP画像（任意）
 
@@ -148,10 +172,13 @@ content/
 ├── posts/                  Git管理するMarkdown記事
 └── .generated/             ビルド時に生成するHTMLと目次
 
+packages/
+└── content-pipeline/       Shikiを含むMarkdown変換専用パッケージ
+
 src/
 ├── analytics/               GA4ビーコンと人気記事取得の境界
 ├── components/              React Ariaを使う操作部品、記事カード、一覧
-├── content/                 Markdown変換処理、PostRepository
+├── content/                 PostRepositoryとMarkdownソースの読み込み
 ├── data/                    カテゴリ・タグなどのサイト分類データ
 ├── lib/                     ページ送り、サイトURLなどの共通処理
 ├── routes/                  画面ルートと配信メタデータのサーバールート
@@ -159,7 +186,7 @@ src/
 └── styles.css               Tailwind CSSのエントリーポイントとデザイントークン
 ```
 
-`scripts/generate-post-content.ts` は公開MarkdownをShikiで変換し、`content/.generated/` にビルド用のHTMLと目次を生成します。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` はGit管理外の画像をR2へアップロードします。これらのディレクトリは生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
+`scripts/generate-post-content.ts` は `packages/content-pipeline` のMarkdown変換処理を呼び出し、公開MarkdownをShikiで変換して `content/.generated/` にビルド用のHTMLと目次を生成します。変換系の依存関係とOniguruma WASMはこのパッケージに閉じているため、ルートアプリの本番依存関係には含まれません。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` はGit管理外の画像をR2へアップロードします。これらのディレクトリは生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
 
 `src/routeTree.gen.ts` はTanStack Routerが生成するファイルです。ルートファイルを追加したときは、必要に応じて次を実行します。
 

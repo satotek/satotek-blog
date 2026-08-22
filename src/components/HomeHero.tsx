@@ -1,14 +1,16 @@
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
+import { ResponsiveImage } from "#/components/ResponsiveImage";
 import { mediaUrl } from "#/lib/site";
 
 export function HomeHero({ total, topics }: { total: number; topics: number }) {
   return (
     <section className="flex items-start gap-5 pt-6 sm:gap-6" aria-labelledby="home-title">
-      <img
+      <ResponsiveImage
         className="size-14 shrink-0 rounded-full border border-line object-cover sm:size-16"
         src={mediaUrl("site/my-avater.jpg")}
+        sizes="64px"
         alt=""
         width="128"
         height="128"

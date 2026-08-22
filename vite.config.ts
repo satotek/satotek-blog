@@ -18,6 +18,8 @@ const config = defineConfig({
         enabled: true,
         concurrency: 2,
         crawlLinks: true,
+        // The home page reads the current GA4 snapshot at request time.
+        filter: ({ path }) => path !== "/",
         failOnError: true,
       },
       pages: [

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { siGithub, siInstagram, siX } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
+import { ResponsiveImage } from "#/components/ResponsiveImage";
 import { SITE_URL, createSocialMeta, mediaUrl } from "#/lib/site";
 
 export const Route = createFileRoute("/profile")({
@@ -28,9 +29,10 @@ function Profile() {
   return (
     <article className={profileBodyClass}>
       <div className="mb-6 flex items-center gap-5 py-6">
-        <img
+        <ResponsiveImage
           className="h-32 w-32 shrink-0 rounded-[24px] border border-line object-cover"
           src={mediaUrl("site/my-avater.jpg")}
+          sizes="128px"
           alt="nosuke"
           width="256"
           height="256"
