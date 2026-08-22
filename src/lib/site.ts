@@ -1,12 +1,19 @@
 export const SITE_URL = "https://satotek.dev";
 export const SITE_DESCRIPTION = "個人ブログ・技術メモ";
 export const SOURCE_REPOSITORY_URL = "https://github.com/satotek/satotek-blog";
-export const DEFAULT_OG_IMAGE_PATH = "/og-image.png";
-export const DEFAULT_OG_IMAGE_URL = `${SITE_URL}${DEFAULT_OG_IMAGE_PATH}`;
+export const MEDIA_BASE_URL = (import.meta.env.VITE_MEDIA_BASE_URL ?? "https://img.satotek.dev")
+  .trim()
+  .replace(/\/+$/, "");
+export const DEFAULT_OG_IMAGE_KEY = "site/og-image.png";
+export const DEFAULT_OG_IMAGE_URL = `${MEDIA_BASE_URL}/${DEFAULT_OG_IMAGE_KEY}`;
 export const OGP_BASE_URL = (import.meta.env.VITE_OGP_BASE_URL ?? "").trim().replace(/\/+$/, "");
 
 export function absoluteUrl(path: string) {
   return path.startsWith("http") ? path : `${SITE_URL}${path}`;
+}
+
+export function mediaUrl(key: string) {
+  return `${MEDIA_BASE_URL}/${key.replace(/^\/+/, "")}`;
 }
 
 export function generatedPostOgImageUrl(slug: string) {
@@ -35,11 +42,8 @@ export function createSocialMeta({
   publishedTime,
   includeImageDimensions = true,
 }: SocialMetaOptions) {
-  const imagePath = image ?? DEFAULT_OG_IMAGE_PATH;
-  const imageUrl = absoluteUrl(imagePath);
-  const usesDefaultImage =
-    includeImageDimensions &&
-    (imagePath === DEFAULT_OG_IMAGE_PATH || imageUrl === DEFAULT_OG_IMAGE_URL);
+  const imageUrl = image ? absoluteUrl(image) : DEFAULT_OG_IMAGE_URL;
+  const usesDefaultImage = includeImageDimensions && !image;
 
   return [
     { property: "og:type", content: type },
@@ -67,5 +71,5 @@ export function createSocialMeta({
 }
 
 export function postSourceUrl(slug: string) {
-  return `${SOURCE_REPOSITORY_URL}/blob/main/src/content/posts/${encodeURIComponent(slug)}/index.md`;
+  return `${SOURCE_REPOSITORY_URL}/blob/main/content/posts/${encodeURIComponent(slug)}/index.md`;
 }

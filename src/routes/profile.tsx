@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { siGithub, siInstagram, siX } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
-import { SITE_URL, createSocialMeta } from "#/lib/site";
+import { SITE_URL, createSocialMeta, mediaUrl } from "#/lib/site";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -30,7 +30,7 @@ function Profile() {
       <div className="mb-6 flex items-center gap-5 py-6">
         <img
           className="h-32 w-32 shrink-0 rounded-[24px] border border-line object-cover"
-          src="/images/my-avater.jpg"
+          src={mediaUrl("site/my-avater.jpg")}
           alt="nosuke"
           width="256"
           height="256"
@@ -120,9 +120,13 @@ function Profile() {
         に基づいて取り扱われます。
       </p>
       <p>
-        Google Analytics
-        4は、デプロイ環境に測定IDを設定した場合のみ有効になります。有効な環境では、ページの閲覧などの利用状況がGoogleに送信されます。測定IDを設定しない環境では、Google
-        Analytics 4のスクリプトは読み込まれません。
+        あわせて、Google LLC が提供するアクセス解析サービス「Google Analytics
+        4」を利用しています。ページの閲覧などの利用状況が Google に送信され、Cookie
+        が使用される場合があります。収集された情報は、
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">
+          Google のプライバシーポリシー
+        </a>
+        に基づいて取り扱われます。
       </p>
 
       <h2>クレジット</h2>

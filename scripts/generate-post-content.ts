@@ -6,8 +6,8 @@ import { createMarkdownRenderer } from "../src/content/markdown-parser";
 import { parseMarkdownSource, type MarkdownSource } from "../src/content/markdown-source";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const postsDirectory = join(projectRoot, "src/content/posts");
-const generatedDirectory = join(projectRoot, "src/content/generated");
+const postsDirectory = join(projectRoot, "content/posts");
+const generatedDirectory = join(projectRoot, "content/.generated");
 const wasmPath = join(projectRoot, "src/assets/onig.wasm");
 
 async function readMarkdownSources(): Promise<MarkdownSource[]> {

@@ -15,8 +15,10 @@ dist-ssr
 .output
 .vinxi
 .design-home
-src/content/generated/
+content/.generated/
+content/posts/**/assets/
 .ogp/
+.r2-media/
 __unconfig*
 todos.json
 src/routeTree.gen.ts

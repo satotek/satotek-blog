@@ -1,4 +1,4 @@
 import { LocalAnalyticsRepository } from "./local-repository";
 
-/** Keep analytics behind a replaceable boundary for the future GA4 Data API job. */
+/** Keep popular-post data behind a replaceable boundary. */
 export const analyticsRepository = new LocalAnalyticsRepository();

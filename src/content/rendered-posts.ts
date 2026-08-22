@@ -5,7 +5,7 @@ export type RenderedPost = {
   toc: readonly TocItem[];
 };
 
-const renderedPostModules = import.meta.glob<RenderedPost>("./generated/*.json", {
+const renderedPostModules = import.meta.glob<RenderedPost>("../../content/.generated/*.json", {
   eager: true,
   import: "default",
 });

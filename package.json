@@ -11,6 +11,7 @@
     "generate-ogp": "bun scripts/generate-ogp.tsx",
     "generate-ogp:all": "bun run generate-ogp -- --all",
     "generate-ogp:upload": "bun run generate-ogp -- --all --upload",
+    "upload-media": "bun scripts/upload-media.ts",
     "generate-routes": "tsr generate",
     "build": "bun run generate-content && vp build",
     "preview": "vite preview",

@@ -1,8 +1,8 @@
 const configuredMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID?.trim();
 
 /**
- * GA4 is optional for local development and previews. The measurement ID is
- * public by design, so it is supplied as a Vite client environment variable.
+ * Production GA4 measurement ID, inlined at build time from
+ * VITE_GA_MEASUREMENT_ID. Leave unset only for local deploys without gtag.
  */
 export const GA_MEASUREMENT_ID =
   configuredMeasurementId && /^G-[A-Z0-9]+$/i.test(configuredMeasurementId)

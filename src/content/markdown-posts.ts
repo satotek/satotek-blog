@@ -1,7 +1,7 @@
 import { parseMarkdownSource, type MarkdownSource } from "./markdown-source";
 import type { PostListOptions, PostSummary, PostSummaryRepository } from "./types";
 
-const sources = import.meta.glob<string>("./posts/*/index.md", {
+const sources = import.meta.glob<string>("../../content/posts/*/index.md", {
   eager: true,
   import: "default",
   query: "?raw",

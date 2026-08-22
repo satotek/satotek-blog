@@ -9,7 +9,7 @@
 - `/posts/$slug` の記事ルート
 - カテゴリ／タグ一覧と記事一覧、`/page/N` のページ送り
 - `robots.txt`、サイトマップ、RSS、`llms.txt`、`security.txt`
-- `src/content/posts/<slug>/index.md` のfrontmatter付きMarkdown記事
+- `content/posts/<slug>/index.md` のfrontmatter付きMarkdown記事
 - 記事タイトル・カテゴリ・タグから生成する1200×630のOGP画像
 - レスポンシブ対応、キーボードフォーカス、OSのダークモード対応
 
@@ -36,17 +36,45 @@ bun run dev
 
 開発サーバーは `http://localhost:3000` で起動します。
 
-### Analytics（任意）
+### Analytics
 
-Google Analytics 4のブラウザ計測は、公開して問題ない測定IDを設定した環境だけで有効になります。
+本番では次の2つを使います。
+
+- [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/) — ゾーン側ダッシュボードで有効化します。Cookie を使わず、このリポジトリに測定IDは不要です。ブラウザへは Cloudflare がビーコンを自動挿入します。
+- [Google Analytics 4](https://developers.google.com/analytics) — ビルド時の `VITE_GA_MEASUREMENT_ID` で gtag を埋め込みます。測定IDはブラウザへ公開される値なので、Worker Secret ではなく環境変数です。
 
 ```sh
 cp .env.example .env.local
-# .env.local
-VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+# VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 ```
 
-未設定のままでも動作し、ローカル開発やプレビューでは計測スクリプトを読み込みません。人気記事の取得は別の `AnalyticsRepository` に分けてあり、認証情報が必要なGA4 Data APIの接続は次段階で追加できます。
+`bun run deploy` は `.env.local` を読んだ Vite ビルドのあとに `wrangler deploy` します。測定IDを変えたら、再ビルドしてからデプロイしてください。ローカルで ID を空にすると gtag は出ません。
+
+ホームページの人気記事は `AnalyticsRepository` 経由です。いまの実装は空配列を返すローカルスタブで、集計スナップショットへ差し替えられるようにしてあります。
+
+### 記事・サイト画像（R2）
+
+記事画像とサイト内のコンテンツ画像はGitに置かず、Cloudflare R2の `satotek-media` バケットから配信します。公開用カスタムドメインは `https://img.satotek.dev` です。faviconやPWA用アイコンなど、アプリの静的アセットだけは `public/` に残します。
+
+ローカルで作業中の画像は `.r2-media/` または `content/posts/<slug>/assets/` に置けます。どちらもGit管理対象外です。WranglerでCloudflareにログインした状態で、次のコマンドでアップロードします。
+
+```sh
+# 1枚アップロード。keyはR2上の公開パス
+bun run upload-media -- \
+  --file content/posts/first-post/assets/photo.webp \
+  --key first-post/photo.webp
+
+# .r2-media/ 以下を相対パスのまままとめてアップロード
+bun run upload-media -- --directory .r2-media
+```
+
+アップロード後、Markdownでは出力された `https://img.satotek.dev/...` のURLを使います。
+
+```md
+![写真](https://img.satotek.dev/first-post/photo.webp)
+```
+
+`bun run deploy` はWorkerのデプロイだけを行い、画像を自動アップロードしません。画像を追加・差し替えたときは先に `bun run upload-media` を実行します。`upload-media` はS3 APIキーを直接扱わず、WranglerのCloudflare OAuth（CIでは `CLOUDFLARE_API_TOKEN`）を利用します。バケットを変更する場合は `R2_BUCKET_NAME` で上書きできます。
 
 ### OGP画像（任意）
 
@@ -72,7 +100,7 @@ R2の公開用カスタムドメインを用意したら、デプロイ時の環
 VITE_OGP_BASE_URL=https://img.satotek.dev
 ```
 
-既存のR2メディアバケットに紐づく `img.satotek.dev` を使用し、記事ページは `https://img.satotek.dev/blog/ogp/<slug>.png` を `og:image` として使用します。未設定の場合は、既存のカバー画像または `public/og-image.png` にフォールバックします。
+既存のR2メディアバケットに紐づく `img.satotek.dev` を使用し、記事ページは `https://img.satotek.dev/blog/ogp/<slug>.png` を `og:image` として使用します。未設定の場合は、R2上の `https://img.satotek.dev/site/og-image.png` にフォールバックします。
 
 記事Markdownが`main`へマージされると、`.github/workflows/generate-ogp.yaml` が変更された記事だけを生成してR2へアップロードします。GitHubリポジトリには次のActions Secretsを登録してください。
 
@@ -98,15 +126,7 @@ bun run deploy
 
 `bun run deploy` は、MarkdownのHTML生成、Vite+のチェック、Cloudflare向けビルド、`wrangler deploy` を順に実行します。実行前にローカルで表示と主要ルートを確認してください。
 
-GA4を有効にする場合は、デプロイする環境で測定IDを設定します。測定IDはブラウザへ公開される値なので、Worker Secretではなくビルド時の環境変数として扱います。
-
-```sh
-cp .env.example .env.local
-# .env.local
-VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-```
-
-`.env.local`、`.env.*`、`.dev.vars*` はGit管理対象外です。APIキー、秘密鍵、サービスアカウント認証情報などをリポジトリへ追加しないでください。
+`.env.local`、`.env.*`、`.dev.vars*` はGit管理対象外です。APIキー、秘密鍵、サービスアカウント認証情報などをリポジトリへ追加しないでください。GA4の測定IDは `.env.local` の `VITE_GA_MEASUREMENT_ID` で渡します。
 
 旧サイトで使っていたリアクション・PV用のD1は、新アプリケーションからは参照していません。このリポジトリのデプロイ処理にD1データベースを削除する操作は含まれていません。
 
@@ -124,10 +144,14 @@ bun run preview
 ## ディレクトリ構成
 
 ```text
+content/
+├── posts/                  Git管理するMarkdown記事
+└── .generated/             ビルド時に生成するHTMLと目次
+
 src/
-├── analytics/               GA4計測と人気記事取得の境界
+├── analytics/               GA4ビーコンと人気記事取得の境界
 ├── components/              React Ariaを使う操作部品、記事カード、一覧
-├── content/                 Markdown記事、変換処理、PostRepository
+├── content/                 Markdown変換処理、PostRepository
 ├── data/                    カテゴリ・タグなどのサイト分類データ
 ├── lib/                     ページ送り、サイトURLなどの共通処理
 ├── routes/                  画面ルートと配信メタデータのサーバールート
@@ -135,7 +159,7 @@ src/
 └── styles.css               Tailwind CSSのエントリーポイントとデザイントークン
 ```
 
-`scripts/generate-post-content.ts` は公開MarkdownをShikiで変換し、`src/content/generated/` にビルド用のHTMLと目次を生成します。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。これらのディレクトリは生成物のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
+`scripts/generate-post-content.ts` は公開MarkdownをShikiで変換し、`content/.generated/` にビルド用のHTMLと目次を生成します。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` はGit管理外の画像をR2へアップロードします。これらのディレクトリは生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
 
 `src/routeTree.gen.ts` はTanStack Routerが生成するファイルです。ルートファイルを追加したときは、必要に応じて次を実行します。
 
@@ -149,5 +173,5 @@ bun run generate-routes
 
 - Headless CMSは、複数人編集・Web上の執筆・承認フローなどが必要になった段階でRepositoryアダプターとして追加する
 - ElysiaなどのAPIフレームワークは、管理APIやWebhookなどの具体的な要件が出た段階で別Workerとして追加する
-- GA4 Data APIをWorkerから直接呼ぶか、集計結果を定期生成して静的データとして配るか
+- 人気記事を Cloudflare Web Analytics の集計から作るか、定期生成した静的データとして配るか
 - 検索、隠しゲーム、記事本文のMarkdown表示をどの順番で復元するか
