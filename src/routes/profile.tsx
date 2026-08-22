@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { siGithub, siInstagram, siX } from "simple-icons";
 
+import { useRef } from "react";
+
 import { BrandIcon } from "#/components/BrandIcon";
+import { SecretGames, useSecretUnlock } from "#/components/SecretGames";
 import { ResponsiveImage } from "#/components/ResponsiveImage";
 import { createPageHead, mediaUrl, withSiteName } from "#/lib/site";
 
@@ -20,10 +23,14 @@ const profileBodyClass =
   "text-[1.0625rem] leading-[1.75] sm:text-[1.125rem] sm:leading-[1.85] [&_a]:text-accent [&_a]:decoration-accent/40 [&_a]:underline [&_a]:underline-offset-2 [&_h2]:relative [&_h2]:mt-[2.4em] [&_h2]:scroll-mt-[120px] [&_h2]:border-b [&_h2]:border-line [&_h2]:pb-[0.3em] [&_h2]:text-[1.3rem] [&_h2]:font-bold [&_h2]:leading-[1.3] sm:[&_h2]:text-[1.45rem] [&_h3]:relative [&_h3]:mt-[2em] [&_h3]:scroll-mt-[120px] [&_h3]:border-b [&_h3]:border-line [&_h3]:pb-[0.25em] [&_h3]:text-[1.175rem] [&_h3]:font-bold [&_h3]:leading-[1.3] sm:[&_h3]:text-[1.3rem] [&_hr]:my-[3.5em] [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-line [&_li]:my-[0.4em] [&_p]:my-[1.25em] [&_strong]:font-bold [&_ul]:my-[1.25em] [&_ul]:list-disc [&_ul]:pl-6";
 
 function Profile() {
+  const avatarRef = useRef<HTMLImageElement>(null);
+  const unlocked = useSecretUnlock(avatarRef);
+
   return (
     <article className={profileBodyClass}>
       <div className="mb-6 flex items-center gap-5 py-6">
         <ResponsiveImage
+          ref={avatarRef}
           className="h-32 w-32 shrink-0 rounded-[24px] border border-line object-cover"
           src={mediaUrl("site/my-avater.jpg")}
           sizes="128px"
@@ -90,6 +97,8 @@ function Profile() {
           <BrandIcon icon={siInstagram} className="size-5" />
         </a>
       </div>
+
+      {unlocked ? <SecretGames /> : null}
 
       <hr />
 

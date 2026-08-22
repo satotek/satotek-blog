@@ -2,6 +2,8 @@ import { HeadContent, Link, Scripts, createRootRoute } from "@tanstack/react-rou
 import type { ReactNode } from "react";
 
 import { GA_INITIALIZER, GA_MEASUREMENT_ID } from "#/analytics/client";
+import { BlockPuzzle } from "#/components/games/BlockPuzzle";
+import { BugHunt } from "#/components/games/BugHunt";
 import { NotFound } from "#/components/NotFound";
 import { SiteChrome } from "#/components/SiteChrome";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, createSocialMeta } from "#/lib/site";
@@ -61,18 +63,41 @@ export const Route = createRootRoute({
     ],
   }),
   notFoundComponent: RootNotFound,
+  errorComponent: RootError,
   shellComponent: RootDocument,
 });
 
+// 404 は、ネット接続が切れたときのブラウザ内ゲームよろしく、その場で遊べるようにしてある。
 function RootNotFound() {
   return (
     <NotFound
       title="ページが見つかりません。"
-      description="お探しのページは移動したか、まだ公開されていません。"
+      description="せっかくなので、ブロックパズルでもどうぞ。"
     >
       <Link className="text-accent underline underline-offset-2" to="/">
         ← Homeへ戻る
       </Link>
+      <div className="mt-8">
+        <BlockPuzzle />
+      </div>
+    </NotFound>
+  );
+}
+
+// 素のエラー画面を見せず、404 と同じトーンで整える。
+function RootError() {
+  return (
+    <NotFound
+      code="500"
+      title="サーバー側で問題が発生しました。"
+      description="復旧までの間、バグ退治でもどうぞ。"
+    >
+      <Link className="text-accent underline underline-offset-2" to="/">
+        ← Homeへ戻る
+      </Link>
+      <div className="mt-8">
+        <BugHunt />
+      </div>
     </NotFound>
   );
 }

@@ -30,7 +30,9 @@ const config = defineConfig(({ mode }) => {
               concurrency: 2,
               crawlLinks: true,
               // The home page reads the current GA4 snapshot at request time.
-              filter: ({ path }) => path !== "/",
+              // /play/* are the hidden-game entrances: one is a URL that must
+              // stay missing, the other throws on purpose.
+              filter: ({ path }) => path !== "/" && !path.startsWith("/play/"),
               failOnError: true,
             },
             pages: [
