@@ -6,8 +6,10 @@ import {
   createRootRoute,
   useRouterState,
 } from "@tanstack/react-router";
+import { Button as AriaButton } from "react-aria-components";
 import { useEffect, useId, useState, type ReactNode } from "react";
 
+import { GA_INITIALIZER, GA_MEASUREMENT_ID, trackPageView } from "#/analytics/client";
 import { categories } from "#/data/navigation";
 import { SITE_URL } from "#/lib/site";
 import appCss from "../styles.css?url";
@@ -78,6 +80,15 @@ function RootDocument({ children }: { children: ReactNode }) {
     <html lang="ja">
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {GA_MEASUREMENT_ID ? (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            />
+            <script dangerouslySetInnerHTML={{ __html: GA_INITIALIZER }} />
+          </>
+        ) : null}
         <HeadContent />
       </head>
       <body>
@@ -106,11 +117,11 @@ function ThemeToggle({ className }: { className?: string }) {
   const maskId = `theme-moon-${reactId.replace(/:/g, "")}`;
 
   return (
-    <button
+    <AriaButton
       className={`${iconButtonClass} theme-toggle ${className ?? ""}`}
       type="button"
       aria-label="テーマを切り替え"
-      onClick={toggleTheme}
+      onPress={toggleTheme}
     >
       <svg className="theme-toggle-glyph size-5" viewBox="0 0 24 24" aria-hidden="true">
         <mask id={maskId}>
@@ -144,12 +155,15 @@ function ThemeToggle({ className }: { className?: string }) {
           ))}
         </g>
       </svg>
-    </button>
+    </AriaButton>
   );
 }
 
 function SiteChrome({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
 
   const closeDrawer = () => setDrawerOpen(false);
 
@@ -165,6 +179,10 @@ function SiteChrome({ children }: { children: ReactNode }) {
     document.body.classList.toggle("overflow-hidden", drawerOpen);
     return () => document.body.classList.remove("overflow-hidden");
   }, [drawerOpen]);
+
+  useEffect(() => {
+    trackPageView(pathname);
+  }, [pathname]);
 
   useEffect(() => {
     const logo = document.querySelector<HTMLElement>("[data-sdot]");
@@ -300,16 +318,16 @@ function SiteChrome({ children }: { children: ReactNode }) {
                 <Bot className="size-5" aria-hidden="true" />
               </a>
               <ThemeToggle className="hidden sm:inline-flex" />
-              <button
+              <AriaButton
                 className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[10px] border border-line bg-transparent text-ink transition-[background,border-color] duration-150 hover:border-accent-border hover:bg-accent-soft sm:hidden motion-reduce:transition-none"
                 type="button"
                 aria-label="メニュー"
                 aria-controls="site-drawer"
                 aria-expanded={drawerOpen}
-                onClick={() => setDrawerOpen((open) => !open)}
+                onPress={() => setDrawerOpen((open) => !open)}
               >
                 <Menu className="size-5" aria-hidden="true" />
-              </button>
+              </AriaButton>
             </div>
           </div>
           <nav className="hidden sm:block" aria-label="グローバルナビ">
@@ -332,14 +350,14 @@ function SiteChrome({ children }: { children: ReactNode }) {
         aria-hidden={!drawerOpen}
       >
         <div className="flex min-h-full flex-col items-stretch gap-0.5 overflow-x-visible px-3.5 pb-6 pt-3.5">
-          <button
+          <AriaButton
             className="mb-1 inline-flex h-9 w-9 self-end items-center justify-center rounded-lg border-0 bg-transparent text-muted hover:bg-hover hover:text-ink"
             type="button"
             aria-label="メニューを閉じる"
-            onClick={closeDrawer}
+            onPress={closeDrawer}
           >
             <X className="size-5" aria-hidden="true" />
-          </button>
+          </AriaButton>
           <NavigationLinks onNavigate={closeDrawer} navLinkClass={navLinkClass} drawer />
           <div className="mt-auto flex items-center justify-center gap-2.5 pt-3.5">
             <ThemeToggle className="inline-flex" />
@@ -390,20 +408,29 @@ function NavigationLinks({
       <Link className={navLinkClass(pathname === "/", drawer)} to="/" onClick={onNavigate}>
         Home
       </Link>
-      {categories.map(({ slug, name }) => (
-        <Link
-          to="/categories/$slug"
-          params={{ slug }}
-          key={slug}
-          className={navLinkClass(
-            pathname === `/categories/${slug}` || pathname.startsWith(`/categories/${slug}/`),
-            drawer,
-          )}
-          onClick={onNavigate}
-        >
-          {name}
-        </Link>
-      ))}
+      <Link
+        to="/posts"
+        className={navLinkClass(pathname.startsWith("/posts"), drawer)}
+        onClick={onNavigate}
+      >
+        記事
+      </Link>
+      {/* カテゴリはホームのサイドバーが担うため、ヘッダーではドロワー（モバイル）にだけ残す。 */}
+      {drawer &&
+        categories.map(({ slug, name }) => (
+          <Link
+            to="/categories/$slug"
+            params={{ slug }}
+            key={slug}
+            className={navLinkClass(
+              pathname === `/categories/${slug}` || pathname.startsWith(`/categories/${slug}/`),
+              drawer,
+            )}
+            onClick={onNavigate}
+          >
+            {name}
+          </Link>
+        ))}
       <Link
         to="/tags"
         className={navLinkClass(pathname.startsWith("/tags"), drawer)}

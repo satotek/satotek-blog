@@ -1,4 +1,4 @@
-import { posts } from "#/data/posts";
+import { postRepository } from "#/content/repository";
 
 export const categories = [
   { slug: "tech", name: "技術" },
@@ -10,14 +10,17 @@ export const categories = [
 export type Category = (typeof categories)[number];
 export type CategorySlug = Category["slug"];
 
-export function getCategories() {
+export async function getCategories() {
+  const posts = await postRepository.list();
+
   return categories.map((category) => ({
     ...category,
     count: posts.filter((post) => post.category === category.slug).length,
   }));
 }
 
-export function getTags() {
+export async function getTags() {
+  const posts = await postRepository.list();
   const counts = new Map<string, number>();
   for (const post of posts) {
     for (const tag of post.tags) {

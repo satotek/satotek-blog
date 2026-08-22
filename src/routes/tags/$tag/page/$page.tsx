@@ -1,14 +1,15 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 import { TagPageContent } from "#/components/TaxonomyPage";
-import { posts } from "#/data/posts";
+import { postRepository } from "#/content/repository";
 import { parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
 
 export const Route = createFileRoute("/tags/$tag/page/$page")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const tag = decodeURIComponent(params.tag);
     const page = parsePage(params.page);
-    const itemCount = posts.filter((post) => post.tags.includes(tag)).length;
+    const posts = await postRepository.list({ tag });
+    const itemCount = posts.length;
     const total = Math.max(1, Math.ceil(itemCount / POSTS_PER_PAGE));
 
     if (itemCount === 0 || page === null || page > total) throw notFound();
@@ -20,14 +21,17 @@ export const Route = createFileRoute("/tags/$tag/page/$page")({
         throw: true,
       });
     }
-    return null;
+    return { posts };
   },
   component: TagNumberedPage,
 });
 
 function TagNumberedPage() {
   const { tag: encodedTag, page: rawPage } = Route.useParams();
+  const { posts } = Route.useLoaderData();
   const page = parsePage(rawPage);
 
-  return page === null ? null : <TagPageContent tag={decodeURIComponent(encodedTag)} page={page} />;
+  return page === null ? null : (
+    <TagPageContent tag={decodeURIComponent(encodedTag)} page={page} posts={posts} />
+  );
 }

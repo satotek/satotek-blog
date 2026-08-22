@@ -1,15 +1,16 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 import { CategoryPageContent } from "#/components/TaxonomyPage";
+import { postRepository } from "#/content/repository";
 import { categoryBySlug } from "#/data/navigation";
-import { posts } from "#/data/posts";
 import { parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
 
 export const Route = createFileRoute("/categories/$slug/page/$page")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const category = categoryBySlug(params.slug);
     const page = parsePage(params.page);
-    const itemCount = category ? posts.filter((post) => post.category === category.slug).length : 0;
+    const posts = category ? await postRepository.list({ category: category.slug }) : [];
+    const itemCount = posts.length;
     const total = Math.max(1, Math.ceil(itemCount / POSTS_PER_PAGE));
 
     if (!category || page === null || page > total) throw notFound();
@@ -21,14 +22,15 @@ export const Route = createFileRoute("/categories/$slug/page/$page")({
         throw: true,
       });
     }
-    return null;
+    return { posts };
   },
   component: CategoryNumberedPage,
 });
 
 function CategoryNumberedPage() {
   const { slug, page: rawPage } = Route.useParams();
+  const { posts } = Route.useLoaderData();
   const page = parsePage(rawPage);
 
-  return page === null ? null : <CategoryPageContent slug={slug} page={page} />;
+  return page === null ? null : <CategoryPageContent slug={slug} page={page} posts={posts} />;
 }

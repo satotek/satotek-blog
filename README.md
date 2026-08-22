@@ -9,10 +9,10 @@
 - `/posts/$slug` の動的ルート
 - カテゴリ／タグ一覧と記事一覧、`/page/N` のページ送り
 - `robots.txt`、サイトマップ、RSS、`llms.txt`、`security.txt`
-- 現行サイトの公開記事を参考にしたPoC用の静的データ
+- `src/content/posts/<slug>/index.md` のfrontmatter付きMarkdown記事
 - レスポンシブ対応、キーボードフォーカス、OSのダークモード対応
 
-Markdownの解析、CMS、OG画像、記事ごとの追加機能は、ルート構成とコンテンツ移行方針が決まってから追加します。
+記事データは `PostRepository` の境界越しに取得しています。現在はGit管理のMarkdownをViteのglob importで取り込み、frontmatterを検証してremark/rehypeでHTMLと目次へ変換しています。CMSを導入する場合も、画面ルートから取得元を切り離したままアダプターを追加できます。
 
 ## 技術スタック
 
@@ -22,6 +22,7 @@ Markdownの解析、CMS、OG画像、記事ごとの追加機能は、ルート�
 - React 19 / TypeScript 7.0
 - Bun 1.3 — パッケージ管理とスクリプト実行
 - Tailwind CSS 4 — ViteプラグインでユーティリティCSSを生成
+- React Aria Components — キーボード操作・フォーカス管理を考慮した操作部品
 - lucide-react — RSS、メニュー、テーマ切替などのUIアイコン
 - Simple Icons — GitHub、X、Instagramなどのブランドアイコン
 
@@ -33,6 +34,18 @@ bun run dev
 ```
 
 開発サーバーは `http://localhost:3000` で起動します。
+
+### Analytics（任意）
+
+Google Analytics 4のブラウザ計測は、公開して問題ない測定IDを設定した環境だけで有効になります。
+
+```sh
+cp .env.example .env.local
+# .env.local
+VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+未設定のままでも動作し、ローカル開発やプレビューでは計測スクリプトを読み込みません。人気記事の取得は別の `AnalyticsRepository` に分けてあり、認証情報が必要なGA4 Data APIの接続は次段階で追加できます。
 
 ## 検証
 
@@ -49,8 +62,10 @@ bun run preview
 
 ```text
 src/
-├── components/              記事カード、カテゴリ／タグ一覧
-├── data/                    PoC用の記事・カテゴリ・タグデータ
+├── analytics/               GA4計測と人気記事取得の境界
+├── components/              React Ariaを使う操作部品、記事カード、一覧
+├── content/                 Markdown記事、変換処理、PostRepository
+├── data/                    カテゴリ・タグなどのサイト分類データ
 ├── lib/                     ページ送り、サイトURLなどの共通処理
 ├── routes/                  画面ルートと配信メタデータのサーバールート
 ├── server/                  RSS、サイトマップ、robotsなどのレスポンス生成
@@ -63,10 +78,11 @@ src/
 bun run generate-routes
 ```
 
-## 次に決めたいこと
+## 今後の拡張方針
 
-PoCの次の段階では、以下を決めてから既存コンテンツを段階的に移行します。
+まずはGit管理Markdownを記事のsource of truthとして運用します。
 
-- Markdownをビルド時に読むか、TanStack Startのサーバー処理で読むか
-- CMSを継続利用するか、GitベースのMarkdown運用に戻すか
+- Headless CMSは、複数人編集・Web上の執筆・承認フローなどが必要になった段階でRepositoryアダプターとして追加する
+- ElysiaなどのAPIフレームワークは、管理APIやWebhookなどの具体的な要件が出た段階で別Workerとして追加する
+- GA4 Data APIをWorkerから直接呼ぶか、集計結果を定期生成して静的データとして配るか
 - 検索、隠しゲーム、OG画像、記事本文のMarkdown表示をどの順番で復元するか

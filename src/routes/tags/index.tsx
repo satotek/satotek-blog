@@ -3,11 +3,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { getTags } from "#/data/navigation";
 
 export const Route = createFileRoute("/tags/")({
+  loader: async () => ({ tags: await getTags() }),
   component: TagsPage,
 });
 
 function TagsPage() {
-  const tags = getTags();
+  const { tags } = Route.useLoaderData();
 
   return (
     <section>

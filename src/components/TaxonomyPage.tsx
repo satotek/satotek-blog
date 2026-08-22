@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
+import type { PostSummary } from "#/content/types";
 import { categoryBySlug } from "#/data/navigation";
-import { posts } from "#/data/posts";
 import { paginate, POSTS_PER_PAGE } from "#/lib/pagination";
 
 import { PostCard } from "./PostCard";
@@ -12,14 +12,22 @@ type PaginationProps = {
   total: number;
 };
 
-export function CategoryPageContent({ slug, page }: { slug: string; page: number }) {
+export function CategoryPageContent({
+  slug,
+  page,
+  posts,
+}: {
+  slug: string;
+  page: number;
+  posts: readonly PostSummary[];
+}) {
   const category = categoryBySlug(slug);
 
   if (!category) {
     return <TaxonomyNotFound label="カテゴリ" to="/categories" />;
   }
 
-  const items = posts.filter((post) => post.category === category.slug);
+  const items = posts;
   const { slice, current, total } = paginate(items, page);
 
   if (page > total) {
@@ -40,7 +48,7 @@ export function CategoryPageContent({ slug, page }: { slug: string; page: number
         <>
           <ul className="m-0 grid list-none gap-0 border-t border-line p-0">
             {slice.map((post) => (
-              <PostCard key={post.slug} post={post} />
+              <PostCard key={post.slug} post={post} variant="list" />
             ))}
           </ul>
           <CategoryPagination slug={category.slug} current={current} total={total} />
@@ -52,8 +60,16 @@ export function CategoryPageContent({ slug, page }: { slug: string; page: number
   );
 }
 
-export function TagPageContent({ tag, page }: { tag: string; page: number }) {
-  const items = posts.filter((post) => post.tags.includes(tag));
+export function TagPageContent({
+  tag,
+  page,
+  posts,
+}: {
+  tag: string;
+  page: number;
+  posts: readonly PostSummary[];
+}) {
+  const items = posts;
 
   if (items.length === 0 || page > Math.max(1, Math.ceil(items.length / POSTS_PER_PAGE))) {
     return <TaxonomyNotFound label="タグ" to="/tags" />;
@@ -73,7 +89,7 @@ export function TagPageContent({ tag, page }: { tag: string; page: number }) {
       </h2>
       <ul className="m-0 grid list-none gap-0 border-t border-line p-0">
         {slice.map((post) => (
-          <PostCard key={post.slug} post={post} />
+          <PostCard key={post.slug} post={post} variant="list" />
         ))}
       </ul>
       <TagPagination tag={tag} current={current} total={total} />

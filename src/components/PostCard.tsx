@@ -1,40 +1,142 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 
-import type { Post } from "#/data/posts";
-import { formatDate } from "#/data/posts";
+import type { PostSummary } from "#/content/types";
+import { categoryBySlug } from "#/data/navigation";
+import { formatDate } from "#/lib/date";
 
-export function PostCard({ post }: { post: Post }) {
-  return (
-    <li className="flex items-center gap-5 rounded-[10px] border-b border-line px-4 py-[30px] transition-colors duration-150 hover:bg-card max-[480px]:gap-3">
-      <div className="min-w-0 flex-1">
-        <Link
-          className="text-[1.15rem] font-semibold tracking-[-0.01em] no-underline"
-          to="/posts/$slug"
-          params={{ slug: post.slug }}
-        >
-          {post.title}
-        </Link>
-        <time className="mt-1 block text-[0.85rem] tabular-nums text-muted" dateTime={post.date}>
-          {formatDate(post.date)}
-        </time>
-        <p className="mb-0 mt-2 text-[0.95rem] text-muted">{post.description}</p>
-      </div>
-      {post.cover && (
-        <Link
-          className="block h-[150px] w-[210px] shrink-0 overflow-hidden rounded-xl border border-line no-underline max-[480px]:h-24 max-[480px]:w-32"
-          to="/posts/$slug"
-          params={{ slug: post.slug }}
-          aria-label={post.title}
-        >
-          <img
-            className="block h-full w-full object-cover"
-            src={post.cover}
-            alt=""
-            loading="lazy"
-            decoding="async"
+export type PostCardVariant = "grid" | "list" | "panel";
+
+export function PostCard({
+  post,
+  variant = "grid",
+}: {
+  post: PostSummary;
+  variant?: PostCardVariant;
+}) {
+  const category = categoryBySlug(post.category);
+
+  if (variant === "panel") {
+    return (
+      <li className="post-card post-card--panel panel group">
+        <PostCover post={post} className="post-card__cover post-card__cover--panel" />
+        <div className="min-w-0 pr-1">
+          <PostMeta post={post} category={category?.name ?? post.category} />
+          <PostTitle
+            post={post}
+            className="mt-1.5 block text-[1.05rem] tracking-[-0.025em] sm:text-[1.22rem]"
           />
-        </Link>
-      )}
+          <p className="mb-0 mt-1.5 line-clamp-2 text-[0.88rem] leading-[1.75] text-muted">
+            {post.description}
+          </p>
+          <PostTags post={post} />
+        </div>
+      </li>
+    );
+  }
+
+  if (variant === "list") {
+    return (
+      <li className="post-card post-card--list group">
+        <div className="min-w-0 flex-1">
+          <PostMeta post={post} category={category?.name ?? post.category} />
+          <PostTitle post={post} className="mt-2 block text-[1.15rem]" />
+          <p className="mb-0 mt-2 line-clamp-2 max-w-[700px] text-[0.95rem] text-muted">
+            {post.description}
+          </p>
+          <PostTags post={post} />
+        </div>
+        <PostCover post={post} className="post-card__cover post-card__cover--list" />
+      </li>
+    );
+  }
+
+  return (
+    <li className="post-card post-card--grid group">
+      <PostCover post={post} className="post-card__cover post-card__cover--grid" />
+      <div className="pt-4">
+        <PostMeta post={post} category={category?.name ?? post.category} />
+        <PostTitle post={post} className="mt-2 block text-[1.1rem]" />
+        <p className="mb-0 mt-2 line-clamp-3 text-[0.92rem] text-muted">{post.description}</p>
+        <PostTags post={post} />
+      </div>
     </li>
+  );
+}
+
+export function PostCover({ post, className }: { post: PostSummary; className: string }) {
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <Link
+      className={`post-cover group block overflow-hidden rounded-site border border-line no-underline ${className}`}
+      to="/posts/$slug"
+      params={{ slug: post.slug }}
+      aria-label={`${post.title}を読む`}
+    >
+      {post.cover && !imageError ? (
+        <img
+          className="block h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.035] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          src={post.cover}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <span className="post-cover__fallback">
+          <span className="post-cover__fallback-dot" />
+          <span className="post-cover__fallback-label">SATOTEK</span>
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function PostTitle({ post, className }: { post: PostSummary; className: string }) {
+  return (
+    <Link
+      className={`font-semibold leading-[1.3] tracking-[-0.015em] no-underline transition-colors hover:text-accent ${className}`}
+      to="/posts/$slug"
+      params={{ slug: post.slug }}
+    >
+      {post.title}
+    </Link>
+  );
+}
+
+function PostMeta({ post, category }: { post: PostSummary; category: string }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-muted">
+      <time dateTime={post.date}>{formatDate(post.date)}</time>
+      <span aria-hidden="true">/</span>
+      <Link
+        className="text-accent no-underline hover:underline"
+        to="/categories/$slug"
+        params={{ slug: post.category }}
+      >
+        {category}
+      </Link>
+    </div>
+  );
+}
+
+function PostTags({ post }: { post: PostSummary }) {
+  if (post.tags.length === 0) return null;
+
+  return (
+    <ul className="m-0 mt-3 flex list-none flex-wrap gap-x-3 gap-y-1 p-0" aria-label="タグ">
+      {post.tags.slice(0, 3).map((tag) => (
+        <li key={tag}>
+          <Link
+            className="text-[0.75rem] text-muted no-underline hover:text-accent"
+            to="/tags/$tag"
+            params={{ tag }}
+          >
+            #{tag}
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

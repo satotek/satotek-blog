@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute, notFound } from "@tanstack/react-router";
 
-import { posts } from "#/data/posts";
+import { postRepository } from "#/content/repository";
 import { SITE_URL } from "#/lib/site";
 
 export const Route = createFileRoute("/tags/$tag")({
@@ -15,10 +15,11 @@ export const Route = createFileRoute("/tags/$tag")({
       links: [{ rel: "canonical", href: `${SITE_URL}/tags/${encodeURIComponent(tag)}` }],
     };
   },
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const tag = decodeURIComponent(params.tag);
-    if (!posts.some((post) => post.tags.includes(tag))) throw notFound();
-    return null;
+    const posts = await postRepository.list({ tag });
+    if (posts.length === 0) throw notFound();
+    return { posts };
   },
   component: TagLayout,
 });

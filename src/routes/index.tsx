@@ -1,27 +1,92 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { PostCard } from "#/components/PostCard";
-import { posts } from "#/data/posts";
-import { POSTS_PER_PAGE } from "#/lib/pagination";
+import { HomeHero } from "#/components/HomeHero";
+import { HomeSidebar } from "#/components/HomeSidebar";
+import { PostList } from "#/components/PostList";
+import type { PostSummary } from "#/content/types";
+import { analyticsRepository } from "#/analytics/repository";
+import { getCategories, getTags } from "#/data/navigation";
+import { PICKED_POST_SLUGS } from "#/data/home";
+import { postRepository } from "#/content/repository";
+import { SITE_URL } from "#/lib/site";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "satotek.dev" },
+      {
+        name: "description",
+        content: "nosukeの個人ブログ。技術、ガジェット、旅行、日常についての記録。",
+      },
+    ],
+    links: [{ rel: "canonical", href: SITE_URL }],
+  }),
+  loader: async () => {
+    const [posts, categories, tags, popular] = await Promise.all([
+      postRepository.list(),
+      getCategories(),
+      getTags(),
+      analyticsRepository.getPopularPosts(),
+    ]);
+    const popularPosts = popular.flatMap((item) => {
+      const post = posts.find((candidate) => candidate.slug === item.slug);
+      return post ? [post] : [];
+    });
+    const pickedPosts = postsBySlug(posts, PICKED_POST_SLUGS);
+
+    return {
+      latest: posts.slice(0, 4),
+      total: posts.length,
+      categories,
+      tags,
+      highlights: popularPosts.length > 0 ? popularPosts : pickedPosts,
+      hasPopularPosts: popularPosts.length > 0,
+    };
+  },
+  component: Home,
+});
 
 function Home() {
-  const latest = posts.slice(0, POSTS_PER_PAGE);
+  const { latest, total, categories, tags, highlights, hasPopularPosts } = Route.useLoaderData();
 
   return (
-    <section>
-      <h2 className="mb-5 flex items-baseline justify-between gap-3 text-[0.85rem] font-semibold uppercase tracking-[0.08em] text-muted">
-        <span>Latest posts</span>
-        <span className="normal-case font-normal tracking-normal tabular-nums">
-          最新 {latest.length} 件 / 全 {posts.length} 件
-        </span>
-      </h2>
-      <ul className="m-0 grid list-none gap-0 border-t border-line p-0">
-        {latest.map((post) => (
-          <PostCard key={post.slug} post={post} />
-        ))}
-      </ul>
-    </section>
+    <div>
+      <HomeHero total={total} topics={categories.length} />
+
+      <div className="home-layout">
+        <main aria-labelledby="latest-title">
+          <div className="mb-3.5 flex items-baseline justify-between gap-4">
+            <h2 className="m-0 text-[1rem] font-bold tracking-[-0.01em]" id="latest-title">
+              最新の記事
+            </h2>
+            <Link
+              className="text-[0.85rem] font-semibold text-accent no-underline hover:underline"
+              to="/posts"
+            >
+              記事一覧 →
+            </Link>
+          </div>
+          {latest.length > 0 ? (
+            <PostList posts={latest} variant="panel" />
+          ) : (
+            <p className="text-muted">公開中の記事はありません。</p>
+          )}
+        </main>
+
+        <HomeSidebar
+          highlights={highlights}
+          hasPopularPosts={hasPopularPosts}
+          categories={categories}
+          tags={tags}
+        />
+      </div>
+    </div>
   );
+}
+
+function postsBySlug(posts: readonly PostSummary[], slugs: readonly string[]) {
+  return slugs.flatMap((slug) => {
+    const post = posts.find((candidate) => candidate.slug === slug);
+    return post ? [post] : [];
+  });
 }

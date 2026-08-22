@@ -1,16 +1,24 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Button as AriaButton } from "react-aria-components";
 
+import { postRepository } from "#/content/repository";
+import { getPostSourceText, type Post } from "#/content/types";
 import { categoryBySlug } from "#/data/navigation";
-import { findPost, formatDate } from "#/data/posts";
+import { formatDate } from "#/lib/date";
 import { SITE_URL } from "#/lib/site";
 
 const REACTIONS = ["👍", "❤️", "🎉", "👀"];
 
 export const Route = createFileRoute("/posts/$slug")({
-  head: ({ params }) => {
-    const post = findPost(params.slug);
+  loader: async ({ params }): Promise<{ post: Post }> => {
+    const post = await postRepository.findBySlug(params.slug);
+    if (!post) throw notFound();
+    return { post };
+  },
+  head: ({ params, loaderData }) => {
+    const post = loaderData?.post;
     const title = post?.title ?? "記事";
-    const description = post?.description ?? "個人ブログ・技術メモ";
+    const description = post?.description ?? "satotek.devの記事";
 
     return {
       meta: [
@@ -24,34 +32,14 @@ export const Route = createFileRoute("/posts/$slug")({
       links: [{ rel: "canonical", href: `${SITE_URL}/posts/${params.slug}` }],
     };
   },
-  loader: ({ params }) => {
-    if (!findPost(params.slug)) throw notFound();
-    return null;
-  },
   component: PostPage,
 });
 
 function PostPage() {
-  const { slug } = Route.useParams();
-  const post = findPost(slug);
-
-  if (!post) {
-    return (
-      <section className="mx-auto max-w-[820px] px-4 pb-12 pt-2 text-center sm:px-6">
-        <p className="m-0 mt-2 text-[clamp(64px,18vw,120px)] leading-none tracking-[0.02em] text-accent">
-          404
-        </p>
-        <p className="m-0 mt-2 text-[1.1rem]">記事が見つかりません。</p>
-        <p className="mb-6 mt-1.5 text-muted">指定された記事はまだ公開されていません。</p>
-        <Link className="text-accent underline underline-offset-2" to="/">
-          ← Homeへ戻る
-        </Link>
-      </section>
-    );
-  }
+  const { post } = Route.useLoaderData();
 
   const category = categoryBySlug(post.category);
-  const readingMinutes = Math.max(1, Math.ceil(post.paragraphs.join("").length / 500));
+  const readingMinutes = Math.max(1, Math.ceil(getPostSourceText(post).length / 500));
 
   return (
     <article className="w-full">
@@ -98,11 +86,10 @@ function PostPage() {
         </ul>
       </header>
 
-      <div className="text-[1.0625rem] leading-[1.75] sm:text-[1.125rem] sm:leading-[1.85] [&_p]:my-[1.25em] [&_p:first-child]:mt-0 [&_p:last-child]:mb-0">
-        {post.paragraphs.map((paragraph) => (
-          <p key={paragraph}>{paragraph}</p>
-        ))}
-      </div>
+      <div
+        className="text-[1.0625rem] leading-[1.75] sm:text-[1.125rem] sm:leading-[1.85] [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:my-6 [&_blockquote]:border-l-4 [&_blockquote]:border-accent-border [&_blockquote]:pl-4 [&_code]:rounded [&_code]:bg-accent-soft [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.9em] [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:text-[0.85rem] [&_figcaption]:text-muted [&_figure]:my-6 [&_h2]:mb-4 [&_h2]:mt-10 [&_h2:first-child]:mt-0 [&_h2]:text-[1.45rem] [&_h2]:font-bold [&_h3]:mb-3 [&_h3]:mt-8 [&_h3]:text-[1.2rem] [&_h3]:font-bold [&_img]:h-auto [&_img]:max-w-full [&_img.center]:mx-auto [&_li]:my-1 [&_ol]:my-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-[1.25em] [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_pre]:my-6 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-[#1f2429] [&_pre]:p-4 [&_pre]:text-[0.9em] [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:my-5 [&_ul]:list-disc [&_ul]:pl-6"
+        dangerouslySetInnerHTML={{ __html: post.content.html }}
+      />
 
       <div
         className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6"
@@ -110,7 +97,7 @@ function PostPage() {
       >
         <div className="flex flex-wrap gap-2">
           {REACTIONS.map((emoji) => (
-            <button
+            <AriaButton
               className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line bg-transparent px-3 py-1.5 text-[0.95rem] text-ink transition-[background,border-color,transform] duration-150 hover:border-accent-border hover:bg-accent-soft active:scale-[0.94]"
               type="button"
               key={emoji}
@@ -119,7 +106,7 @@ function PostPage() {
                 {emoji}
               </span>
               <span className="min-w-[1ch] text-[0.85rem] tabular-nums text-muted">–</span>
-            </button>
+            </AriaButton>
           ))}
         </div>
         <span className="text-[0.85rem] tabular-nums text-muted">– views</span>
