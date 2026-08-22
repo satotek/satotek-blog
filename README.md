@@ -69,10 +69,10 @@ bun run generate-ogp:upload
 R2の公開用カスタムドメインを用意したら、デプロイ時の環境変数に設定します。
 
 ```sh
-VITE_OGP_BASE_URL=https://ogp.satotek.dev
+VITE_OGP_BASE_URL=https://img.satotek.dev
 ```
 
-設定後の記事ページは `https://ogp.satotek.dev/blog/ogp/<slug>.png` を `og:image` として使用します。未設定の場合は、既存のカバー画像または `public/og-image.png` にフォールバックします。
+既存のR2メディアバケットに紐づく `img.satotek.dev` を使用し、記事ページは `https://img.satotek.dev/blog/ogp/<slug>.png` を `og:image` として使用します。未設定の場合は、既存のカバー画像または `public/og-image.png` にフォールバックします。
 
 記事Markdownが`main`へマージされると、`.github/workflows/generate-ogp.yaml` が変更された記事だけを生成してR2へアップロードします。GitHubリポジトリには次のActions Secretsを登録してください。
 
