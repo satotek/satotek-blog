@@ -2,21 +2,24 @@
   "name": "satotek-blog",
   "private": true,
   "type": "module",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "imports": {
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "bun run generate-content && vite dev --port 3000",
+    "dev": "bun run generate-content && vp dev . --port 3000",
     "generate-content": "bun scripts/generate-post-content.ts",
     "generate-ogp": "bun scripts/generate-ogp.tsx",
     "generate-ogp:all": "bun run generate-ogp -- --all",
     "generate-ogp:upload": "bun run generate-ogp -- --all --upload",
     "upload-media": "bun scripts/upload-media.ts",
     "generate-routes": "tsr generate",
+    "prepare": "vp config",
     "build": "bun run generate-content && vp build .",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "preview": "vp preview .",
+    "typecheck": "tsc --noEmit && bun run --filter '@satotek/content-pipeline' typecheck",
     "check": "bun run generate-content && vp check src packages scripts && bun run typecheck",
     "deploy": "bun run check && bun run build && wrangler deploy",
     "cf-typegen": "wrangler types"
@@ -34,9 +37,9 @@
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",
-    "@satotek/content-pipeline": "workspace:*",
     "@cloudflare/vite-plugin": "^1.53.1",
     "@resvg/resvg-js": "^2.6.2",
+    "@satotek/content-pipeline": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-cli": "^1.167.32",
     "@types/node": "^26.2.0",
@@ -46,7 +49,6 @@
     "satori": "^0.33.3",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2",
     "vite-plus": "^0.2.9",
     "wrangler": "^4.125.0"
   },

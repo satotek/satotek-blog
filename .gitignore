@@ -12,6 +12,7 @@ dist-ssr
 .nitro
 .tanstack
 .wrangler
+.vite-hooks/_/
 worker-configuration.d.ts
 .output
 .vinxi
