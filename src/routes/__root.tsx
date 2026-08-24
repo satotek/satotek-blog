@@ -31,19 +31,6 @@ const THEME_INIT_SCRIPT = `(() => {
 
 const FONTS_HREF = "/fonts.css";
 
-const FONTS_LOAD_SCRIPT = `(() => {
-  const href = ${JSON.stringify(FONTS_HREF)};
-  if (document.querySelector('link[rel="stylesheet"][href="' + href + '"]')) return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = href;
-  link.media = "print";
-  link.onload = () => {
-    link.media = "all";
-  };
-  document.head.appendChild(link);
-})();`;
-
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -61,6 +48,9 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      // フォント定義は通常の stylesheet として読む。JS で差し込むと
+      // プリロードスキャナに発見されず、取得が数十ms遅れるため。
+      { rel: "stylesheet", href: FONTS_HREF },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/icons/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
@@ -129,10 +119,7 @@ function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="ja">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `${THEME_INIT_SCRIPT}${FONTS_LOAD_SCRIPT}` }} />
-        <noscript>
-          <link rel="stylesheet" href={FONTS_HREF} />
-        </noscript>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {GA_MEASUREMENT_ID ? (
           <>
             <script
