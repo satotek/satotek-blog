@@ -8,6 +8,9 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
+    // ページ遷移を View Transition に乗せる。実際の見え方は styles.css の
+    // ::view-transition-*(page) 側で定義している。
+    defaultViewTransition: true,
   });
 
   return router;

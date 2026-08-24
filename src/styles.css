@@ -966,6 +966,71 @@
   }
 }
 
+/* ページ遷移。本文だけを名前付きスナップショットにして、ヘッダー・フッターは
+   動かさない（同じ要素なので動かすとちらつく）。
+   index.tsx が <main> を入れ子にしているため、ルート直下の1つだけを指す。
+   テーマ切り替え中は名前を外す。名前付き要素は root のスナップショットから
+   抜けてしまい、円形ワイプが本文を覆えなくなるため。 */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-theme-transition]) body > main {
+    view-transition-name: page;
+  }
+}
+
+/* 位置とサイズの補間は切る。ページごとに本文の高さが変わるので、
+   モーフさせると伸縮して見えてしまう。 */
+::view-transition-group(page) {
+  animation: none;
+}
+
+::view-transition-image-pair(page) {
+  isolation: auto;
+}
+
+/* 旧を先に消してから新を入れる。ページごとに本文の高さが違うので、
+   重ねている間は短いページの下に長いページが覗いてしまう。 */
+::view-transition-old(page) {
+  animation: page-leave 110ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+::view-transition-new(page) {
+  animation: page-enter 240ms cubic-bezier(0, 0, 0.2, 1) 70ms both;
+}
+
+@keyframes page-leave {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* テーマ切り替えの円形ワイプ。既定のクロスフェードを止め、
+   新しいテーマ側だけを JS の clip-path アニメーションで見せる。 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(root) {
+  animation: none;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
 @keyframes secret-reveal {
   from {
     opacity: 0;
