@@ -57,6 +57,14 @@ async function main() {
     await writeFile(outputPath, `${JSON.stringify(rendered)}\n`, "utf8");
   }
 
+  // 一覧が必要とするのはサマリだけ。これを別ファイルにしておくことで、
+  // ブラウザ側が Markdown 原文・yaml パーサ・zod を読み込まずに済む。
+  await writeFile(
+    join(generatedDirectory, "summaries.json"),
+    `${JSON.stringify(sources.map((source) => source.summary))}\n`,
+    "utf8",
+  );
+
   console.log(`Generated ${sources.length} rendered Markdown posts.`);
 }
 

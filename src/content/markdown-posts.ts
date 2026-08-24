@@ -1,45 +1,19 @@
-import { parseMarkdownSource, type MarkdownSource } from "./markdown-source";
 import type { PostListOptions, PostSummary, PostSummaryRepository } from "./types";
 
-const sources = import.meta.glob<string>("../../content/posts/*/index.md", {
-  eager: true,
-  import: "default",
-  query: "?raw",
-});
+// 一覧が使うのは generate-content が書き出したサマリだけ。原文と
+// フロントマター検証はサーバー側（markdown-sources.server.ts）に閉じている。
+import summaries from "../../content/.generated/summaries.json";
 
-function slugFromPath(filePath: string) {
-  const slug = filePath.split("/").at(-2);
-  if (!slug) throw new Error(`Unable to derive post slug from ${filePath}`);
-  return slug;
-}
+const publishedSummaries = summaries as readonly PostSummary[];
 
-const markdownSources: readonly MarkdownSource[] = Object.entries(sources)
-  .map(([filePath, source]) => parseMarkdownSource(source, slugFromPath(filePath)))
-  .sort(
-    (a, b) =>
-      b.summary.date.localeCompare(a.summary.date) || a.summary.slug.localeCompare(b.summary.slug),
-  );
-
-const publishedSources = markdownSources.filter((source) => !source.draft);
-
-function matches(source: MarkdownSource, options: PostListOptions) {
-  if (options.category && source.summary.category !== options.category) return false;
-  if (options.tag && !source.summary.tags.includes(options.tag)) return false;
+function matches(summary: PostSummary, options: PostListOptions) {
+  if (options.category && summary.category !== options.category) return false;
+  if (options.tag && !summary.tags.includes(options.tag)) return false;
   return true;
 }
 
 export function listMarkdownPostSummaries(options: PostListOptions = {}): readonly PostSummary[] {
-  return publishedSources
-    .filter((source) => matches(source, options))
-    .map((source) => source.summary);
-}
-
-export function getPublishedMarkdownSource(slug: string) {
-  return publishedSources.find((source) => source.slug === slug);
-}
-
-export function getPublishedMarkdownSources() {
-  return publishedSources;
+  return publishedSummaries.filter((summary) => matches(summary, options));
 }
 
 export class MarkdownPostSummaryRepository implements PostSummaryRepository {

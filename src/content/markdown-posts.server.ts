@@ -1,6 +1,6 @@
 import "@tanstack/react-start/server-only";
 
-import { getPublishedMarkdownSource, getPublishedMarkdownSources } from "./markdown-posts";
+import { getPublishedMarkdownSource, getPublishedMarkdownSources } from "./markdown-sources.server";
 import type { MarkdownSource } from "./markdown-source";
 import { getRenderedPost } from "./rendered-posts";
 import type { Post } from "./types";
