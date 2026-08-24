@@ -23,7 +23,7 @@ export function PostCard({
         <PostCover
           post={post}
           className="h-[88px] rounded-xl border border-line sm:h-[118px]"
-          sizes="(max-width: 640px) 100vw, 280px"
+          sizes="(max-width: 640px) 118px, 176px"
         />
         <div className="min-w-0 pr-1">
           <PostMeta post={post} category={category?.name ?? post.category} />
@@ -54,7 +54,7 @@ export function PostCard({
         <PostCover
           post={post}
           className="h-[clamp(90px,13vw,145px)] w-[clamp(125px,23vw,220px)] flex-none rounded-site border border-line"
-          sizes="160px"
+          sizes="clamp(125px, 23vw, 220px)"
         />
       </li>
     );
