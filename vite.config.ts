@@ -14,6 +14,12 @@ const config = defineConfig(({ mode }) => {
     test: {
       include: ["src/**/*.test.ts", "packages/**/*.test.ts"],
     },
+    lint: {
+      options: {
+        typeAware: true,
+        typeCheck: true,
+      },
+    },
     staged: {
       "*.{js,jsx,ts,tsx}": "vp check --fix",
     },

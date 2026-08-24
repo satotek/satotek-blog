@@ -157,13 +157,13 @@ bun run deploy
 ## 検証
 
 ```sh
-bun run typecheck
 bun run check
+bun run test
 bun run build
 bun run preview
 ```
 
-`bun run check` はMarkdownのHTML生成、`src/` と `scripts/` のVite+フォーマット・Lint、TypeScriptの型検査を実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run dev` も起動時にMarkdownのHTMLを生成してから開発サーバーを起動します。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
+`bun run check` はMarkdownのHTML生成と、Vite+によるリポジトリ全体のフォーマット・Lint・TypeScriptの型検査を実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run test` は一度だけテストを実行し、`bun run test:watch` は監視モードで実行します。`bun run dev` も起動時にMarkdownのHTMLを生成してから開発サーバーを起動します。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
 
 ## ディレクトリ構成
 

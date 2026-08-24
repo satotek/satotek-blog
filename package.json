@@ -1,10 +1,10 @@
 {
   "name": "satotek-blog",
   "private": true,
-  "type": "module",
   "workspaces": [
     "packages/*"
   ],
+  "type": "module",
   "imports": {
     "#/*": "./src/*"
   },
@@ -17,11 +17,13 @@
     "upload-media": "bun scripts/upload-media.ts",
     "generate-routes": "tsr generate",
     "prepare": "vp config",
+    "format": "vp fmt",
+    "test": "vp test run",
+    "test:watch": "vp test",
     "build": "bun run generate-content && vp build .",
     "preview": "vp preview .",
-    "typecheck": "tsc --noEmit && bun run --filter '@satotek/content-pipeline' typecheck",
-    "check": "bun run generate-content && vp check src packages scripts && bun run typecheck",
-    "deploy": "bun run check && bun run build && wrangler deploy",
+    "check": "bun run generate-content && vp check",
+    "deploy": "bun run check && bun run test && bun run build && wrangler deploy",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {

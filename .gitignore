@@ -21,6 +21,7 @@ content/.generated/
 content/posts/**/assets/
 .ogp/
 .r2-media/
+.playwright-mcp/
 __unconfig*
 todos.json
 src/routeTree.gen.ts
