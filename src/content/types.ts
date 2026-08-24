@@ -47,11 +47,23 @@ export interface PostRepository extends PostSummaryRepository {
 
 const READING_CHARS_PER_MIN = 600;
 
+// 数えたいのは「読み手が1文字と感じる単位」。文字列を展開するとコードポイント
+// 単位になり、絵文字や結合文字が複数に割れて水増しされるため、書記素で区切る。
+let graphemeSegmenter: Intl.Segmenter | undefined;
+
+function countCharacters(text: string) {
+  graphemeSegmenter ??= new Intl.Segmenter("ja", { granularity: "grapheme" });
+
+  let count = 0;
+  for (const _ of graphemeSegmenter.segment(text)) count += 1;
+  return count;
+}
+
 export function getPostReadingMinutes(post: Post) {
   const text = post.content.html
     .replace(/<pre[\s\S]*?<\/pre>/gi, "")
     .replace(/<[^>]+>/g, "")
     .replace(/&[a-z]+;|&#\d+;/gi, "")
     .replace(/\s+/g, "");
-  return Math.max(1, Math.ceil([...text].length / READING_CHARS_PER_MIN));
+  return Math.max(1, Math.ceil(countCharacters(text) / READING_CHARS_PER_MIN));
 }
