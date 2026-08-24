@@ -182,6 +182,14 @@
       opacity 0.35s ease;
   }
 
+  /* テーマ切り替え中はページ全体が静止スナップショットになり、その間の
+     モーフは見えない。クロスフェードが終わってから太陽↔月を回す。 */
+  :root[data-theme-transition] .theme-toggle-core,
+  :root[data-theme-transition] .theme-toggle-cutout,
+  :root[data-theme-transition] .theme-toggle-rays {
+    transition-delay: 280ms;
+  }
+
   /* --dark: 0（ライト＝太陽）→ 1（ダーク＝月）を補間する。 */
   .theme-toggle-core {
     transform: scale(calc(1 + 1.15 * var(--dark)));

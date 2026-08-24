@@ -1,8 +1,8 @@
-import { useId, useRef } from "react";
+import { useId } from "react";
 
 import { IconButton } from "#/components/ui";
 
-const WIPE_MS = 480;
+const CROSSFADE_MS = 280;
 
 function applyTheme() {
   const root = document.documentElement;
@@ -16,24 +16,23 @@ function applyTheme() {
 }
 
 /**
- * View Transitions で、押したボタンを中心に新しいテーマを円形に広げる。
+ * View Transitions で新旧のテーマをクロスフェードする。
+ * opacity だけを動かすのは、Chrome で clip-path の形状アニメーションが
+ * スナップショットの再ラスタライズを伴い、大きなビューポートでコマ落ちするため。
+ * opacity はコンポジタだけで完結する。
+ *
  * 非対応ブラウザと「動きを減らす」設定では、そのまま即座に切り替える。
  */
-function toggleTheme(origin: HTMLElement | null) {
+function toggleTheme() {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduce || !document.startViewTransition || !origin) {
+  if (reduce || !document.startViewTransition) {
     applyTheme();
     return;
   }
 
-  const rect = origin.getBoundingClientRect();
-  const x = rect.left + rect.width / 2;
-  const y = rect.top + rect.height / 2;
-  // 画面の四隅のうち最も遠い角までを半径にして、全面を覆い切る。
-  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-
   // 本文の view-transition-name を一時的に外す。名前が付いたままだと本文が
-  // root のスナップショットから抜けて、円形ワイプが本文を覆えない。
+  // root のスナップショットから抜けて、テーマの切り替えから取り残される。
+  // 同じ属性が、アイコンのモーフをクロスフェード後まで遅らせる役目も持つ。
   const root = document.documentElement;
   root.dataset.themeTransition = "";
 
@@ -43,11 +42,11 @@ function toggleTheme(origin: HTMLElement | null) {
   });
   transition.ready
     .then(() => {
-      document.documentElement.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+      root.animate(
+        { opacity: [0, 1] },
         {
-          duration: WIPE_MS,
-          easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+          duration: CROSSFADE_MS,
+          easing: "ease",
           pseudoElement: "::view-transition-new(root)",
         },
       );
@@ -60,14 +59,12 @@ function toggleTheme(origin: HTMLElement | null) {
 export function ThemeToggle({ className }: { className?: string }) {
   const reactId = useId();
   const maskId = `theme-moon-${reactId.replace(/:/g, "")}`;
-  const ref = useRef<HTMLButtonElement>(null);
 
   return (
     <IconButton
-      ref={ref}
       className={`theme-toggle ${className ?? ""}`}
       aria-label="テーマを切り替え"
-      onPress={() => toggleTheme(ref.current)}
+      onPress={toggleTheme}
     >
       <svg className="theme-toggle-glyph size-5" viewBox="0 0 24 24" aria-hidden="true">
         <mask id={maskId}>
