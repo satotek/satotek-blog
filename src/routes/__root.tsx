@@ -1,14 +1,24 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 
 import { GA_INITIALIZER, GA_MEASUREMENT_ID } from "#/analytics/client";
-import { BlockPuzzle } from "#/components/games/BlockPuzzle";
-import { BugHunt } from "#/components/games/BugHunt";
 import { NotFound } from "#/components/NotFound";
 import { SiteChrome } from "#/components/SiteChrome";
 import { RouterLink } from "#/components/ui";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, createSocialMeta } from "#/lib/site";
 import appCss from "../styles.css?url";
+
+// エラー画面でしか使わないゲームは通常ページの初期バンドルへ含めない。
+const BlockPuzzle = lazy(() =>
+  import("#/components/games/BlockPuzzle").then(({ BlockPuzzle: component }) => ({
+    default: component,
+  })),
+);
+const BugHunt = lazy(() =>
+  import("#/components/games/BugHunt").then(({ BugHunt: component }) => ({
+    default: component,
+  })),
+);
 
 const THEME_INIT_SCRIPT = `(() => {
   try {
@@ -79,7 +89,9 @@ function RootNotFound() {
         ← Homeへ戻る
       </RouterLink>
       <div className="mt-8">
-        <BlockPuzzle />
+        <Suspense fallback={<GameLoading label="ブロックパズル" />}>
+          <BlockPuzzle />
+        </Suspense>
       </div>
     </NotFound>
   );
@@ -97,9 +109,19 @@ function RootError() {
         ← Homeへ戻る
       </RouterLink>
       <div className="mt-8">
-        <BugHunt />
+        <Suspense fallback={<GameLoading label="バグ退治" />}>
+          <BugHunt />
+        </Suspense>
       </div>
     </NotFound>
+  );
+}
+
+function GameLoading({ label }: { label: string }) {
+  return (
+    <p className="rounded-site border border-line bg-card px-4 py-6 text-muted" role="status">
+      {label}を読み込んでいます…
+    </p>
   );
 }
 
