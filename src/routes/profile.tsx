@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { siGithub, siInstagram, siX } from "simple-icons";
 
-import { useRef } from "react";
-
 import { BrandIcon } from "#/components/BrandIcon";
 import { SecretGames, useSecretUnlock } from "#/components/SecretGames";
 import { ResponsiveImage } from "#/components/ResponsiveImage";
+import { Button, Link as AriaLink } from "#/components/ui";
 import { createPageHead, mediaUrl, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/profile")({
@@ -23,21 +22,26 @@ const profileBodyClass =
   "text-[1.0625rem] leading-[1.75] sm:text-[1.125rem] sm:leading-[1.85] [&_a]:text-accent [&_a]:decoration-accent/40 [&_a]:underline [&_a]:underline-offset-2 [&_h2]:relative [&_h2]:mt-[2.4em] [&_h2]:scroll-mt-[120px] [&_h2]:border-b [&_h2]:border-line [&_h2]:pb-[0.3em] [&_h2]:text-[1.3rem] [&_h2]:font-bold [&_h2]:leading-[1.3] sm:[&_h2]:text-[1.45rem] [&_h3]:relative [&_h3]:mt-[2em] [&_h3]:scroll-mt-[120px] [&_h3]:border-b [&_h3]:border-line [&_h3]:pb-[0.25em] [&_h3]:text-[1.175rem] [&_h3]:font-bold [&_h3]:leading-[1.3] sm:[&_h3]:text-[1.3rem] [&_hr]:my-[3.5em] [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-line [&_li]:my-[0.4em] [&_p]:my-[1.25em] [&_strong]:font-bold [&_ul]:my-[1.25em] [&_ul]:list-disc [&_ul]:pl-6";
 
 function Profile() {
-  const avatarRef = useRef<HTMLImageElement>(null);
-  const unlocked = useSecretUnlock(avatarRef);
+  const { onAvatarPress, unlocked } = useSecretUnlock();
 
   return (
     <article className={profileBodyClass}>
       <div className="mb-6 flex items-center gap-5 py-6">
-        <ResponsiveImage
-          ref={avatarRef}
-          className="h-32 w-32 shrink-0 rounded-[24px] border border-line object-cover"
-          src={mediaUrl("site/my-avater.jpg")}
-          sizes="128px"
-          alt="nosuke"
-          width="256"
-          height="256"
-        />
+        <Button
+          aria-label="プロフィール画像"
+          className="shrink-0 cursor-pointer rounded-[24px] border-0 bg-transparent p-0"
+          onPress={onAvatarPress}
+          type="button"
+        >
+          <ResponsiveImage
+            className="h-32 w-32 rounded-[24px] border border-line object-cover"
+            src={mediaUrl("site/my-avater.jpg")}
+            sizes="128px"
+            alt="nosuke"
+            width="256"
+            height="256"
+          />
+        </Button>
         <div>
           <h1 className="m-0 text-[1.6rem] font-bold leading-tight">nosuke</h1>
           <p className="m-0 mt-1 text-muted">日常雑記 / 技術メモ</p>
@@ -69,7 +73,7 @@ function Profile() {
 
       <h2>リンク</h2>
       <div className="flex flex-wrap gap-3">
-        <a
+        <AriaLink
           className="inline-flex h-[42px] w-[42px] items-center justify-center rounded-xl border border-line text-muted transition-[background,border-color,color] duration-150 hover:border-accent-border hover:bg-accent-soft hover:text-accent"
           href="https://github.com/satotek/"
           target="_blank"
@@ -77,8 +81,8 @@ function Profile() {
           aria-label="GitHub"
         >
           <BrandIcon icon={siGithub} className="size-5" />
-        </a>
-        <a
+        </AriaLink>
+        <AriaLink
           className="inline-flex h-[42px] w-[42px] items-center justify-center rounded-xl border border-line text-muted transition-[background,border-color,color] duration-150 hover:border-accent-border hover:bg-accent-soft hover:text-accent"
           href="https://x.com/nosuke912/"
           target="_blank"
@@ -86,8 +90,8 @@ function Profile() {
           aria-label="X"
         >
           <BrandIcon icon={siX} className="size-5" />
-        </a>
-        <a
+        </AriaLink>
+        <AriaLink
           className="inline-flex h-[42px] w-[42px] items-center justify-center rounded-xl border border-line text-muted transition-[background,border-color,color] duration-150 hover:border-accent-border hover:bg-accent-soft hover:text-accent"
           href="https://www.instagram.com/nosuke912/"
           target="_blank"
@@ -95,7 +99,7 @@ function Profile() {
           aria-label="Instagram"
         >
           <BrandIcon icon={siInstagram} className="size-5" />
-        </a>
+        </AriaLink>
       </div>
 
       {unlocked ? <SecretGames /> : null}
@@ -119,18 +123,18 @@ function Profile() {
       </p>
       <p>
         収集された情報は、
-        <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noreferrer">
+        <AriaLink href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noreferrer">
           Cloudflare のプライバシーポリシー
-        </a>
+        </AriaLink>
         に基づいて取り扱われます。
       </p>
       <p>
         あわせて、Google LLC が提供するアクセス解析サービス「Google Analytics
         4」を利用しています。ページの閲覧などの利用状況が Google に送信され、Cookie
         が使用される場合があります。収集された情報は、
-        <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">
+        <AriaLink href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">
           Google のプライバシーポリシー
-        </a>
+        </AriaLink>
         に基づいて取り扱われます。
       </p>
 
@@ -142,27 +146,27 @@ function Profile() {
       <ul>
         <li>
           Geist / Geist Mono — © 2023 Vercel, Inc.（
-          <a href="https://github.com/vercel/geist-font" target="_blank" rel="noreferrer">
+          <AriaLink href="https://github.com/vercel/geist-font" target="_blank" rel="noreferrer">
             vercel/geist-font
-          </a>
+          </AriaLink>
           ）
         </li>
         <li>
           Zen Kaku Gothic New — © 2020 The Zen Kaku Gothic New Project Authors（
-          <a
+          <AriaLink
             href="https://fonts.google.com/specimen/Zen+Kaku+Gothic+New"
             target="_blank"
             rel="noreferrer"
           >
             Google Fonts
-          </a>
+          </AriaLink>
           ）
         </li>
         <li>
           SNSブランドアイコン —{" "}
-          <a href="https://simpleicons.org/" target="_blank" rel="noreferrer">
+          <AriaLink href="https://simpleicons.org/" target="_blank" rel="noreferrer">
             Simple Icons
-          </a>
+          </AriaLink>
           。各ブランドの商標・ガイドラインに従って使用しています。
         </li>
       </ul>

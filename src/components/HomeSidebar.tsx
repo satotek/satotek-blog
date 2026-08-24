@@ -1,6 +1,6 @@
 import { Bot, Rss } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 
+import { Link as AriaLink, RouterLink } from "#/components/ui";
 import type { PostSummary } from "#/content/types";
 import type { TagCount } from "./TagList";
 
@@ -50,13 +50,13 @@ export function HomeSidebar({
                     {index + 1}
                   </span>
                 )}
-                <Link
+                <RouterLink
                   className="text-[0.88rem] font-bold leading-[1.55] tracking-[-0.01em] no-underline hover:text-accent"
                   to="/posts/$slug"
                   params={{ slug: post.slug }}
                 >
                   {post.title}
-                </Link>
+                </RouterLink>
               </li>
             ))}
           </ol>
@@ -70,14 +70,14 @@ export function HomeSidebar({
         <ul className="m-0 mt-2.5 grid list-none gap-0.5 p-0">
           {categories.map(({ slug, name, count }) => (
             <li key={slug}>
-              <Link
+              <RouterLink
                 className="flex items-baseline justify-between rounded-[9px] px-2 py-[7px] text-[0.9rem] font-semibold no-underline transition-colors duration-150 hover:bg-hover hover:text-accent"
                 to="/categories/$slug"
                 params={{ slug }}
               >
                 <span>{name}</span>
                 <span className="font-mono text-[0.74rem] tabular-nums text-muted">{count}</span>
-              </Link>
+              </RouterLink>
             </li>
           ))}
         </ul>
@@ -88,23 +88,23 @@ export function HomeSidebar({
           <h2 className="m-0 text-[0.78rem] font-bold text-muted" id="tags-title">
             タグ
           </h2>
-          <Link
+          <RouterLink
             className="text-[0.78rem] font-semibold text-accent no-underline hover:underline"
             to="/tags"
           >
             すべて →
-          </Link>
+          </RouterLink>
         </div>
         <ul className="m-0 mt-3 flex list-none flex-wrap gap-2 p-0">
           {tags.slice(0, 8).map(({ name }) => (
             <li key={name}>
-              <Link
+              <RouterLink
                 className="inline-block rounded-full border border-line px-2.5 py-[3px] text-[0.78rem] text-muted no-underline transition-colors duration-150 hover:border-accent-border hover:text-accent"
                 to="/tags/$tag"
                 params={{ tag: name }}
               >
                 #{name}
-              </Link>
+              </RouterLink>
             </li>
           ))}
         </ul>
@@ -113,20 +113,20 @@ export function HomeSidebar({
       <section className="panel flex items-center justify-between px-5 py-4" aria-label="購読">
         <p className="m-0 text-[0.78rem] font-bold text-muted">購読</p>
         <div className="flex gap-2">
-          <a
+          <AriaLink
             className="inline-flex size-[34px] items-center justify-center rounded-full border border-line text-muted no-underline transition-[background,border-color,color] duration-150 hover:border-accent-border hover:bg-accent-soft hover:text-accent"
             href="/feed.xml"
             aria-label="RSS フィード"
           >
             <Rss className="size-[17px]" aria-hidden="true" />
-          </a>
-          <a
+          </AriaLink>
+          <AriaLink
             className="inline-flex size-[34px] items-center justify-center rounded-full border border-line text-muted no-underline transition-[background,border-color,color] duration-150 hover:border-accent-border hover:bg-accent-soft hover:text-accent"
             href="/llms.txt"
             aria-label="llms.txt（LLM 向けサイト情報）"
           >
             <Bot className="size-[17px]" aria-hidden="true" />
-          </a>
+          </AriaLink>
         </div>
       </section>
     </aside>

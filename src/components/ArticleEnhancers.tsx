@@ -1,6 +1,7 @@
 import { Check, Copy, X } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { Button as AriaButton, Dialog, Modal, ModalOverlay } from "react-aria-components";
+
+import { Button, Dialog, Modal, ModalOverlay } from "#/components/ui";
 
 type ArticleContentRef = RefObject<HTMLElement | null>;
 
@@ -15,6 +16,14 @@ type SelectedImage = {
   alt: string;
   caption: string;
   src: string;
+};
+
+type ImageTrigger = SelectedImage & {
+  height: number;
+  key: string;
+  left: number;
+  top: number;
+  width: number;
 };
 
 async function copyText(text: string) {
@@ -56,7 +65,7 @@ function CopyButton({ code, top }: { code: string; top: number }) {
   };
 
   return (
-    <AriaButton
+    <Button
       aria-label={copied ? "コードをコピーしました" : "コードをコピー"}
       className="copy-btn"
       onPress={handlePress}
@@ -68,7 +77,7 @@ function CopyButton({ code, top }: { code: string; top: number }) {
       ) : (
         <Copy aria-hidden="true" className="icon-copy" size={16} />
       )}
-    </AriaButton>
+    </Button>
   );
 }
 
@@ -173,89 +182,138 @@ export function ImageLightbox({
   containerRef: ArticleContentRef;
   contentKey: string;
 }) {
+  const [triggers, setTriggers] = useState<readonly ImageTrigger[]>([]);
   const [selected, setSelected] = useState<SelectedImage | null>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
+  const activeTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
     const root = containerRef.current;
-    if (!root) return;
+    const layer = layerRef.current;
+    if (!root || !layer) return undefined;
 
+    setTriggers([]);
+    let animationFrame = 0;
     const images = Array.from(root.querySelectorAll<HTMLImageElement>("img:not(.profile-avatar)"));
-    const cleanups = images.map((image) => {
-      const original = {
-        ariaLabel: image.getAttribute("aria-label"),
-        role: image.getAttribute("role"),
-        tabIndex: image.getAttribute("tabindex"),
-      };
-      const caption = imageCaption(image);
-      const label = caption ? `画像を拡大: ${caption}` : "画像を拡大";
 
-      const open = () => {
-        setSelected({
-          alt: image.alt,
-          caption,
-          src: bestImageSource(image),
-        });
-      };
-      const onKeyDown = (event: KeyboardEvent) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        event.preventDefault();
-        open();
-      };
+    const measure = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(() => {
+        const layerRect = layer.getBoundingClientRect();
+        const nextTriggers = images
+          .map((image, index) => {
+            const imageRect = image.getBoundingClientRect();
+            if (imageRect.width <= 0 || imageRect.height <= 0) return null;
 
-      image.setAttribute("aria-label", label);
-      image.setAttribute("role", "button");
-      image.setAttribute("tabindex", "0");
-      image.addEventListener("click", open);
-      image.addEventListener("keydown", onKeyDown);
+            const caption = imageCaption(image);
+            return {
+              alt: image.alt,
+              caption,
+              height: imageRect.height,
+              // currentSrc は遅延読み込み中に切り替わるため、DOM ボタンの key には使わない。
+              // key が変わると、タップ中のボタンが再生成されて入力を取りこぼす。
+              key: `${contentKey}-${index}`,
+              left: imageRect.left - layerRect.left,
+              src: bestImageSource(image),
+              top: imageRect.top - layerRect.top,
+              width: imageRect.width,
+            } satisfies ImageTrigger;
+          })
+          .filter((trigger): trigger is ImageTrigger => trigger !== null);
 
-      return () => {
-        image.removeEventListener("click", open);
-        image.removeEventListener("keydown", onKeyDown);
-        if (original.ariaLabel === null) image.removeAttribute("aria-label");
-        else image.setAttribute("aria-label", original.ariaLabel);
-        if (original.role === null) image.removeAttribute("role");
-        else image.setAttribute("role", original.role);
-        if (original.tabIndex === null) image.removeAttribute("tabindex");
-        else image.setAttribute("tabindex", original.tabIndex);
-      };
-    });
+        // 遅延読み込みやモバイルのスクロール中に、一瞬だけ画像の寸法が 0 になることがある。
+        // その瞬間にボタンを消すと、タップ対象そのものが外れて入力を取りこぼす。
+        if (nextTriggers.length > 0 || images.length === 0) setTriggers(nextTriggers);
+      });
+    };
 
-    return () => cleanups.forEach((cleanup) => cleanup());
+    measure();
+    window.addEventListener("resize", measure);
+    for (const image of images) image.addEventListener("load", measure);
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(measure);
+    resizeObserver?.observe(root);
+    for (const image of images) resizeObserver?.observe(image);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener("resize", measure);
+      for (const image of images) image.removeEventListener("load", measure);
+      resizeObserver?.disconnect();
+    };
   }, [containerRef, contentKey]);
 
-  if (!selected) return null;
+  useEffect(() => {
+    if (selected) {
+      wasOpenRef.current = true;
+      return undefined;
+    }
+    if (!wasOpenRef.current) return undefined;
+
+    const trigger = activeTriggerRef.current;
+    const animationFrame = window.requestAnimationFrame(() => trigger?.focus());
+    wasOpenRef.current = false;
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [selected]);
+
+  const close = () => setSelected(null);
 
   return (
-    // オーバーレイ（背景）とモーダル（中身）を分けることで、背景クリックで閉じられる。
-    <ModalOverlay
-      className="lightbox-overlay"
-      isDismissable
-      isOpen
-      onOpenChange={(isOpen) => {
-        if (!isOpen) setSelected(null);
-      }}
-    >
-      <Modal className="lightbox-modal">
-        <Dialog aria-label="画像の拡大表示" className="lightbox-dialog">
-          <figure className="lightbox-figure">
-            <img
-              alt={selected.alt}
-              className="lightbox-img"
-              onClick={() => setSelected(null)}
-              src={selected.src}
-            />
-            {selected.caption ? <figcaption>{selected.caption}</figcaption> : null}
-          </figure>
-          <AriaButton
-            aria-label="閉じる"
-            className="lightbox-close"
-            onPress={() => setSelected(null)}
+    <>
+      <div ref={layerRef} className="lightbox-trigger-layer">
+        {triggers.map((trigger) => (
+          <Button
+            aria-label={trigger.caption ? `画像を拡大: ${trigger.caption}` : "画像を拡大"}
+            className="lightbox-trigger"
+            key={trigger.key}
+            onPress={() =>
+              setSelected({
+                alt: trigger.alt,
+                caption: trigger.caption,
+                src: trigger.src,
+              })
+            }
+            onPressStart={(event) => {
+              if (event.target instanceof HTMLButtonElement) {
+                activeTriggerRef.current = event.target;
+              }
+            }}
+            style={{
+              height: `${trigger.height}px`,
+              left: `${trigger.left}px`,
+              top: `${trigger.top}px`,
+              width: `${trigger.width}px`,
+            }}
             type="button"
-          >
-            <X aria-hidden="true" size={22} />
-          </AriaButton>
-        </Dialog>
-      </Modal>
-    </ModalOverlay>
+          />
+        ))}
+      </div>
+
+      {/* オーバーレイ（背景）とモーダル（中身）を分けることで、背景クリックで閉じられる。 */}
+      {selected ? (
+        <ModalOverlay
+          className="lightbox-overlay"
+          isDismissable
+          isOpen
+          onOpenChange={(isOpen) => {
+            if (!isOpen) close();
+          }}
+        >
+          <Modal className="lightbox-modal">
+            <Dialog aria-label="画像の拡大表示" className="lightbox-dialog">
+              <figure className="lightbox-figure">
+                <img alt={selected.alt} className="lightbox-img" src={selected.src} />
+                {selected.caption ? <figcaption>{selected.caption}</figcaption> : null}
+              </figure>
+              <Button aria-label="閉じる" className="lightbox-close" onPress={close} type="button">
+                <X aria-hidden="true" size={22} />
+              </Button>
+            </Dialog>
+          </Modal>
+        </ModalOverlay>
+      ) : null}
+    </>
   );
 }

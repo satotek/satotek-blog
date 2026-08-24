@@ -1,4 +1,4 @@
-import { HeadContent, Link, Scripts, createRootRoute } from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { GA_INITIALIZER, GA_MEASUREMENT_ID } from "#/analytics/client";
@@ -6,6 +6,7 @@ import { BlockPuzzle } from "#/components/games/BlockPuzzle";
 import { BugHunt } from "#/components/games/BugHunt";
 import { NotFound } from "#/components/NotFound";
 import { SiteChrome } from "#/components/SiteChrome";
+import { RouterLink } from "#/components/ui";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, createSocialMeta } from "#/lib/site";
 import appCss from "../styles.css?url";
 
@@ -74,9 +75,9 @@ function RootNotFound() {
       title="ページが見つかりません。"
       description="せっかくなので、ブロックパズルでもどうぞ。"
     >
-      <Link className="text-accent underline underline-offset-2" to="/">
+      <RouterLink className="text-accent underline underline-offset-2" to="/">
         ← Homeへ戻る
-      </Link>
+      </RouterLink>
       <div className="mt-8">
         <BlockPuzzle />
       </div>
@@ -92,9 +93,9 @@ function RootError() {
       title="サーバー側で問題が発生しました。"
       description="復旧までの間、バグ退治でもどうぞ。"
     >
-      <Link className="text-accent underline underline-offset-2" to="/">
+      <RouterLink className="text-accent underline underline-offset-2" to="/">
         ← Homeへ戻る
-      </Link>
+      </RouterLink>
       <div className="mt-8">
         <BugHunt />
       </div>

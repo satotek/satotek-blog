@@ -1,5 +1,6 @@
-import { Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
+
+import { RouterLink } from "#/components/ui";
 
 const LETTERS = Array.from("SATOTEK.DEV");
 const DOT_INDEX = 7;
@@ -119,7 +120,7 @@ export function SiteLogo() {
   useLogoCollapse(ref);
 
   return (
-    <Link
+    <RouterLink
       ref={ref}
       className="inline-flex w-[clamp(150px,42vw,190px)] text-ink no-underline"
       to="/"
@@ -159,6 +160,6 @@ export function SiteLogo() {
           ))}
         </g>
       </svg>
-    </Link>
+    </RouterLink>
   );
 }

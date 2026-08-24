@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import type { PostSummary } from "#/content/types";
+import { RouterLink } from "#/components/ui";
 import { categoryBySlug } from "#/data/navigation";
 import { paginate } from "#/lib/pagination";
 
@@ -27,17 +27,17 @@ export function CategoryPageContent({
 
   const CategoryPageLink = ({ page: target, className, children }: PageLinkProps) =>
     target === 1 ? (
-      <Link className={className} to="/categories/$slug" params={{ slug: category.slug }}>
+      <RouterLink className={className} to="/categories/$slug" params={{ slug: category.slug }}>
         {children}
-      </Link>
+      </RouterLink>
     ) : (
-      <Link
+      <RouterLink
         className={className}
         to="/categories/$slug/page/$page"
         params={{ slug: category.slug, page: String(target) }}
       >
         {children}
-      </Link>
+      </RouterLink>
     );
 
   return (
@@ -71,13 +71,17 @@ export function TagPageContent({
 
   const TagPageLink = ({ page: target, className, children }: PageLinkProps) =>
     target === 1 ? (
-      <Link className={className} to="/tags/$tag" params={{ tag }}>
+      <RouterLink className={className} to="/tags/$tag" params={{ tag }}>
         {children}
-      </Link>
+      </RouterLink>
     ) : (
-      <Link className={className} to="/tags/$tag/page/$page" params={{ tag, page: String(target) }}>
+      <RouterLink
+        className={className}
+        to="/tags/$tag/page/$page"
+        params={{ tag, page: String(target) }}
+      >
         {children}
-      </Link>
+      </RouterLink>
     );
 
   return (
@@ -127,9 +131,9 @@ function PostRows({ posts }: { posts: readonly PostSummary[] }) {
 function TaxonomyNotFound({ label, to }: { label: string; to: "/categories" | "/tags" }) {
   return (
     <NotFound title={`${label}が見つかりません。`}>
-      <Link className="text-accent underline underline-offset-2" to={to}>
+      <RouterLink className="text-accent underline underline-offset-2" to={to}>
         ← {label}一覧へ戻る
-      </Link>
+      </RouterLink>
     </NotFound>
   );
 }

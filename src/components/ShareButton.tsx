@@ -1,7 +1,8 @@
 import { Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button as AriaButton } from "react-aria-components";
 import { siHatenabookmark, siX } from "simple-icons";
+
+import { Button, Link as AriaLink } from "#/components/ui";
 
 import { BrandIcon } from "./BrandIcon";
 
@@ -29,7 +30,7 @@ export function ShareButton({ title, url }: { title: string; url: string }) {
   if (!canShare) {
     return (
       <div className="flex items-center gap-2">
-        <a
+        <AriaLink
           className={pillClass}
           href={`https://x.com/share?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`}
           target="_blank"
@@ -37,8 +38,8 @@ export function ShareButton({ title, url }: { title: string; url: string }) {
         >
           <BrandIcon icon={siX} className="size-3.5" />
           ポスト
-        </a>
-        <a
+        </AriaLink>
+        <AriaLink
           className={pillClass}
           href={`https://b.hatena.ne.jp/add?mode=confirm&url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`}
           target="_blank"
@@ -46,7 +47,7 @@ export function ShareButton({ title, url }: { title: string; url: string }) {
         >
           <BrandIcon icon={siHatenabookmark} className="size-3.5" />
           はてブ
-        </a>
+        </AriaLink>
       </div>
     );
   }
@@ -60,9 +61,9 @@ export function ShareButton({ title, url }: { title: string; url: string }) {
   };
 
   return (
-    <AriaButton className={pillClass} onPress={share} type="button">
+    <Button className={pillClass} onPress={share} type="button">
       <Share2 className="size-3.5" aria-hidden="true" />
       共有
-    </AriaButton>
+    </Button>
   );
 }

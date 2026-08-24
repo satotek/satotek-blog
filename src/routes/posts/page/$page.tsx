@@ -1,8 +1,9 @@
-import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 import { PostList } from "#/components/PostList";
 import { Pagination, type PageLinkProps } from "#/components/Pagination";
 import { SectionHeading } from "#/components/SectionHeading";
+import { RouterLink } from "#/components/ui";
 import type { PostSummary } from "#/content/types";
 import { postRepository } from "#/content/repository";
 import { paginate, parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
@@ -65,12 +66,12 @@ type PostsPageLoaderData = {
 
 function PostsPageLink({ page, className, children }: PageLinkProps) {
   return page === 1 ? (
-    <Link className={className} to="/posts">
+    <RouterLink className={className} to="/posts">
       {children}
-    </Link>
+    </RouterLink>
   ) : (
-    <Link className={className} to="/posts/page/$page" params={{ page: String(page) }}>
+    <RouterLink className={className} to="/posts/page/$page" params={{ page: String(page) }}>
       {children}
-    </Link>
+    </RouterLink>
   );
 }

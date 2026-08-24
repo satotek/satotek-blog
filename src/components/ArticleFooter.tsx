@@ -2,6 +2,7 @@ import { ExternalLink, FileText } from "lucide-react";
 
 import { PostList } from "#/components/PostList";
 import { ShareButton } from "#/components/ShareButton";
+import { Link as AriaLink } from "#/components/ui";
 import type { Post, PostSummary } from "#/content/types";
 import { postSourceUrl, SITE_URL } from "#/lib/site";
 
@@ -30,7 +31,7 @@ export function ArticleFooter({
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <ShareButton title={post.title} url={postUrl} />
-            <a
+            <AriaLink
               className={actionLinkClass}
               href={postSourceUrl(post.slug)}
               target="_blank"
@@ -39,7 +40,7 @@ export function ArticleFooter({
               <FileText className="size-3.5" aria-hidden="true" />
               Markdown
               <ExternalLink className="size-3" aria-hidden="true" />
-            </a>
+            </AriaLink>
           </div>
         </div>
       </section>

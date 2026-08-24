@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { Button } from "#/components/ui";
+
 // 500 エラーページの「バグ退治（もぐら叩き）」。
 // 穴から出る 🐛 を制限時間内にクリックして潰す。
 
@@ -94,30 +96,30 @@ export function BugHunt() {
 
       <div className="grid w-full grid-cols-3 gap-3">
         {bugs.map((up, index) => (
-          <button
+          <Button
             // 穴は固定数・固定位置なので index を key にして問題ない。
             key={index}
             type="button"
             aria-label="バグを潰す"
-            onClick={() => whack(index)}
+            onPress={() => whack(index)}
             className="relative aspect-square overflow-hidden rounded-full border border-line bg-card shadow-[inset_0_6px_14px_color-mix(in_srgb,var(--fg)_14%,transparent)] [-webkit-tap-highlight-color:transparent]"
           >
             <Sprite emoji="🐛" shown={up} />
             <Sprite emoji="💥" shown={Boolean(hits[index])} />
-          </button>
+          </Button>
         ))}
       </div>
 
       <p className="m-0 min-h-[1.4em] font-semibold text-accent" aria-live="polite">
         {started && !running ? `退治したバグ: ${score} 匹！` : ""}
       </p>
-      <button
+      <Button
         type="button"
         className="rounded-full border-0 bg-accent px-7 py-2.5 font-semibold text-white transition-opacity duration-150 hover:opacity-90"
-        onClick={start}
+        onPress={start}
       >
         {started ? "リトライ" : "スタート"}
-      </button>
+      </Button>
     </div>
   );
 }

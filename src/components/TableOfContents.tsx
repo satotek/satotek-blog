@@ -1,7 +1,7 @@
 import { AlignLeft, ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
-import { Button as AriaButton, Link as AriaLink } from "react-aria-components";
 
+import { Button, Link as AriaLink } from "#/components/ui";
 import type { TocItem } from "#/content/types";
 
 function scrollableAncestor(from: HTMLElement) {
@@ -53,7 +53,7 @@ export function TableOfContents({
 
   return (
     <div className="toc-wrapper">
-      <AriaButton
+      <Button
         aria-controls={listId}
         aria-expanded={isOpen}
         className="toc-toggle"
@@ -66,7 +66,7 @@ export function TableOfContents({
           aria-hidden="true"
           className={`toc-chevron size-3.5 ${isOpen ? "" : "toc-chevron--closed"}`}
         />
-      </AriaButton>
+      </Button>
 
       {isOpen && (
         <nav aria-label="目次" className="toc-nav" id={listId} ref={navRef}>

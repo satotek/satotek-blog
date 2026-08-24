@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { Link as AriaLink } from "#/components/ui";
 
 // プロフィールに隠したゲームへの入口。
 // コナミコマンド(↑↑↓↓←→←→BA) か、アバターを素早く7回タップで出現する。
@@ -21,10 +23,13 @@ const TAP_WINDOW_MS = 1200;
 
 /**
  * 隠しゲームの解禁状態を返す。
- * `avatarRef` に渡した要素の連打でも解禁できるようにする（モバイル向け）。
+ * 返した `onAvatarPress` をプロフィール画像の React Aria ボタンに渡すと、
+ * モバイルの連打でも解禁できる。
  */
-export function useSecretUnlock(avatarRef: React.RefObject<HTMLElement | null>) {
+export function useSecretUnlock() {
   const [unlocked, setUnlocked] = useState(false);
+  const tapsRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     let position = 0;
@@ -40,33 +45,22 @@ export function useSecretUnlock(avatarRef: React.RefObject<HTMLElement | null>) 
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  useEffect(() => {
-    const avatar = avatarRef.current;
-    if (!avatar) return;
+  const onAvatarPress = useCallback(() => {
+    tapsRef.current += 1;
+    clearTimeout(tapTimerRef.current);
+    tapTimerRef.current = setTimeout(() => {
+      tapsRef.current = 0;
+    }, TAP_WINDOW_MS);
 
-    let taps = 0;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const onClick = () => {
-      taps++;
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        taps = 0;
-      }, TAP_WINDOW_MS);
-      if (taps >= TAPS_TO_UNLOCK) {
-        taps = 0;
-        setUnlocked(true);
-      }
-    };
+    if (tapsRef.current >= TAPS_TO_UNLOCK) {
+      tapsRef.current = 0;
+      setUnlocked(true);
+    }
+  }, []);
 
-    avatar.style.cursor = "pointer";
-    avatar.addEventListener("click", onClick);
-    return () => {
-      clearTimeout(timer);
-      avatar.removeEventListener("click", onClick);
-    };
-  }, [avatarRef]);
+  useEffect(() => () => clearTimeout(tapTimerRef.current), []);
 
-  return unlocked;
+  return { onAvatarPress, unlocked };
 }
 
 export function SecretGames() {
@@ -99,7 +93,7 @@ export function SecretGames() {
   );
 }
 
-// TanStack の Link ではなく素の <a> を使う。片方は存在しないURL、片方は意図的な
+// TanStack RouterのRouterLinkではなくReact AriaのLinkを使う。片方は存在しないURL、片方は意図的な
 // 500 で、どちらもクライアント遷移ではなくサーバーへの往復をさせたいため。
 function GameLink({
   to,
@@ -113,7 +107,7 @@ function GameLink({
   note: string;
 }) {
   return (
-    <a
+    <AriaLink
       className="flex items-center gap-3.5 rounded-site border border-line bg-card px-4 py-3.5 !text-ink no-underline transition-[border-color,transform] duration-150 hover:-translate-y-[2px] hover:border-accent motion-reduce:transition-none"
       href={to}
     >
@@ -124,6 +118,6 @@ function GameLink({
         <strong className="text-base">{title}</strong>
         <small className="text-[0.78rem] text-muted">{note}</small>
       </span>
-    </a>
+    </AriaLink>
   );
 }

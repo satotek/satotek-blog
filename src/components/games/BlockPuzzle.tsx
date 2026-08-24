@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { Button } from "#/components/ui";
+
 // 404 ページのブロックパズル。Canvas + 命令的なゲームループ。
 // ルール（落下・ライン消去）は一般的な仕組みで、名称・配色・見た目は独自。
 
@@ -410,14 +412,14 @@ function TouchControls({ apiRef }: { apiRef: React.RefObject<PuzzleApi | null> }
         <RepeatButton className={PAD_KEY_CLASS} onPress={call((a) => a.move(-1))} aria-label="左へ">
           ←
         </RepeatButton>
-        <button
+        <Button
           type="button"
           className={PAD_KEY_CLASS}
-          onPointerDown={call((a) => a.rotate())}
+          onPress={call((a) => a.rotate())}
           aria-label="回転"
         >
           ⟳
-        </button>
+        </Button>
         <RepeatButton className={PAD_KEY_CLASS} onPress={call((a) => a.move(1))} aria-label="右へ">
           →
         </RepeatButton>
@@ -428,23 +430,23 @@ function TouchControls({ apiRef }: { apiRef: React.RefObject<PuzzleApi | null> }
         >
           ↓
         </RepeatButton>
-        <button
+        <Button
           type="button"
           className={`${PAD_KEY_CLASS} col-start-2 col-end-4 text-[1.05rem]`}
-          onPointerDown={call((a) => a.hardDrop())}
+          onPress={call((a) => a.hardDrop())}
           aria-label="一気に落とす"
         >
           ⤓ 落とす
-        </button>
+        </Button>
       </div>
       {/* リスタートは誤タップ防止でプレイ用ボタンから離す。 */}
-      <button
+      <Button
         type="button"
         className="touch-manipulation rounded-full border border-line bg-transparent px-4 py-1.5 text-[0.8rem] text-muted [-webkit-tap-highlight-color:transparent] active:text-ink"
-        onPointerDown={call((a) => a.reset())}
+        onPress={call((a) => a.reset())}
       >
         ↺ リスタート
-      </button>
+      </Button>
     </div>
   );
 }
@@ -472,22 +474,19 @@ function RepeatButton({
   };
 
   return (
-    <button
+    <Button
       type="button"
       className={className}
-      onPointerDown={(event) => {
-        event.preventDefault();
+      onPressStart={() => {
         onPress();
         timers.current.delay = setTimeout(() => {
           timers.current.tick = setInterval(onPress, 70);
         }, 230);
       }}
-      onPointerUp={stop}
-      onPointerLeave={stop}
-      onPointerCancel={stop}
+      onPressEnd={stop}
       {...rest}
     >
       {children}
-    </button>
+    </Button>
   );
 }

@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
+import { RouterLink } from "#/components/ui";
 import { getCategories } from "#/data/navigation";
 import { createPageHead, withSiteName } from "#/lib/site";
 
@@ -28,9 +29,13 @@ function CategoriesPage() {
             className="flex items-center justify-between gap-3 rounded-site border border-line px-5 py-3.5 transition-[background,border-color] duration-150 hover:bg-card"
             key={slug}
           >
-            <Link className="font-semibold no-underline" to="/categories/$slug" params={{ slug }}>
+            <RouterLink
+              className="font-semibold no-underline"
+              to="/categories/$slug"
+              params={{ slug }}
+            >
               {name}
-            </Link>
+            </RouterLink>
             <span className="text-[0.85rem] tabular-nums text-muted">{count}</span>
           </li>
         ))}

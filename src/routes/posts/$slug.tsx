@@ -1,9 +1,10 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { CodeCopyButtons, ImageLightbox } from "#/components/ArticleEnhancers";
 import { ArticleFooter } from "#/components/ArticleFooter";
 import { TableOfContents } from "#/components/TableOfContents";
+import { RouterLink } from "#/components/ui";
 import { getPostBySlug } from "#/content/posts.functions";
 import { postRepository } from "#/content/repository";
 import { getPostReadingMinutes, type Post, type PostSummary, type TocItem } from "#/content/types";
@@ -80,13 +81,13 @@ function PostPage() {
             {formatDate(post.date)}
           </time>
           {category ? (
-            <Link
+            <RouterLink
               className="rounded-full bg-accent-soft px-3 py-0.5 text-[0.8rem] font-semibold text-accent no-underline transition-colors hover:bg-accent-hover"
               to="/categories/$slug"
               params={{ slug: category.slug }}
             >
               {category.name}
-            </Link>
+            </RouterLink>
           ) : (
             <span className="rounded-full bg-accent-soft px-3 py-0.5 text-[0.8rem] font-semibold text-accent">
               {post.category}
@@ -102,13 +103,13 @@ function PostPage() {
               className="rounded-full border border-line text-[0.8rem] transition-colors hover:border-accent-border"
               key={tag}
             >
-              <Link
+              <RouterLink
                 className="block px-3 py-[3px] text-muted no-underline hover:text-ink"
                 to="/tags/$tag"
                 params={{ tag }}
               >
                 {tag}
-              </Link>
+              </RouterLink>
             </li>
           ))}
         </ul>

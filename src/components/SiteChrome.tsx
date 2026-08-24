@@ -1,17 +1,19 @@
 import { Bot, Menu, Rss, X } from "lucide-react";
-import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  Button as AriaButton,
-  Dialog,
-  DialogTrigger,
-  Modal,
-  ModalOverlay,
-} from "react-aria-components";
+import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { trackPageView } from "#/analytics/client";
+import {
+  Button,
+  Dialog,
+  DialogTrigger,
+  Link as AriaLink,
+  Modal,
+  ModalOverlay,
+  RouterLink,
+  iconButtonClass,
+} from "#/components/ui";
 import { categories } from "#/data/navigation";
-import { iconButtonClass } from "#/lib/ui";
 
 import { SiteLogo } from "./SiteLogo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -56,24 +58,24 @@ export function SiteChrome({ children }: { children: ReactNode }) {
               <UtilityLinks className="hidden sm:inline-flex" />
               <ThemeToggle className="hidden sm:inline-flex" />
               <DialogTrigger isOpen={drawerOpen} onOpenChange={setDrawerOpen}>
-                <AriaButton
+                <Button
                   className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[10px] border border-line bg-transparent text-ink transition-[background,border-color] duration-150 hover:border-accent-border hover:bg-accent-soft motion-reduce:transition-none sm:hidden"
                   type="button"
                   aria-label="メニュー"
                 >
                   <Menu className="size-5" aria-hidden="true" />
-                </AriaButton>
+                </Button>
                 <ModalOverlay className="drawer-overlay" isDismissable>
                   <Modal className="drawer-panel">
                     <Dialog aria-label="メニュー" className="drawer-dialog" id="site-drawer">
-                      <AriaButton
+                      <Button
                         className="mb-1 inline-flex h-9 w-9 items-center justify-center self-end rounded-lg border-0 bg-transparent text-muted hover:bg-hover hover:text-ink"
                         type="button"
                         aria-label="メニューを閉じる"
                         onPress={closeDrawer}
                       >
                         <X className="size-5" aria-hidden="true" />
-                      </AriaButton>
+                      </Button>
                       <NavigationLinks onNavigate={closeDrawer} drawer />
                       <div className="mt-auto flex items-center justify-center gap-2.5 pt-3.5">
                         <ThemeToggle className="inline-flex" />
@@ -98,7 +100,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
 
       <footer className="mx-auto mt-16 max-w-[1120px] border-t border-line px-4 py-8 text-[0.85rem] text-muted sm:px-6">
         <small>
-          © 2026 <Link to="/profile">nosuke</Link>. All Rights Reserved.
+          © 2026 <RouterLink to="/profile">nosuke</RouterLink>. All Rights Reserved.
         </small>
       </footer>
     </>
@@ -108,16 +110,20 @@ export function SiteChrome({ children }: { children: ReactNode }) {
 function UtilityLinks({ className }: { className: string }) {
   return (
     <>
-      <a className={`${iconButtonClass} ${className}`} href="/feed.xml" aria-label="RSS フィード">
+      <AriaLink
+        className={`${iconButtonClass} ${className}`}
+        href="/feed.xml"
+        aria-label="RSS フィード"
+      >
         <Rss className="size-5" aria-hidden="true" />
-      </a>
-      <a
+      </AriaLink>
+      <AriaLink
         className={`${iconButtonClass} ${className}`}
         href="/llms.txt"
         aria-label="llms.txt（LLM 向けサイト情報）"
       >
         <Bot className="size-5" aria-hidden="true" />
-      </a>
+      </AriaLink>
     </>
   );
 }
@@ -133,20 +139,20 @@ function NavigationLinks({
 
   return (
     <>
-      <Link className={navLinkClass(pathname === "/", drawer)} to="/" onClick={onNavigate}>
+      <RouterLink className={navLinkClass(pathname === "/", drawer)} to="/" onClick={onNavigate}>
         Home
-      </Link>
-      <Link
+      </RouterLink>
+      <RouterLink
         to="/posts"
         className={navLinkClass(pathname.startsWith("/posts"), drawer)}
         onClick={onNavigate}
       >
         記事
-      </Link>
+      </RouterLink>
       {/* カテゴリはホームのサイドバーが担うため、ヘッダーではドロワー（モバイル）にだけ残す。 */}
       {drawer &&
         categories.map(({ slug, name }) => (
-          <Link
+          <RouterLink
             to="/categories/$slug"
             params={{ slug }}
             key={slug}
@@ -157,22 +163,22 @@ function NavigationLinks({
             onClick={onNavigate}
           >
             {name}
-          </Link>
+          </RouterLink>
         ))}
-      <Link
+      <RouterLink
         to="/tags"
         className={navLinkClass(pathname.startsWith("/tags"), drawer)}
         onClick={onNavigate}
       >
         タグ
-      </Link>
-      <Link
+      </RouterLink>
+      <RouterLink
         to="/profile"
         className={navLinkClass(pathname.startsWith("/profile"), drawer)}
         onClick={onNavigate}
       >
         プロフィール
-      </Link>
+      </RouterLink>
     </>
   );
 }

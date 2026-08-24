@@ -1,7 +1,6 @@
-import { Button as AriaButton } from "react-aria-components";
 import { useId } from "react";
 
-import { iconButtonClass } from "#/lib/ui";
+import { IconButton } from "#/components/ui";
 
 function toggleTheme() {
   const root = document.documentElement;
@@ -19,9 +18,8 @@ export function ThemeToggle({ className }: { className?: string }) {
   const maskId = `theme-moon-${reactId.replace(/:/g, "")}`;
 
   return (
-    <AriaButton
-      className={`${iconButtonClass} theme-toggle ${className ?? ""}`}
-      type="button"
+    <IconButton
+      className={`theme-toggle ${className ?? ""}`}
       aria-label="テーマを切り替え"
       onPress={toggleTheme}
     >
@@ -57,6 +55,6 @@ export function ThemeToggle({ className }: { className?: string }) {
           ))}
         </g>
       </svg>
-    </AriaButton>
+    </IconButton>
   );
 }

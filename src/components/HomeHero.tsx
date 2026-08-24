@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 
 import { ResponsiveImage } from "#/components/ResponsiveImage";
+import { RouterLink } from "#/components/ui";
 import { mediaUrl } from "#/lib/site";
 
 export function HomeHero({ total, topics }: { total: number; topics: number }) {
@@ -26,13 +26,13 @@ export function HomeHero({ total, topics }: { total: number; topics: number }) {
           技術と日常を、すこしずつ記録しています。旅行、技術、ガジェット、読書記録などの記事を気ままに書いています。
         </p>
         <div className="mt-3.5 flex flex-wrap items-center gap-x-5 gap-y-2">
-          <Link
+          <RouterLink
             className="inline-flex items-center gap-1.5 text-[0.88rem] font-semibold text-accent no-underline transition-[gap] duration-200 hover:gap-2.5 motion-reduce:transition-none"
             to="/profile"
           >
             プロフィール
             <ArrowUpRight className="size-3.5" aria-hidden="true" />
-          </Link>
+          </RouterLink>
           <span className="font-mono text-[0.72rem] uppercase tracking-[0.06em] text-muted">
             {total} posts · {topics} topics
           </span>

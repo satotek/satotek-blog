@@ -1,8 +1,8 @@
-import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import type { PostSummary } from "#/content/types";
 import { ResponsiveImage } from "#/components/ResponsiveImage";
+import { RouterLink } from "#/components/ui";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
 
@@ -91,7 +91,7 @@ export function PostCover({
   const [imageError, setImageError] = useState(false);
 
   return (
-    <Link
+    <RouterLink
       className={`post-cover group block overflow-hidden no-underline ${className}`}
       to="/posts/$slug"
       params={{ slug: post.slug }}
@@ -113,19 +113,19 @@ export function PostCover({
           <span className="post-cover__fallback-label">SATOTEK</span>
         </span>
       )}
-    </Link>
+    </RouterLink>
   );
 }
 
 function PostTitle({ post, className }: { post: PostSummary; className: string }) {
   return (
-    <Link
+    <RouterLink
       className={`font-semibold leading-[1.3] tracking-[-0.015em] no-underline transition-colors hover:text-accent ${className}`}
       to="/posts/$slug"
       params={{ slug: post.slug }}
     >
       {post.title}
-    </Link>
+    </RouterLink>
   );
 }
 
@@ -134,13 +134,13 @@ export function PostMeta({ post, category }: { post: PostSummary; category: stri
     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-muted">
       <time dateTime={post.date}>{formatDate(post.date)}</time>
       <span aria-hidden="true">/</span>
-      <Link
+      <RouterLink
         className="text-accent no-underline hover:underline"
         to="/categories/$slug"
         params={{ slug: post.category }}
       >
         {category}
-      </Link>
+      </RouterLink>
     </div>
   );
 }
@@ -152,13 +152,13 @@ function PostTags({ post }: { post: PostSummary }) {
     <ul className="m-0 mt-3 flex list-none flex-wrap gap-x-3 gap-y-1 p-0" aria-label="タグ">
       {post.tags.slice(0, 3).map((tag) => (
         <li key={tag}>
-          <Link
+          <RouterLink
             className="text-[0.75rem] text-muted no-underline hover:text-accent"
             to="/tags/$tag"
             params={{ tag }}
           >
             #{tag}
-          </Link>
+          </RouterLink>
         </li>
       ))}
     </ul>

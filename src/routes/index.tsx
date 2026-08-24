@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { HomeHero } from "#/components/HomeHero";
 import { HomeSidebar } from "#/components/HomeSidebar";
 import { PostList } from "#/components/PostList";
+import { RouterLink } from "#/components/ui";
 import type { PostSummary } from "#/content/types";
 import { analyticsRepository } from "#/analytics/repository";
 import { getCategories, getTags } from "#/data/navigation";
@@ -55,12 +56,12 @@ function Home() {
             <h2 className="m-0 text-[1rem] font-bold tracking-[-0.01em]" id="latest-title">
               最新の記事
             </h2>
-            <Link
+            <RouterLink
               className="text-[0.85rem] font-semibold text-accent no-underline hover:underline"
               to="/posts"
             >
               記事一覧 →
-            </Link>
+            </RouterLink>
           </div>
           {latest.length > 0 ? (
             <PostList posts={latest} variant="panel" />
