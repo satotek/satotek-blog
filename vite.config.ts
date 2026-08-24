@@ -35,10 +35,11 @@ const config = defineConfig(({ mode }) => {
               enabled: true,
               concurrency: 2,
               crawlLinks: true,
-              // The home page reads the current GA4 snapshot at request time.
+              // The home page uses Pick up in the prerendered HTML and fetches
+              // the optional GA4 ranking after hydration.
               // /play/* are the hidden-game entrances: one is a URL that must
               // stay missing, the other throws on purpose.
-              filter: ({ path }) => path !== "/" && !path.startsWith("/play/"),
+              filter: ({ path }) => !path.startsWith("/play/"),
               failOnError: true,
             },
             pages: [
