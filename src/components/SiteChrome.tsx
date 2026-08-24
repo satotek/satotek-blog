@@ -65,7 +65,8 @@ export function SiteChrome({ children }: { children: ReactNode }) {
                 >
                   <Menu className="size-5" aria-hidden="true" />
                 </Button>
-                <ModalOverlay className="drawer-overlay" isDismissable>
+                {/* ルート遷移時に React Aria の exit state を次の履歴へ持ち越さない。 */}
+                <ModalOverlay key={pathname} className="drawer-overlay" isDismissable>
                   <Modal className="drawer-panel">
                     <Dialog aria-label="メニュー" className="drawer-dialog" id="site-drawer">
                       <Button
