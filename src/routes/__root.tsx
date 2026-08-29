@@ -5,7 +5,14 @@ import { GA_INITIALIZER, GA_MEASUREMENT_ID } from "#/analytics/client";
 import { NotFound } from "#/components/NotFound";
 import { SiteChrome } from "#/components/SiteChrome";
 import { RouterLink } from "#/components/ui";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, createSocialMeta } from "#/lib/site";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+  WEBMCP_ORIGIN_TRIAL_TOKEN,
+  createSocialMeta,
+} from "#/lib/site";
+import "#/webmcp/register";
 import appCss from "../styles.css?url";
 
 // エラー画面でしか使わないゲームは通常ページの初期バンドルへ含めない。
@@ -22,11 +29,12 @@ const BugHunt = lazy(() =>
 
 const THEME_INIT_SCRIPT = `(() => {
   try {
-    const theme = localStorage.getItem("theme");
-    if (theme === "light" || theme === "dark") {
-      document.documentElement.setAttribute("data-theme", theme);
-    }
-  } catch {}
+    const savedTheme = localStorage.getItem("theme");
+    const theme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+  } catch {
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
 })();`;
 
 const FONTS_HREF = "/fonts.css";
@@ -38,7 +46,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: SITE_NAME },
       { name: "description", content: SITE_DESCRIPTION },
-      { name: "theme-color", content: "#f3ece0" },
+      { name: "theme-color", content: "#1f1e1d" },
       ...createSocialMeta({
         title: SITE_NAME,
         description: SITE_DESCRIPTION,
@@ -121,6 +129,9 @@ function RootDocument({ children }: { children: ReactNode }) {
     // html 自身の属性だけ不一致の検出から外す。子孫の不一致は引き続き検出される。
     <html lang="ja" suppressHydrationWarning>
       <head>
+        {WEBMCP_ORIGIN_TRIAL_TOKEN ? (
+          <meta httpEquiv="origin-trial" content={WEBMCP_ORIGIN_TRIAL_TOKEN} />
+        ) : null}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {GA_MEASUREMENT_ID ? (
           <>

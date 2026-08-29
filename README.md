@@ -163,7 +163,19 @@ bun run build
 bun run preview
 ```
 
-`bun run check` はMarkdownのHTML生成と、Vite+によるリポジトリ全体のフォーマット・Lint・TypeScriptの型検査を実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run test` は一度だけテストを実行し、`bun run test:watch` は監視モードで実行します。`bun run dev` も起動時にMarkdownのHTMLを生成してから開発サーバーを起動します。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
+`bun run check` はMarkdownのHTML生成と、Vite+によるリポジトリ全体のフォーマット・Lint・TypeScriptの型検査を実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run test` は一度だけテストを実行し、`bun run test:watch` は監視モードで実行します。`bun run dev` は起動時にMarkdownのHTMLを生成してから開発サーバーを起動し、起動後も `content/posts/*/index.md` の変更を検知して再生成・ブラウザ更新を行います。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
+
+### WebMCP PoC
+
+対応ブラウザでは、次のWebMCPツールを共通ルートから登録します。
+
+- `search_posts({ query, limit? })` — タイトル・説明・カテゴリ・タグを検索
+- `list_posts({ category?, tag?, limit? })` — 公開記事を条件付きで一覧
+- `open_post({ slug })` — 公開記事を現在のタブで開く
+
+WebMCP非対応ブラウザでは何もせず、通常のサイトとして動作します。ローカルで試す場合はChromeで `chrome://flags/#enable-webmcp-testing` を有効にしてから `http://localhost:3000` を開き、Model Context Tool Inspectorなどでツールを確認してください。
+
+Chrome Origin Trialを使う場合は、対象origin用のトークンを `.env.local` の `VITE_WEBMCP_ORIGIN_TRIAL_TOKEN` に設定します。この値はページへ公開されるため、秘密情報として扱う必要はありません。
 
 ## ディレクトリ構成
 

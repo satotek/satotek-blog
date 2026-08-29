@@ -1,6 +1,9 @@
 export const SITE_URL = "https://satotek.dev";
 export const SITE_NAME = "satotek.dev";
 export const SITE_DESCRIPTION = "個人ブログ・技術メモ";
+export const WEBMCP_ORIGIN_TRIAL_TOKEN = (
+  import.meta.env.VITE_WEBMCP_ORIGIN_TRIAL_TOKEN ?? ""
+).trim();
 export const SOURCE_REPOSITORY_URL = "https://github.com/satotek/satotek-blog";
 export const MEDIA_BASE_URL = (import.meta.env.VITE_MEDIA_BASE_URL ?? "https://img.satotek.dev")
   .trim()

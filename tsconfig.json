@@ -17,7 +17,7 @@
       "#/*": ["./src/*"],
       "@/*": ["./src/*"]
     },
-    "types": ["vite-plus/client", "node"],
+    "types": ["vite-plus/client", "node", "webmcp-types"],
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": false,
