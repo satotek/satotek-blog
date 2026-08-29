@@ -14,12 +14,10 @@
   --color-accent: var(--accent);
   --color-line: var(--border);
   --color-card: var(--card);
-  --color-code: var(--code-bg);
   --color-hover: var(--hover);
   --color-accent-soft: var(--accent-soft);
   --color-accent-hover: var(--accent-hover);
   --color-accent-border: var(--accent-border);
-  --color-surface: var(--surface);
   --radius-site: 14px;
 }
 
@@ -42,10 +40,6 @@
   --card: light-dark(
     color-mix(in srgb, var(--fg) 3%, transparent),
     color-mix(in srgb, var(--fg) 5%, transparent)
-  );
-  --code-bg: light-dark(
-    color-mix(in srgb, var(--fg) 6%, transparent),
-    color-mix(in srgb, var(--fg) 8%, transparent)
   );
   --code-surface: light-dark(
     color-mix(in srgb, #fffdf8 62%, var(--bg)),
@@ -402,7 +396,7 @@
     text-underline-offset: 2px;
   }
 
-  .markdown-body a[target="_blank"]:not(.social-link)::after {
+  .markdown-body a[target="_blank"]::after {
     margin-left: 0.12em;
     color: currentColor;
     /* エスケープで書く。非 ASCII リテラルは stylesheet の charset 解釈に依存する。 */
