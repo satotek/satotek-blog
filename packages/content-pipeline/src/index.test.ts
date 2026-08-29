@@ -53,4 +53,22 @@ describe("Markdown renderer", () => {
     expect(rendered.html).toContain('loading="lazy"');
     expect(rendered.html).toContain('decoding="async"');
   });
+
+  it("renders image attributes inside list items", async () => {
+    const rendered = await renderer.renderMarkdown(
+      [
+        "1. Open chrome://flags",
+        "2. Enable WebMCP testing",
+        "",
+        '   ![Flag](/images/flag.png "WebMCP testing"){width=768 .center}',
+        "",
+        "3. Restart Chrome",
+      ].join("\n"),
+    );
+
+    expect(rendered.html).toContain("<figure>");
+    expect(rendered.html).toContain('width="768"');
+    expect(rendered.html).toContain('class="center"');
+    expect(rendered.html).not.toContain("{width=768 .center}");
+  });
 });

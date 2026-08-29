@@ -69,10 +69,8 @@ function parseImageAttributes(raw: string) {
 
 function remarkImageAttributes() {
   return (tree: Root) => {
-    for (const node of tree.children) {
-      if (node.type !== "paragraph") continue;
+    visit(tree, "paragraph", (node) => {
       const paragraph = node as Paragraph;
-
       for (let index = 0; index < paragraph.children.length - 1; index += 1) {
         const image = paragraph.children[index];
         const suffix = paragraph.children[index + 1];
@@ -86,7 +84,7 @@ function remarkImageAttributes() {
         suffix.value = suffix.value.slice(match[0].length);
         if (suffix.value.length === 0) paragraph.children.splice(index + 1, 1);
       }
-    }
+    });
   };
 }
 
