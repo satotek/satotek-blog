@@ -150,7 +150,16 @@ function NavigationLinks({
       >
         記事
       </RouterLink>
-      {/* カテゴリはホームのサイドバーが担うため、ヘッダーではドロワー（モバイル）にだけ残す。 */}
+      {/* デスクトップは一覧ページへの入口だけを置き、ドロワーでは各カテゴリを直接並べる。 */}
+      {!drawer && (
+        <RouterLink
+          to="/categories"
+          className={navLinkClass(pathname.startsWith("/categories"), drawer)}
+          onClick={onNavigate}
+        >
+          カテゴリ
+        </RouterLink>
+      )}
       {drawer &&
         categories.map(({ slug, name }) => (
           <RouterLink
