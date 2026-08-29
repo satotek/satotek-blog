@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "bun run generate-content && vp dev . --port 3000",
     "generate-content": "bun scripts/generate-post-content.ts",
+    "generate-media-manifest": "bun scripts/generate-media-manifest.ts",
     "generate-ogp": "bun scripts/generate-ogp.tsx",
     "generate-ogp:all": "bun run generate-ogp -- --all",
     "generate-ogp:upload": "bun run generate-ogp -- --all --upload",

@@ -24,8 +24,8 @@ import GithubSlugger from "github-slugger";
 import { visit } from "unist-util-visit";
 
 import type { Heading, Paragraph, Root } from "mdast";
-export { MEDIA_VARIANT_WIDTHS, generateMediaVariants } from "./media";
-export type { GeneratedMediaVariant, GenerateMediaVariantsOptions } from "./media";
+export { MEDIA_VARIANT_WIDTHS, generateMediaVariants, readImageDimensions } from "./media";
+export type { GeneratedMediaVariant, GenerateMediaVariantsOptions, MediaDimensions } from "./media";
 
 export type TocItem = {
   id: string;
@@ -225,13 +225,47 @@ function extractToc(tree: Root): TocItem[] {
 type OnigurumaWasm = Parameters<typeof createOnigurumaEngine>[0];
 
 export type ResolvedImage = {
-  srcSet: string;
-  sizes: string;
+  srcSet?: string;
+  sizes?: string;
+  width?: number;
+  height?: number;
 };
 
 export type MarkdownRendererOptions = {
   resolveImage?: (source: string) => ResolvedImage | undefined;
 };
+
+function positiveInteger(value: unknown) {
+  const numeric = typeof value === "string" ? Number(value) : value;
+  return typeof numeric === "number" && Number.isFinite(numeric) && numeric > 0
+    ? numeric
+    : undefined;
+}
+
+// width/height 属性はレイアウトを固定するためではなく、読み込み前のアスペクト比を
+// ブラウザに伝えるために出す。CSS 側の max-width:100% / height:auto が実際の表示を決める。
+function applyIntrinsicSize(node: Element, resolved: ResolvedImage) {
+  const intrinsicWidth = positiveInteger(resolved.width);
+  const intrinsicHeight = positiveInteger(resolved.height);
+  if (!intrinsicWidth || !intrinsicHeight) return;
+
+  const authoredWidth = positiveInteger(node.properties.width);
+  const authoredHeight = positiveInteger(node.properties.height);
+  if (authoredWidth && authoredHeight) return;
+
+  const ratio = intrinsicHeight / intrinsicWidth;
+  if (authoredWidth) {
+    node.properties.height = Math.round(authoredWidth * ratio);
+    return;
+  }
+  if (authoredHeight) {
+    node.properties.width = Math.round(authoredHeight / ratio);
+    return;
+  }
+
+  node.properties.width = intrinsicWidth;
+  node.properties.height = intrinsicHeight;
+}
 
 function rehypeResponsiveImages(resolveImage: MarkdownRendererOptions["resolveImage"]) {
   return (tree: HastRoot) => {
@@ -246,11 +280,15 @@ function rehypeResponsiveImages(resolveImage: MarkdownRendererOptions["resolveIm
       const resolved = resolveImage(source);
       if (!resolved) return;
 
-      node.properties.srcSet = resolved.srcSet;
-      node.properties.sizes = resolved.sizes;
-      node.properties.loading = "lazy";
-      node.properties.decoding = "async";
-      node.properties["data-full-src"] = source;
+      if (resolved.srcSet && resolved.sizes) {
+        node.properties.srcSet = resolved.srcSet;
+        node.properties.sizes = resolved.sizes;
+        node.properties.loading = "lazy";
+        node.properties.decoding = "async";
+        node.properties["data-full-src"] = source;
+      }
+
+      applyIntrinsicSize(node, resolved);
     });
   };
 }

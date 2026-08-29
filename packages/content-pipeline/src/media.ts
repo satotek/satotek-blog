@@ -64,3 +64,16 @@ export async function generateMediaVariants({
 
   return variants;
 }
+
+export type MediaDimensions = {
+  width: number;
+  height: number;
+};
+
+export async function readImageDimensions(
+  input: Buffer | string,
+): Promise<MediaDimensions | undefined> {
+  const { width, height } = await sharp(input).metadata();
+  if (!width || !height) return undefined;
+  return { width, height };
+}

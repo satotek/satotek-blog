@@ -1,0 +1,30 @@
+{
+  "cloudflare-workers-site/architecture.svg": {
+    "width": 1180,
+    "height": 640
+  },
+  "first-post/DSC_7242.webp": {
+    "width": 1600,
+    "height": 1065
+  },
+  "webmcp-blog-tools/chrome-webmcp-testing-flag.png": {
+    "width": 1486,
+    "height": 172
+  },
+  "webmcp-blog-tools/codex-webmcp-execution.png": {
+    "width": 3600,
+    "height": 2238
+  },
+  "webmcp-blog-tools/devtools-webmcp-invocation-history.png": {
+    "width": 3792,
+    "height": 2450
+  },
+  "webmcp-blog-tools/devtools-webmcp.png": {
+    "width": 3732,
+    "height": 2450
+  },
+  "webmcp-blog-tools/remote-debugging.png": {
+    "width": 1424,
+    "height": 646
+  }
+}

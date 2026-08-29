@@ -54,6 +54,29 @@ describe("Markdown renderer", () => {
     expect(rendered.html).toContain('decoding="async"');
   });
 
+  it("derives the missing image dimension from the intrinsic aspect ratio", async () => {
+    const sizedRenderer = createMarkdownRenderer(onigWasm, {
+      resolveImage: () => ({ width: 1600, height: 1065 }),
+    });
+
+    // 著者が width だけ指定した場合、height は実寸比から補う。
+    const authored = await sizedRenderer.renderMarkdown("![Photo](/photo.png){width=600}");
+    expect(authored.html).toContain('width="600"');
+    expect(authored.html).toContain('height="399"');
+
+    // 指定が無ければ実寸をそのまま出す。
+    const intrinsic = await sizedRenderer.renderMarkdown("![Photo](/photo.png)");
+    expect(intrinsic.html).toContain('width="1600"');
+    expect(intrinsic.html).toContain('height="1065"');
+
+    // 両方指定されていれば、著者の指定を上書きしない。
+    const explicit = await sizedRenderer.renderMarkdown(
+      "![Photo](/photo.png){width=800 height=200}",
+    );
+    expect(explicit.html).toContain('width="800"');
+    expect(explicit.html).toContain('height="200"');
+  });
+
   it("renders image attributes inside list items", async () => {
     const rendered = await renderer.renderMarkdown(
       [
