@@ -1,3 +1,6 @@
+import { spawn } from "node:child_process";
+import { relative, resolve, sep } from "node:path";
+
 import { defineConfig } from "vite-plus";
 
 import { cloudflare } from "@cloudflare/vite-plugin";
@@ -5,6 +8,69 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
 
 import viteReact from "@vitejs/plugin-react";
+
+const contentPostsDirectory = resolve(process.cwd(), "content/posts");
+
+function isMarkdownPost(file: string) {
+  const relativePath = relative(contentPostsDirectory, resolve(file));
+  const segments = relativePath.split(sep);
+
+  return segments.length === 2 && segments[1] === "index.md";
+}
+
+function regeneratePostContent() {
+  return new Promise<void>((resolvePromise, reject) => {
+    const child = spawn("bun", ["run", "generate-content"], {
+      cwd: process.cwd(),
+      stdio: "inherit",
+    });
+
+    child.once("error", reject);
+    child.once("exit", (code, signal) => {
+      if (code === 0) {
+        resolvePromise();
+        return;
+      }
+
+      reject(
+        new Error(`generate-content exited with ${signal ? `signal ${signal}` : `code ${code}`}`),
+      );
+    });
+  });
+}
+
+function postContentWatcher() {
+  let generation: Promise<void> | undefined;
+
+  return {
+    name: "post-content-watcher",
+    configureServer(server: { watcher: { add: (path: string) => void } }) {
+      server.watcher.add(contentPostsDirectory);
+    },
+    async handleHotUpdate({
+      file,
+      server,
+    }: {
+      file: string;
+      server: { ws: { send: (message: { type: "full-reload" }) => void } };
+    }) {
+      if (!isMarkdownPost(file)) return;
+
+      generation ??= regeneratePostContent().finally(() => {
+        generation = undefined;
+      });
+
+      try {
+        await generation;
+        server.ws.send({ type: "full-reload" });
+      } catch (error) {
+        console.error("[post-content-watcher] Could not regenerate Markdown content.", error);
+      }
+
+      return [];
+    },
+  };
+}
 
 const config = defineConfig(({ mode }) => {
   const isTest = mode === "test";
@@ -27,6 +93,7 @@ const config = defineConfig(({ mode }) => {
       ? []
       : [
           tailwindcss(),
+          postContentWatcher(),
           cloudflare({ viteEnvironment: { name: "ssr" } }),
           tanstackStart({
             // MarkdownとShikiはデプロイ時に実行し、公開済みページは静的HTMLとして配信する。

@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -38,6 +38,17 @@ async function readMarkdownSources(): Promise<MarkdownSource[]> {
     );
 }
 
+async function writeAtomically(path: string, content: string) {
+  const temporaryPath = `${path}.tmp-${process.pid}`;
+
+  try {
+    await writeFile(temporaryPath, content, "utf8");
+    await rename(temporaryPath, path);
+  } finally {
+    await rm(temporaryPath, { force: true });
+  }
+}
+
 async function main() {
   const [sources, wasm] = await Promise.all([readMarkdownSources(), readFile(wasmPath)]);
   const renderer = createMarkdownRenderer(wasm, {
@@ -48,22 +59,29 @@ async function main() {
       }),
   });
 
-  await rm(generatedDirectory, { recursive: true, force: true });
   await mkdir(generatedDirectory, { recursive: true });
+
+  const generatedFiles = new Set(["summaries.json"]);
 
   for (const source of sources) {
     const rendered = await renderer.renderMarkdown(source.markdown);
     const outputPath = join(generatedDirectory, `${source.slug}.json`);
-    await writeFile(outputPath, `${JSON.stringify(rendered)}\n`, "utf8");
+    await writeAtomically(outputPath, `${JSON.stringify(rendered)}\n`);
+    generatedFiles.add(`${source.slug}.json`);
   }
 
   // 一覧が必要とするのはサマリだけ。これを別ファイルにしておくことで、
   // ブラウザ側が Markdown 原文・yaml パーサ・zod を読み込まずに済む。
-  await writeFile(
+  await writeAtomically(
     join(generatedDirectory, "summaries.json"),
     `${JSON.stringify(sources.map((source) => source.summary))}\n`,
-    "utf8",
   );
+
+  for (const entry of await readdir(generatedDirectory, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".json") || generatedFiles.has(entry.name))
+      continue;
+    await rm(join(generatedDirectory, entry.name), { force: true });
+  }
 
   console.log(`Generated ${sources.length} rendered Markdown posts.`);
 }
