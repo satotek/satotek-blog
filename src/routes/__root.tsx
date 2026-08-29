@@ -1,7 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 
-import { GA_INITIALIZER, GA_MEASUREMENT_ID } from "#/analytics/client";
+import { DeferredAnalytics } from "#/components/DeferredAnalytics";
 import { NotFound } from "#/components/NotFound";
 import { SiteChrome } from "#/components/SiteChrome";
 import { RouterLink } from "#/components/ui";
@@ -12,7 +12,6 @@ import {
   WEBMCP_ORIGIN_TRIAL_TOKEN,
   createSocialMeta,
 } from "#/lib/site";
-import "#/webmcp/register";
 import appCss from "../styles.css?url";
 
 // エラー画面でしか使わないゲームは通常ページの初期バンドルへ含めない。
@@ -133,23 +132,33 @@ function RootDocument({ children }: { children: ReactNode }) {
           <meta httpEquiv="origin-trial" content={WEBMCP_ORIGIN_TRIAL_TOKEN} />
         ) : null}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        {GA_MEASUREMENT_ID ? (
-          <>
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            />
-            <script dangerouslySetInnerHTML={{ __html: GA_INITIALIZER }} />
-          </>
-        ) : null}
         <HeadContent />
       </head>
       <body>
         <SiteChrome>
           <main className="mx-auto max-w-[1120px] px-4 pb-6 pt-2 sm:px-6">{children}</main>
         </SiteChrome>
+        <DeferredAnalytics />
+        <DeferredWebMcp />
         <Scripts />
       </body>
     </html>
   );
+}
+
+function DeferredWebMcp() {
+  useEffect(() => {
+    try {
+      if (!document.modelContext) return;
+    } catch {
+      return;
+    }
+
+    // WebMCP が有効なブラウザでだけ専用コードを読み込む。
+    void import("#/webmcp/register").catch((error: unknown) => {
+      console.warn("[WebMCP] Could not load blog tools.", error);
+    });
+  }, []);
+
+  return null;
 }

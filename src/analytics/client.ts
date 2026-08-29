@@ -18,13 +18,46 @@ declare global {
   }
 }
 
-export const GA_INITIALIZER = GA_MEASUREMENT_ID
-  ? `window.dataLayer = window.dataLayer || [];
-function gtag(){window.dataLayer.push(arguments);}
-window.gtag = gtag;
-window.gtag('js', new Date());
-window.gtag('config', ${JSON.stringify(GA_MEASUREMENT_ID)}, { send_page_view: false });`
-  : "";
+let googleAnalyticsLoad: Promise<void> | undefined;
+
+export function loadGoogleAnalytics() {
+  if (typeof document === "undefined" || !GA_MEASUREMENT_ID) return Promise.resolve();
+  if (googleAnalyticsLoad) return googleAnalyticsLoad;
+  if (window.gtag) return Promise.resolve();
+
+  window.dataLayer = window.dataLayer ?? [];
+  const gtag: Gtag = function () {
+    window.dataLayer?.push(arguments);
+  };
+  window.gtag = gtag;
+  gtag("js", new Date());
+  gtag("config", GA_MEASUREMENT_ID, { send_page_view: false });
+
+  // 初期マウント時は SiteChrome の effect より後にここへ到達するため、
+  // gtag のスタブを作った直後に現在のページビューを積む。
+  trackPageView(window.location.pathname);
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+  script.dataset.siteAnalytics = "google-analytics";
+
+  googleAnalyticsLoad = new Promise<void>((resolve, reject) => {
+    script.addEventListener("load", () => resolve(), { once: true });
+    script.addEventListener(
+      "error",
+      () => reject(new Error("Google Analytics script failed to load.")),
+      { once: true },
+    );
+    document.head.append(script);
+  }).catch((error: unknown) => {
+    googleAnalyticsLoad = undefined;
+    window.gtag = undefined;
+    throw error;
+  });
+
+  return googleAnalyticsLoad;
+}
 
 export function trackPageView(pathname: string) {
   if (typeof window === "undefined" || !window.gtag || !GA_MEASUREMENT_ID) return;

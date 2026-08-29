@@ -1,22 +1,17 @@
-import { Bot, Menu, Rss, X } from "lucide-react";
+import { Bot, Menu, Rss } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 
 import { trackPageView } from "#/analytics/client";
-import {
-  Button,
-  Dialog,
-  DialogTrigger,
-  Link as AriaLink,
-  Modal,
-  ModalOverlay,
-  RouterLink,
-  iconButtonClass,
-} from "#/components/ui";
+import { Button, Link as AriaLink, RouterLink, iconButtonClass } from "#/components/ui";
 import { categories } from "#/data/navigation";
 
 import { SiteLogo } from "./SiteLogo";
 import { ThemeToggle } from "./ThemeToggle";
+
+const MobileMenu = lazy(() =>
+  import("./MobileMenu").then(({ MobileMenu: component }) => ({ default: component })),
+);
 
 const navLinkClass = (active: boolean, drawer = false) =>
   [
@@ -29,6 +24,7 @@ const navLinkClass = (active: boolean, drawer = false) =>
 
 export function SiteChrome({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerLoaded, setDrawerLoaded] = useState(false);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   const closeDrawer = () => setDrawerOpen(false);
@@ -57,35 +53,29 @@ export function SiteChrome({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-2">
               <UtilityLinks className="hidden sm:inline-flex" />
               <ThemeToggle className="hidden sm:inline-flex" />
-              <DialogTrigger isOpen={drawerOpen} onOpenChange={setDrawerOpen}>
-                <Button
-                  className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[10px] border border-line bg-transparent text-ink transition-[background,border-color] duration-150 hover:border-accent-border hover:bg-accent-soft motion-reduce:transition-none sm:hidden"
-                  type="button"
-                  aria-label="メニュー"
-                >
-                  <Menu className="size-5" aria-hidden="true" />
-                </Button>
-                {/* ルート遷移時に React Aria の exit state を次の履歴へ持ち越さない。 */}
-                <ModalOverlay key={pathname} className="drawer-overlay" isDismissable>
-                  <Modal className="drawer-panel">
-                    <Dialog aria-label="メニュー" className="drawer-dialog" id="site-drawer">
-                      <Button
-                        className="mb-1 inline-flex h-9 w-9 items-center justify-center self-end rounded-lg border-0 bg-transparent text-muted hover:bg-hover hover:text-ink"
-                        type="button"
-                        aria-label="メニューを閉じる"
-                        onPress={closeDrawer}
-                      >
-                        <X className="size-5" aria-hidden="true" />
-                      </Button>
-                      <NavigationLinks onNavigate={closeDrawer} drawer />
-                      <div className="mt-auto flex items-center justify-center gap-2.5 pt-3.5">
-                        <ThemeToggle className="inline-flex" />
-                        <UtilityLinks className="inline-flex" />
-                      </div>
-                    </Dialog>
-                  </Modal>
-                </ModalOverlay>
-              </DialogTrigger>
+              <Button
+                className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-[10px] border border-line bg-transparent text-ink transition-[background,border-color] duration-150 hover:border-accent-border hover:bg-accent-soft motion-reduce:transition-none sm:hidden"
+                type="button"
+                aria-label="メニュー"
+                onPress={() => {
+                  setDrawerLoaded(true);
+                  setDrawerOpen(true);
+                }}
+              >
+                <Menu className="size-5" aria-hidden="true" />
+              </Button>
+              {drawerLoaded ? (
+                <Suspense fallback={null}>
+                  {/* ルート遷移時に React Aria の exit state を次の履歴へ持ち越さない。 */}
+                  <MobileMenu key={pathname} isOpen={drawerOpen} onClose={closeDrawer}>
+                    <NavigationLinks onNavigate={closeDrawer} drawer />
+                    <div className="mt-auto flex items-center justify-center gap-2.5 pt-3.5">
+                      <ThemeToggle className="inline-flex" />
+                      <UtilityLinks className="inline-flex" />
+                    </div>
+                  </MobileMenu>
+                </Suspense>
+              ) : null}
             </div>
           </div>
           <nav className="hidden sm:block" aria-label="グローバルナビ">

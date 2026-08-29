@@ -1,8 +1,8 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
-import { CodeCopyButtons, ImageLightbox } from "#/components/ArticleEnhancers";
 import { ArticleFooter } from "#/components/ArticleFooter";
+import { DeferredArticleEnhancers } from "#/components/DeferredArticleEnhancers";
 import { TableOfContents } from "#/components/TableOfContents";
 import { RouterLink } from "#/components/ui";
 import { getPostBySlug } from "#/content/posts.functions";
@@ -193,8 +193,7 @@ function MarkdownContent({
           className="markdown-body"
           dangerouslySetInnerHTML={{ __html: post.content.html }}
         />
-        <CodeCopyButtons containerRef={containerRef} contentKey={post.slug} />
-        <ImageLightbox containerRef={containerRef} contentKey={post.slug} />
+        <DeferredArticleEnhancers containerRef={containerRef} contentKey={post.slug} />
       </div>
     </>
   );

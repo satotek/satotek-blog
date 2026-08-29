@@ -1,7 +1,7 @@
 import { ExternalLink, FileText } from "lucide-react";
 
+import { DeferredShareButton } from "#/components/DeferredShareButton";
 import { PostList } from "#/components/PostList";
-import { ShareButton } from "#/components/ShareButton";
 import { Link as AriaLink } from "#/components/ui";
 import type { Post, PostSummary } from "#/content/types";
 import { postSourceUrl, SITE_URL } from "#/lib/site";
@@ -30,7 +30,7 @@ export function ArticleFooter({
             Article tools
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <ShareButton title={post.title} url={postUrl} />
+            <DeferredShareButton title={post.title} url={postUrl} />
             <AriaLink
               className={actionLinkClass}
               href={postSourceUrl(post.slug)}
