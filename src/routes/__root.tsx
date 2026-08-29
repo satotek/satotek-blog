@@ -38,6 +38,13 @@ const THEME_INIT_SCRIPT = `(() => {
 
 const FONTS_HREF = "/fonts.css";
 
+// 同一オリジンでも as="font" の preload は crossorigin 必須。付け忘れると
+// 二重取得になり、先読みが逆効果になる。
+const LATIN_FONT_PRELOADS = ["/fonts/geist-400-4.woff2", "/fonts/geist-700-9.woff2"].map(
+  (href) =>
+    ({ rel: "preload", href, as: "font", type: "font/woff2", crossOrigin: "anonymous" }) as const,
+);
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -54,6 +61,10 @@ export const Route = createRootRoute({
       }),
     ],
     links: [
+      // woff2 の URL は fonts.css をパースし終えるまで判明せず、取得は HTML→CSS→font の
+      // 3 往復目になる。全ページで必ず使う Latin 基本域だけ先読みして 1 段短くする。
+      // 和文は端末内蔵に任せているので、先読みするのはこの 2 つで足りる。
+      ...LATIN_FONT_PRELOADS,
       { rel: "stylesheet", href: appCss },
       // フォント定義は通常の stylesheet として読む。JS で差し込むと
       // プリロードスキャナに発見されず、取得が数十ms遅れるため。
