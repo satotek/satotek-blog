@@ -23,13 +23,14 @@
   --radius-site: 14px;
 }
 
-/* パレットは light-dark() で1箇所定義。テーマ切り替えは color-scheme の変更だけで効く。 */
+/* パレットは light-dark() で1箇所定義。デフォルトはダークで、テーマ切り替えは
+   color-scheme の変更だけで効く。 */
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* テーマ切り替えアニメーションの進行度。light-dark() は色専用なので数値はここで分岐する。 */
-  --dark: 0;
+  --dark: 1;
   --bg: light-dark(#f3ece0, #1f1e1d);
   --fg: light-dark(#2e2820, #edeae2);
   --muted: light-dark(#6f6657, #a39e94);
@@ -72,12 +73,6 @@
   --surface-shadow:
     0 1px 2px light-dark(rgb(46 40 32 / 0.04), transparent),
     0 8px 24px -18px light-dark(rgb(46 40 32 / 0.35), transparent);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --dark: 1;
-  }
 }
 
 :root[data-theme="dark"] {
@@ -410,7 +405,8 @@
   .markdown-body a[target="_blank"]:not(.social-link)::after {
     margin-left: 0.12em;
     color: currentColor;
-    content: "↗";
+    /* エスケープで書く。非 ASCII リテラルは stylesheet の charset 解釈に依存する。 */
+    content: "\2197";
     font-size: 0.8em;
     opacity: 0.7;
     text-decoration: none;
