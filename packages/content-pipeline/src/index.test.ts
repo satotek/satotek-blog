@@ -38,6 +38,7 @@ describe("Markdown renderer", () => {
       resolveImage: (source) =>
         source === "/images/photo.png"
           ? {
+              avifSrcSet: "/images/photo-320.avif 320w, /images/photo-768.avif 768w",
               srcSet: "/images/photo-320.webp 320w, /images/photo-768.webp 768w",
               sizes: "100vw",
             }
@@ -49,6 +50,10 @@ describe("Markdown renderer", () => {
     expect(rendered.html).toContain(
       'srcset="/images/photo-320.webp 320w, /images/photo-768.webp 768w"',
     );
+    expect(rendered.html).toContain(
+      '<source type="image/avif" sizes="100vw" srcset="/images/photo-320.avif 320w, /images/photo-768.avif 768w">',
+    );
+    expect(rendered.html).toContain('<source type="image/webp" sizes="100vw"');
     expect(rendered.html).toContain('sizes="100vw"');
     expect(rendered.html).toContain('loading="lazy"');
     expect(rendered.html).toContain('decoding="async"');
@@ -93,5 +98,16 @@ describe("Markdown renderer", () => {
     expect(rendered.html).toContain('width="768"');
     expect(rendered.html).toContain('class="center"');
     expect(rendered.html).not.toContain("{width=768 .center}");
+  });
+
+  it("lazy-loads sized images even when no responsive variants exist", async () => {
+    const rendered = await createMarkdownRenderer(onigWasm, {
+      resolveImage: () => ({ width: 1180, height: 640 }),
+    }).renderMarkdown("![Architecture](https://example.com/architecture.svg)");
+
+    expect(rendered.html).toContain('loading="lazy"');
+    expect(rendered.html).toContain('decoding="async"');
+    expect(rendered.html).toContain('width="1180"');
+    expect(rendered.html).toContain('height="640"');
   });
 });

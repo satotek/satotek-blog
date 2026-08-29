@@ -671,6 +671,11 @@
     display: block;
   }
 
+  .post-cover > picture {
+    display: block;
+    height: 100%;
+  }
+
   .markdown-body img.center,
   .markdown-body figure img {
     display: block;

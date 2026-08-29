@@ -4,11 +4,15 @@ import { dirname, extname, join } from "node:path";
 import sharp from "sharp";
 
 export const MEDIA_VARIANT_WIDTHS = [320, 480, 768, 1200] as const;
+export const MEDIA_VARIANT_FORMATS = ["avif", "webp"] as const;
+
+export type MediaVariantFormat = (typeof MEDIA_VARIANT_FORMATS)[number];
 
 const rasterExtensions = new Set([".avif", ".jpeg", ".jpg", ".png", ".webp"]);
 
 export type GeneratedMediaVariant = {
   file: string;
+  format: MediaVariantFormat;
   key: string;
   width: number;
 };
@@ -17,6 +21,7 @@ export type GenerateMediaVariantsOptions = {
   sourcePath: string;
   key: string;
   outputDirectory: string;
+  formats?: readonly MediaVariantFormat[];
   widths?: readonly number[];
 };
 
@@ -37,6 +42,7 @@ export async function generateMediaVariants({
   sourcePath,
   key,
   outputDirectory,
+  formats = MEDIA_VARIANT_FORMATS,
   widths = MEDIA_VARIANT_WIDTHS,
 }: GenerateMediaVariantsOptions): Promise<GeneratedMediaVariant[]> {
   const normalizedKey = normalizeKey(key);
@@ -47,19 +53,26 @@ export async function generateMediaVariants({
   const uniqueWidths = [...new Set(widths)].filter(
     (width): width is number => Number.isInteger(width) && width > 0,
   );
+  const uniqueFormats = [...new Set(formats)].filter((format): format is MediaVariantFormat =>
+    MEDIA_VARIANT_FORMATS.includes(format),
+  );
   const variants: GeneratedMediaVariant[] = [];
 
-  for (const width of uniqueWidths) {
-    const variantKey = `${baseKey}-${width}.webp`;
-    const variantFile = join(outputDirectory, variantKey);
+  for (const format of uniqueFormats) {
+    for (const width of uniqueWidths) {
+      const variantKey = `${baseKey}-${width}.${format}`;
+      const variantFile = join(outputDirectory, variantKey);
 
-    await mkdir(dirname(variantFile), { recursive: true });
-    await sharp(sourcePath)
-      .resize({ width, withoutEnlargement: true })
-      .webp({ quality: 82, effort: 4 })
-      .toFile(variantFile);
+      await mkdir(dirname(variantFile), { recursive: true });
+      const image = sharp(sourcePath).resize({ width, withoutEnlargement: true });
+      if (format === "avif") {
+        await image.avif({ quality: 55, effort: 4 }).toFile(variantFile);
+      } else {
+        await image.webp({ quality: 82, effort: 4 }).toFile(variantFile);
+      }
 
-    variants.push({ file: variantFile, key: variantKey, width });
+      variants.push({ file: variantFile, format, key: variantKey, width });
+    }
   }
 
   return variants;

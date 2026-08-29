@@ -1,6 +1,9 @@
+import type { MediaVariantFormat } from "./media-variants";
+
 export type MediaDimensions = {
   width: number;
   height: number;
+  formats?: readonly MediaVariantFormat[];
 };
 
 export type MediaManifest = Record<string, MediaDimensions>;
@@ -24,4 +27,13 @@ export function mediaKeyFromUrl(source: string, baseUrl: string): string | undef
 
   const key = decodeURIComponent(sourceUrl.pathname).replace(/^\/+/, "");
   return key || undefined;
+}
+
+export function mediaFormatsForUrl(
+  source: string,
+  baseUrl: string,
+  manifest: MediaManifest,
+): readonly MediaVariantFormat[] {
+  const key = mediaKeyFromUrl(source, baseUrl);
+  return manifest[key ?? ""]?.formats ?? ["webp"];
 }

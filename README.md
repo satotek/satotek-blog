@@ -98,7 +98,9 @@ bun run upload-media -- --directory .r2-media
 
 `bun run deploy` はWorkerのデプロイだけを行い、画像を自動アップロードしません。画像を追加・差し替えたときは先に `bun run upload-media` を実行します。`upload-media` はS3 APIキーを直接扱わず、WranglerのCloudflare OAuth（CIでは `CLOUDFLARE_API_TOKEN`）を利用します。バケットを変更する場合は `R2_BUCKET_NAME` で上書きできます。
 
-`upload-media` は元画像に加えて、幅320 / 480 / 768 / 1200pxのWebP派生画像も同時にアップロードします。サイト側は記事やカードの `srcset` で派生画像を利用します。OGP画像など派生画像が不要なファイルは `--no-variants` を付けてください。通常のビルドやデプロイでは、R2から画像を取得したり派生画像を生成したりしません。
+`upload-media` は元画像に加えて、幅320 / 480 / 768 / 1200pxのAVIFとWebP派生画像も同時にアップロードします。サイト側は `content/media-manifest.json` に実在する形式だけを `picture` と `srcset` で利用します。既存画像へAVIFを追加した場合は、アップロード後に `bun run generate-media-manifest` を実行して形式情報を更新してください。OGP画像など派生画像が不要なファイルは `--no-variants` を付けてください。通常のビルドやデプロイでは、R2から画像を取得したり派生画像を生成したりしません。
+
+`public/_headers` では、Viteが生成するハッシュ付きアセットと、ファイル名を固定して運用するフォントへ `Cache-Control: public, max-age=31536000, immutable` を付けています。Cloudflare Workersの静的アセットはCloudflare側でキャッシュされ、テキスト系のレスポンスは対応クライアントへ圧縮して配信されます。
 
 ### OGP画像（任意）
 

@@ -70,14 +70,16 @@ async function main() {
 
   const renderer = createMarkdownRenderer(wasm, {
     resolveImage: (source) => {
+      const key = mediaKeyFromUrl(source, mediaBaseUrl);
+      const entry = key ? manifest[key] : undefined;
       const responsive = createResponsiveMedia(source, {
         baseUrl: mediaBaseUrl,
+        formats: entry?.formats,
         sizes: "(max-width: 768px) 100vw, 768px",
       });
 
-      const key = mediaKeyFromUrl(source, mediaBaseUrl);
-      const dimensions = key ? manifest[key] : undefined;
-      if (key && !dimensions) missingDimensions.add(key);
+      const dimensions = entry ? { width: entry.width, height: entry.height } : undefined;
+      if (key && !entry) missingDimensions.add(key);
 
       if (!responsive && !dimensions) return undefined;
       return { ...responsive, ...dimensions };

@@ -21,11 +21,21 @@ import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import GithubSlugger from "github-slugger";
-import { visit } from "unist-util-visit";
+import { SKIP, visit } from "unist-util-visit";
 
 import type { Heading, Paragraph, Root } from "mdast";
-export { MEDIA_VARIANT_WIDTHS, generateMediaVariants, readImageDimensions } from "./media";
-export type { GeneratedMediaVariant, GenerateMediaVariantsOptions, MediaDimensions } from "./media";
+export {
+  MEDIA_VARIANT_FORMATS,
+  MEDIA_VARIANT_WIDTHS,
+  generateMediaVariants,
+  readImageDimensions,
+} from "./media";
+export type {
+  GeneratedMediaVariant,
+  GenerateMediaVariantsOptions,
+  MediaDimensions,
+  MediaVariantFormat,
+} from "./media";
 
 export type TocItem = {
   id: string;
@@ -225,6 +235,7 @@ function extractToc(tree: Root): TocItem[] {
 type OnigurumaWasm = Parameters<typeof createOnigurumaEngine>[0];
 
 export type ResolvedImage = {
+  avifSrcSet?: string;
   srcSet?: string;
   sizes?: string;
   width?: number;
@@ -271,7 +282,7 @@ function rehypeResponsiveImages(resolveImage: MarkdownRendererOptions["resolveIm
   return (tree: HastRoot) => {
     if (!resolveImage) return;
 
-    visit(tree, "element", (node) => {
+    visit(tree, "element", (node, index, parent) => {
       if (node.type !== "element" || node.tagName !== "img") return;
 
       const source = node.properties.src;
@@ -280,15 +291,55 @@ function rehypeResponsiveImages(resolveImage: MarkdownRendererOptions["resolveIm
       const resolved = resolveImage(source);
       if (!resolved) return;
 
+      node.properties.loading = "lazy";
+      node.properties.decoding = "async";
+
       if (resolved.srcSet && resolved.sizes) {
         node.properties.srcSet = resolved.srcSet;
         node.properties.sizes = resolved.sizes;
-        node.properties.loading = "lazy";
-        node.properties.decoding = "async";
+      }
+      if (resolved.srcSet || resolved.avifSrcSet) {
         node.properties["data-full-src"] = source;
       }
 
       applyIntrinsicSize(node, resolved);
+
+      if ((!resolved.avifSrcSet && !resolved.srcSet) || !resolved.sizes || !parent || index == null)
+        return;
+
+      const sources: Element[] = [];
+      if (resolved.avifSrcSet) {
+        sources.push({
+          type: "element",
+          tagName: "source",
+          properties: {
+            type: "image/avif",
+            sizes: resolved.sizes,
+            srcSet: resolved.avifSrcSet,
+          },
+          children: [],
+        });
+      }
+      if (resolved.srcSet) {
+        sources.push({
+          type: "element",
+          tagName: "source",
+          properties: {
+            type: "image/webp",
+            sizes: resolved.sizes,
+            srcSet: resolved.srcSet,
+          },
+          children: [],
+        });
+      }
+
+      parent.children[index] = {
+        type: "element",
+        tagName: "picture",
+        properties: {},
+        children: [...sources, node],
+      } satisfies Element;
+      return SKIP;
     });
   };
 }

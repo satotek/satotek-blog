@@ -1,14 +1,26 @@
 const rasterExtensions = new Set([".avif", ".jpeg", ".jpg", ".png", ".webp"]);
 const mediaVariantWidths = [320, 480, 768, 1200] as const;
+const defaultMediaVariantFormats = ["webp"] as const;
+
+export type MediaVariantFormat = "avif" | "webp";
 
 export type ResponsiveMedia = {
-  srcSet: string;
+  avifSrcSet?: string;
+  srcSet?: string;
   sizes: string;
 };
 
 export function createResponsiveMedia(
   source: string,
-  { baseUrl, sizes = "100vw" }: { baseUrl: string; sizes?: string },
+  {
+    baseUrl,
+    formats = defaultMediaVariantFormats,
+    sizes = "100vw",
+  }: {
+    baseUrl: string;
+    formats?: readonly MediaVariantFormat[];
+    sizes?: string;
+  },
 ): ResponsiveMedia | undefined {
   let sourceUrl: URL;
   let mediaBaseUrl: URL;
@@ -26,12 +38,18 @@ export function createResponsiveMedia(
   if (!rasterExtensions.has(extension)) return undefined;
 
   const basePath = sourceUrl.pathname.slice(0, -extension.length);
-  const srcSet = mediaVariantWidths
-    .map((width) => {
-      const variantUrl = new URL(`${basePath}-${width}.webp`, mediaBaseUrl);
-      return `${variantUrl} ${width}w`;
-    })
-    .join(", ");
+  const createSrcSet = (format: MediaVariantFormat) =>
+    mediaVariantWidths
+      .map((width) => {
+        const variantUrl = new URL(`${basePath}-${width}.${format}`, mediaBaseUrl);
+        return `${variantUrl} ${width}w`;
+      })
+      .join(", ");
 
-  return { srcSet, sizes };
+  const uniqueFormats = [...new Set(formats)];
+  const srcSet = uniqueFormats.includes("webp") ? createSrcSet("webp") : undefined;
+  const avifSrcSet = uniqueFormats.includes("avif") ? createSrcSet("avif") : undefined;
+  if (!srcSet && !avifSrcSet) return undefined;
+
+  return { ...(avifSrcSet ? { avifSrcSet } : {}), ...(srcSet ? { srcSet } : {}), sizes };
 }

@@ -1,8 +1,14 @@
 import { readFile, readdir, writeFile } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { basename, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createMarkdownRenderer, readImageDimensions } from "@satotek/content-pipeline";
+import {
+  createMarkdownRenderer,
+  MEDIA_VARIANT_FORMATS,
+  MEDIA_VARIANT_WIDTHS,
+  readImageDimensions,
+  type MediaVariantFormat,
+} from "@satotek/content-pipeline";
 import { parseMarkdownSource } from "../src/content/markdown-source";
 import { mediaKeyFromUrl, type MediaManifest } from "../src/lib/media-manifest";
 
@@ -15,6 +21,7 @@ const mediaBaseUrl = (
   process.env.VITE_MEDIA_BASE_URL?.trim() ||
   "https://img.satotek.dev"
 ).replace(/\/+$/, "");
+const rasterExtensions = new Set([".avif", ".jpeg", ".jpg", ".png", ".webp"]);
 
 async function readManifest(): Promise<MediaManifest> {
   try {
@@ -42,10 +49,51 @@ async function collectImageSources(slugs: readonly string[]) {
   for (const slug of slugs) {
     currentSlug = slug;
     const markdown = await readFile(join(postsDirectory, slug, "index.md"), "utf8");
-    await renderer.renderMarkdown(parseMarkdownSource(markdown, slug).markdown);
+    const source = parseMarkdownSource(markdown, slug);
+    if (source.summary.cover && !sources.has(source.summary.cover)) {
+      sources.set(source.summary.cover, slug);
+    }
+    await renderer.renderMarkdown(source.markdown);
   }
 
   return sources;
+}
+
+async function probeVariantFormats(
+  source: string,
+): Promise<{ failed: boolean; formats: MediaVariantFormat[] }> {
+  let sourceUrl: URL;
+  try {
+    sourceUrl = new URL(source);
+  } catch {
+    return { failed: false, formats: [] };
+  }
+
+  const extension = extname(sourceUrl.pathname).toLowerCase();
+  if (!rasterExtensions.has(extension)) return { failed: false, formats: [] };
+
+  const basePath = sourceUrl.pathname.slice(0, -extension.length);
+  const probeWidth = MEDIA_VARIANT_WIDTHS[0];
+  let failed = false;
+  const formats = (
+    await Promise.all(
+      MEDIA_VARIANT_FORMATS.map(async (format) => {
+        const variantUrl = new URL(
+          `${basePath}-${probeWidth}.${format}`,
+          `${mediaBaseUrl.replace(/\/+$/, "")}/`,
+        );
+        try {
+          const response = await fetch(variantUrl, { method: "HEAD" });
+          return response.ok ? format : undefined;
+        } catch {
+          failed = true;
+          return undefined;
+        }
+      }),
+    )
+  ).filter((format): format is MediaVariantFormat => format !== undefined);
+
+  return { failed, formats };
 }
 
 /**
@@ -81,8 +129,15 @@ async function main() {
     try {
       const dimensions = await readImageDimensions(await loadImageBytes(source, slug));
       if (!dimensions) throw new Error("No intrinsic dimensions");
-      manifest[key] = dimensions;
-      console.log(`${key} -> ${dimensions.width}x${dimensions.height}`);
+      const previousEntry = previous[key];
+      const probed = await probeVariantFormats(source);
+      const formats = probed.failed ? (previousEntry?.formats ?? probed.formats) : probed.formats;
+      manifest[key] = {
+        ...dimensions,
+        ...(formats.length > 0 ? { formats } : {}),
+      };
+      const formatLabel = formats.length > 0 ? ` [${formats.join(", ")}]` : "";
+      console.log(`${key} -> ${dimensions.width}x${dimensions.height}${formatLabel}`);
     } catch (error) {
       const fallback = previous[key];
       if (!fallback) throw error;
