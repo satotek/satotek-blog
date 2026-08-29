@@ -7,7 +7,7 @@ import { paginate } from "#/lib/pagination";
 
 import { NotFound } from "./NotFound";
 import { Pagination, type PageLinkProps } from "./Pagination";
-import { PostCard } from "./PostCard";
+import { PostList } from "./PostList";
 
 export function CategoryPageContent({
   slug,
@@ -44,7 +44,7 @@ export function CategoryPageContent({
     <TaxonomySection heading={category.slug} current={current} total={total}>
       {posts.length > 0 ? (
         <>
-          <PostRows posts={slice} />
+          <PostGrid posts={slice} />
           <Pagination current={current} total={total} PageLink={CategoryPageLink} />
         </>
       ) : (
@@ -86,7 +86,7 @@ export function TagPageContent({
 
   return (
     <TaxonomySection heading={`#${tag}`} current={current} total={total}>
-      <PostRows posts={slice} />
+      <PostGrid posts={slice} />
       <Pagination current={current} total={total} PageLink={TagPageLink} />
     </TaxonomySection>
   );
@@ -118,14 +118,8 @@ function TaxonomySection({
   );
 }
 
-function PostRows({ posts }: { posts: readonly PostSummary[] }) {
-  return (
-    <ul className="m-0 grid list-none gap-0 border-t border-line p-0">
-      {posts.map((post) => (
-        <PostCard key={post.slug} post={post} variant="list" />
-      ))}
-    </ul>
-  );
+function PostGrid({ posts }: { posts: readonly PostSummary[] }) {
+  return <PostList posts={posts} variant="grid" />;
 }
 
 function TaxonomyNotFound({ label, to }: { label: string; to: "/categories" | "/tags" }) {

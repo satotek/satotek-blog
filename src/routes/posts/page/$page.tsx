@@ -51,7 +51,7 @@ function PostsNumberedPage() {
         title="記事一覧"
         description={`${totalPosts}件の記事 / ${current}ページ目`}
       />
-      <PostList posts={slice} variant="list" />
+      <PostList posts={slice} variant="grid" />
       <Pagination current={current} total={total} PageLink={PostsPageLink} className="mt-6" />
     </section>
   );

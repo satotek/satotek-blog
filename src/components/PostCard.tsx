@@ -65,7 +65,7 @@ export function PostCard({
       <PostCover
         post={post}
         className="aspect-[1.45] rounded-site border border-line"
-        sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) 50vw, 33vw"
+        sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1120px) calc(50vw - 2rem), 526px"
       />
       <div className="pt-4">
         <PostMeta post={post} category={category?.name ?? post.category} />

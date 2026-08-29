@@ -23,7 +23,7 @@ function PostsIndexPage() {
     <section>
       <SectionHeading eyebrow="Journal" title="記事一覧" description={`${posts.length}件の記事`} />
       {posts.length > 0 ? (
-        <PostList posts={posts} variant="list" />
+        <PostList posts={posts} variant="grid" />
       ) : (
         <p className="py-6 text-muted">公開中の記事はありません。</p>
       )}
