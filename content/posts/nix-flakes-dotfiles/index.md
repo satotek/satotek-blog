@@ -2,6 +2,7 @@
 title: dotfiles を Nix Flakes で管理している話
 date: 2026-07-04
 description: macOS・Linux・WSL・Azure VM の環境を Nix Flakes + Home Manager に寄せた話。設定の書き分け、シェル起動の高速化、AI エージェント設定の宣言管理、flake.lock の自動更新まで。
+cover: https://img.satotek.dev/nix-flakes-dotfiles/nix-cover.png
 category: tech
 draft: false
 tags:
