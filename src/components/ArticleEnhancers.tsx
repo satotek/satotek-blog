@@ -195,11 +195,33 @@ export function ImageLightbox({
 
     setTriggers([]);
     let animationFrame = 0;
-    const images = Array.from(root.querySelectorAll<HTMLImageElement>("img:not(.profile-avatar)"));
+    // React は hydration 後の最初の更新で innerHTML を貼り直すため、本文の子ノードが丸ごと差し替わる。
+    // 画像を一度だけ配列に控えると、以降は切り離された古いノード（常に 0x0）を測り続けてボタンが出なくなる。
+    // そのため測定のたびに引き直し、新しいノードへ購読を張り替える。
+    const observed = new Set<HTMLImageElement>();
+
+    const liveImages = () =>
+      Array.from(root.querySelectorAll<HTMLImageElement>("img:not(.profile-avatar)"));
 
     const measure = () => {
       window.cancelAnimationFrame(animationFrame);
       animationFrame = window.requestAnimationFrame(() => {
+        const images = liveImages();
+
+        for (const image of observed) {
+          if (image.isConnected) continue;
+          image.removeEventListener("load", measure);
+          resizeObserver?.unobserve(image);
+          observed.delete(image);
+        }
+
+        for (const image of images) {
+          if (observed.has(image)) continue;
+          observed.add(image);
+          image.addEventListener("load", measure);
+          resizeObserver?.observe(image);
+        }
+
         const layerRect = layer.getBoundingClientRect();
         const nextTriggers = images
           .map((image, index) => {
@@ -228,20 +250,25 @@ export function ImageLightbox({
       });
     };
 
-    measure();
-    window.addEventListener("resize", measure);
-    for (const image of images) image.addEventListener("load", measure);
-
     const resizeObserver =
       typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(measure);
     resizeObserver?.observe(root);
-    for (const image of images) resizeObserver?.observe(image);
+
+    // innerHTML の貼り直しは本文の寸法を変えないので ResizeObserver では拾えない。
+    // 子ノードの入れ替わり自体を監視して、新しい画像を測り直す。
+    const mutationObserver =
+      typeof MutationObserver === "undefined" ? undefined : new MutationObserver(measure);
+    mutationObserver?.observe(root, { childList: true, subtree: true });
+
+    measure();
+    window.addEventListener("resize", measure);
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener("resize", measure);
-      for (const image of images) image.removeEventListener("load", measure);
+      for (const image of observed) image.removeEventListener("load", measure);
       resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
     };
   }, [containerRef, contentKey]);
 
