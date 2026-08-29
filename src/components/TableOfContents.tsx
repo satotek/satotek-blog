@@ -2,7 +2,7 @@ import { AlignLeft, ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 
 import { Button, Link as AriaLink } from "#/components/ui";
-import type { TocItem } from "#/content/types";
+import type { TocState } from "#/components/useToc";
 
 function scrollableAncestor(from: HTMLElement) {
   for (let node = from.parentElement; node; node = node.parentElement) {
@@ -15,17 +15,8 @@ function scrollableAncestor(from: HTMLElement) {
   return null;
 }
 
-export function TableOfContents({
-  activeId,
-  isOpen,
-  items,
-  onToggle,
-}: {
-  activeId?: string;
-  isOpen: boolean;
-  items: readonly TocItem[];
-  onToggle: () => void;
-}) {
+export function TableOfContents({ toc }: { toc: TocState }) {
+  const { activeId, isOpen, items, onToggle } = toc;
   const listId = `toc-${useId().replace(/:/g, "")}`;
   const navRef = useRef<HTMLElement>(null);
 

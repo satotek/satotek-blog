@@ -1,20 +1,17 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 import { ArticleFooter } from "#/components/ArticleFooter";
 import { DeferredArticleEnhancers } from "#/components/DeferredArticleEnhancers";
 import { TableOfContents } from "#/components/TableOfContents";
+import { useToc } from "#/components/useToc";
 import { RouterLink } from "#/components/ui";
 import { getPostBySlug } from "#/content/posts.functions";
 import { postRepository } from "#/content/repository";
-import { getPostReadingMinutes, type Post, type PostSummary, type TocItem } from "#/content/types";
+import { getPostReadingMinutes, type Post, type PostSummary } from "#/content/types";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
 import { createPageHead, generatedPostOgImageUrl, withSiteName } from "#/lib/site";
-
-const TOC_MIN = 3;
-const TOC_STATE_KEY = "toc-state";
-const READING_LINE = 120;
 
 export const Route = createFileRoute("/posts/$slug")({
   loader: async ({ params }): Promise<{ post: Post; relatedPosts: readonly PostSummary[] }> => {
@@ -123,57 +120,25 @@ function PostPage() {
 
 function PostBody({ post }: { post: Post }) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const hasToc = post.content.toc.length >= TOC_MIN;
-  const activeId = useActiveHeading(contentRef, hasToc ? post.content.toc : []);
-  const [tocOpen, setTocOpen] = useState(true);
+  const toc = useToc(contentRef, post.content.toc);
 
-  useEffect(() => {
-    try {
-      setTocOpen(localStorage.getItem(TOC_STATE_KEY) !== "close");
-    } catch {}
-  }, []);
-
-  const toggleToc = () => {
-    setTocOpen((open) => {
-      const next = !open;
-      try {
-        localStorage.setItem(TOC_STATE_KEY, next ? "open" : "close");
-      } catch {}
-      return next;
-    });
-  };
+  if (!toc.hasToc) return <MarkdownContent containerRef={contentRef} post={post} />;
 
   return (
     <>
-      {hasToc ? (
-        <>
-          <div className="toc toc-mobile">
-            <TableOfContents
-              activeId={activeId}
-              isOpen={tocOpen}
-              items={post.content.toc}
-              onToggle={toggleToc}
-            />
-          </div>
-          <div className={`post-layout${tocOpen ? "" : " post-layout--toc-closed"}`}>
-            <div className="post-content">
-              <MarkdownContent containerRef={contentRef} post={post} />
-            </div>
-            <aside className="toc toc-desktop">
-              <TableOfContents
-                activeId={activeId}
-                isOpen={tocOpen}
-                items={post.content.toc}
-                onToggle={toggleToc}
-              />
-            </aside>
-          </div>
-        </>
-      ) : (
-        <>
+      {/* モバイルは本文の上、デスクトップは右サイド。DOM 上の位置が違うので
+          同じ目次を 2 箇所に描いて CSS で出し分ける。状態は useToc が共有する。 */}
+      <div className="toc toc-mobile">
+        <TableOfContents toc={toc} />
+      </div>
+      <div className={`post-layout${toc.isOpen ? "" : " post-layout--toc-closed"}`}>
+        <div className="post-content">
           <MarkdownContent containerRef={contentRef} post={post} />
-        </>
-      )}
+        </div>
+        <aside className="toc toc-desktop">
+          <TableOfContents toc={toc} />
+        </aside>
+      </div>
     </>
   );
 }
@@ -197,68 +162,4 @@ function MarkdownContent({
       </div>
     </>
   );
-}
-
-function useActiveHeading(
-  contentRef: React.RefObject<HTMLDivElement | null>,
-  items: readonly TocItem[],
-) {
-  const [activeId, setActiveId] = useState<string | undefined>(items[0]?.id);
-
-  useEffect(() => {
-    setActiveId(items[0]?.id);
-    if (items.length === 0) return;
-
-    // 記事本文は再レンダリングで DOM ごと差し替わることがある。見出しの参照を
-    // 持ち回ると detached なノードを測り続けて追従が止まるので、毎回引き直す。
-    const readHeadings = () => {
-      const root = contentRef.current;
-      if (!root) return [];
-      return items
-        .map((item) => root.querySelector<HTMLElement>(`#${CSS.escape(item.id)}`))
-        .filter((heading): heading is HTMLElement => heading !== null);
-    };
-
-    // 「読んでいる行」を固定ヘッダーの少し下に置き、そこを最後に通過した見出しを
-    // 採用する。帯に見出しが無い時間があっても答えが必ず出る。
-    const update = () => {
-      const headings = readHeadings();
-      if (headings.length === 0) return;
-
-      const reachedBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-      if (reachedBottom) {
-        setActiveId(headings.at(-1)?.id);
-        return;
-      }
-
-      let current = headings[0];
-      for (const heading of headings) {
-        if (heading.getBoundingClientRect().top > READING_LINE) break;
-        current = heading;
-      }
-      setActiveId(current?.id);
-    };
-
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(() => {
-        ticking = false;
-        update();
-      });
-    };
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, [contentRef, items]);
-
-  return activeId;
 }
