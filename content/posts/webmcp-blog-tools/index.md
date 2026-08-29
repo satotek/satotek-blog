@@ -266,6 +266,7 @@ annotations: {
 2. WebMCP testing を Enabled にする
 
    ![Chrome の chrome://flags で WebMCP for testing を Enabled にした状態](https://img.satotek.dev/webmcp-blog-tools/chrome-webmcp-testing-flag.png "WebMCP for testing の設定"){width=768 .center}
+
 3. Chrome を再起動する
 4. `http://localhost:3000` を開く
 
