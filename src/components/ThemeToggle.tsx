@@ -6,8 +6,7 @@ const CROSSFADE_MS = 280;
 
 function applyTheme() {
   const root = document.documentElement;
-  const media = window.matchMedia("(prefers-color-scheme: dark)");
-  const current = root.getAttribute("data-theme") ?? (media.matches ? "dark" : "light");
+  const current = root.getAttribute("data-theme") ?? "dark";
   const next = current === "dark" ? "light" : "dark";
   root.setAttribute("data-theme", next);
   try {
