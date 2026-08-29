@@ -117,7 +117,9 @@ function GameLoading({ label }: { label: string }) {
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="ja">
+    // テーマのちらつき防止スクリプトがハイドレーション前に data-theme を付けるため、
+    // html 自身の属性だけ不一致の検出から外す。子孫の不一致は引き続き検出される。
+    <html lang="ja" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {GA_MEASUREMENT_ID ? (
