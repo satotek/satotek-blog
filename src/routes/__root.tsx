@@ -29,13 +29,9 @@ const BugHunt = lazy(() =>
 
 const FONTS_HREF = "/fonts.css";
 
-// 同一オリジンでも as="font" の preload は crossorigin 必須。付け忘れると
-// 二重取得になり、先読みが逆効果になる。
-const LATIN_FONT_PRELOADS = ["/fonts/geist-400-4.woff2", "/fonts/geist-700-9.woff2"].map(
-  (href) =>
-    ({ rel: "preload", href, as: "font", type: "font/woff2", crossOrigin: "anonymous" }) as const,
-);
-
+// font-display: swap を宣言している以上、フォントは FCP のクリティカルパスに無い。
+// woff2 を preload すると最優先で 58KB を取りに行き、低速回線では描画に必要な
+// CSS を押しのける（Slow 4G 実測で FCP 836ms → 1044ms）。先読みするのは定義ファイルだけにとどめる。
 // カスタムフォントは font-display: swap なので、フォント定義を待たずに本文を描画できる。
 // preload で CSS だけを先に取得し、初回描画後の idle 時に stylesheet へ切り替える。
 // これにより HTML → fonts.css → 日本語サブセットという依存を初期表示から外す。
@@ -152,9 +148,6 @@ function RootDocument({ children }: { children: ReactNode }) {
         {WEBMCP_ORIGIN_TRIAL_TOKEN ? (
           <meta httpEquiv="origin-trial" content={WEBMCP_ORIGIN_TRIAL_TOKEN} />
         ) : null}
-        {LATIN_FONT_PRELOADS.map(({ href, ...props }) => (
-          <link key={href} href={href} {...props} />
-        ))}
         <link
           rel="preload"
           as="style"
