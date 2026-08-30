@@ -21,10 +21,11 @@
   --radius-site: 14px;
 }
 
-/* パレットは light-dark() で1箇所定義。デフォルトはダークで、テーマ切り替えは
-   color-scheme の変更だけで効く。 */
+/* パレットは light-dark() で1箇所定義。テーマ切り替えは color-scheme の変更だけで効く。
+   既定（= data-theme="system" と JS 無効時）は light dark を宣言して OS に委ねる。
+   色は light-dark() が自動で追従するので、OS 追従に JS の購読は要らない。 */
 :root {
-  color-scheme: dark;
+  color-scheme: light dark;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* テーマ切り替えアニメーションの進行度。light-dark() は色専用なので数値はここで分岐する。 */
@@ -67,6 +68,14 @@
   --surface-shadow:
     0 1px 2px light-dark(rgb(46 40 32 / 0.04), transparent),
     0 8px 24px -18px light-dark(rgb(46 40 32 / 0.35), transparent);
+}
+
+/* --dark はアイコンのモーフを動かす数値。light-dark() は色専用なのでここだけ
+   メディアクエリで OS を見る。明示選択は属性セレクタの詳細度で必ず勝つ。 */
+@media (prefers-color-scheme: light) {
+  :root {
+    --dark: 0;
+  }
 }
 
 :root[data-theme="dark"] {

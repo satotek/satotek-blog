@@ -12,6 +12,7 @@ import {
   WEBMCP_ORIGIN_TRIAL_TOKEN,
   createSocialMeta,
 } from "#/lib/site";
+import { THEME_COLOR, THEME_INIT_SCRIPT } from "#/lib/theme";
 import appCss from "../styles.css?url";
 
 // エラー画面でしか使わないゲームは通常ページの初期バンドルへ含めない。
@@ -25,16 +26,6 @@ const BugHunt = lazy(() =>
     default: component,
   })),
 );
-
-const THEME_INIT_SCRIPT = `(() => {
-  try {
-    const savedTheme = localStorage.getItem("theme");
-    const theme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : "dark";
-    document.documentElement.setAttribute("data-theme", theme);
-  } catch {
-    document.documentElement.setAttribute("data-theme", "dark");
-  }
-})();`;
 
 const FONTS_HREF = "/fonts.css";
 
@@ -52,7 +43,6 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: SITE_NAME },
       { name: "description", content: SITE_DESCRIPTION },
-      { name: "theme-color", content: "#1f1e1d" },
       ...createSocialMeta({
         title: SITE_NAME,
         description: SITE_DESCRIPTION,
@@ -142,7 +132,24 @@ function RootDocument({ children }: { children: ReactNode }) {
         {WEBMCP_ORIGIN_TRIAL_TOKEN ? (
           <meta httpEquiv="origin-trial" content={WEBMCP_ORIGIN_TRIAL_TOKEN} />
         ) : null}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* HeadContent は同名 meta を dedupe するので、media 付きのペアは直接置く。
+            system のときは OS に従い、明示選択時は下の初期化スクリプトが media を
+            差し替えて片方だけを有効にする。だからスクリプトより前に置く。 */}
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: light)"
+          content={THEME_COLOR.light}
+          data-scheme="light"
+          suppressHydrationWarning
+        />
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: dark)"
+          content={THEME_COLOR.dark}
+          data-scheme="dark"
+          suppressHydrationWarning
+        />
+        <script>{THEME_INIT_SCRIPT}</script>
         <HeadContent />
       </head>
       <body>

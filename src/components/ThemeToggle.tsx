@@ -1,17 +1,23 @@
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 
 import { IconButton } from "#/components/ui";
+import {
+  nextTheme,
+  readTheme,
+  storeTheme,
+  syncThemeColor,
+  THEME_LABEL,
+  type Theme,
+} from "#/lib/theme";
 
 const CROSSFADE_MS = 280;
 
-function applyTheme() {
-  const root = document.documentElement;
-  const current = root.getAttribute("data-theme") ?? "dark";
-  const next = current === "dark" ? "light" : "dark";
-  root.setAttribute("data-theme", next);
-  try {
-    localStorage.setItem("theme", next);
-  } catch {}
+function applyTheme(onApplied: (theme: Theme) => void) {
+  const next = nextTheme(readTheme());
+  document.documentElement.dataset.theme = next;
+  syncThemeColor(next);
+  storeTheme(next);
+  onApplied(next);
 }
 
 /**
@@ -22,10 +28,10 @@ function applyTheme() {
  *
  * 非対応ブラウザと「動きを減らす」設定では、そのまま即座に切り替える。
  */
-function toggleTheme() {
+function toggleTheme(onApplied: (theme: Theme) => void) {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduce || !document.startViewTransition) {
-    applyTheme();
+    applyTheme(onApplied);
     return;
   }
 
@@ -35,7 +41,7 @@ function toggleTheme() {
   const root = document.documentElement;
   root.dataset.themeTransition = "";
 
-  const transition = document.startViewTransition(applyTheme);
+  const transition = document.startViewTransition(() => applyTheme(onApplied));
   void transition.finished.finally(() => {
     delete root.dataset.themeTransition;
   });
@@ -58,12 +64,17 @@ function toggleTheme() {
 export function ThemeToggle({ className }: { className?: string }) {
   const reactId = useId();
   const maskId = `theme-moon-${reactId.replace(/:/g, "")}`;
+  // サーバーは閲覧者のテーマを知り得ないので、初期描画は状態を含まない名前にする。
+  // マウント後に現在のモードを補うことで、ハイドレーション不一致を避ける。
+  const [theme, setTheme] = useState<Theme>();
+
+  useEffect(() => setTheme(readTheme()), []);
 
   return (
     <IconButton
       className={`theme-toggle ${className ?? ""}`}
-      aria-label="テーマを切り替え"
-      onPress={toggleTheme}
+      aria-label={theme ? `テーマ: ${THEME_LABEL[theme]}（切り替える）` : "テーマを切り替え"}
+      onPress={() => toggleTheme(setTheme)}
     >
       <svg className="theme-toggle-glyph size-5" viewBox="0 0 24 24" aria-hidden="true">
         <mask id={maskId}>
