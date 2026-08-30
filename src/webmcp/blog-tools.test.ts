@@ -7,6 +7,7 @@ import { createBlogWebMcpTools, listPostSummaries, searchPostSummaries } from ".
 const posts: readonly PostSummary[] = [
   {
     slug: "nix-flakes-dotfiles",
+    readingMinutes: 3,
     title: "dotfiles を Nix Flakes で管理している話",
     date: "2026-07-04",
     category: "tech",
@@ -15,6 +16,7 @@ const posts: readonly PostSummary[] = [
   },
   {
     slug: "cloudflare-workers-site",
+    readingMinutes: 3,
     title: "Cloudflare Workers でサイトを作ってみた",
     date: "2026-06-07",
     category: "tech",
@@ -23,6 +25,7 @@ const posts: readonly PostSummary[] = [
   },
   {
     slug: "first-post",
+    readingMinutes: 3,
     title: "はじめまして",
     date: "2026-06-07",
     category: "daily",

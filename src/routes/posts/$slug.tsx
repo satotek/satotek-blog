@@ -8,18 +8,15 @@ import { useToc } from "#/components/article/useToc";
 import { RouterLink } from "#/components/ui";
 import { getPostBySlug } from "#/lib/posts/posts.functions";
 import { postRepository } from "#/lib/posts/repository";
-import {
-  getPostReadingMinutes,
-  type Post,
-  type PostSummary,
-  type TocItem,
-} from "#/lib/posts/types";
+import { type PostSummary, type TocItem } from "#/lib/posts/types";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
 import { createPageHead, generatedPostOgImageUrl, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/posts/$slug")({
-  loader: async ({ params }): Promise<{ post: Post; relatedPosts: readonly PostSummary[] }> => {
+  loader: async ({
+    params,
+  }): Promise<{ post: PostSummary; relatedPosts: readonly PostSummary[] }> => {
     const post = await getPostBySlug({ data: { slug: params.slug } });
     if (!post) throw notFound();
 
@@ -70,7 +67,7 @@ function PostPage() {
   const { post, relatedPosts } = Route.useLoaderData();
 
   const category = categoryBySlug(post.category);
-  const readingMinutes = getPostReadingMinutes(post);
+  const readingMinutes = post.readingMinutes;
 
   return (
     <article className="w-full">
@@ -123,7 +120,7 @@ function PostPage() {
   );
 }
 
-function PostBody({ post }: { post: Post }) {
+function PostBody({ post }: { post: PostSummary }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const toc = useToc(contentRef, articleModules.get(post.slug)?.toc ?? []);
 
@@ -168,7 +165,7 @@ function MarkdownContent({
   post,
 }: {
   containerRef: React.RefObject<HTMLDivElement | null>;
-  post: Post;
+  post: PostSummary;
 }) {
   const Body = articleModules.get(post.slug)?.default;
 

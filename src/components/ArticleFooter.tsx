@@ -3,7 +3,7 @@ import { ExternalLink, FileText } from "lucide-react";
 import { DeferredShareButton } from "#/components/DeferredShareButton";
 import { PostList } from "#/components/PostList";
 import { Link as AriaLink } from "#/components/ui";
-import type { Post, PostSummary } from "#/lib/posts/types";
+import type { PostSummary } from "#/lib/posts/types";
 import { postSourceUrl, SITE_URL } from "#/lib/site";
 
 const actionLinkClass =
@@ -13,7 +13,7 @@ export function ArticleFooter({
   post,
   relatedPosts,
 }: {
-  post: Post;
+  post: PostSummary;
   relatedPosts: readonly PostSummary[];
 }) {
   const postUrl = `${SITE_URL}/posts/${post.slug}`;

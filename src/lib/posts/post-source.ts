@@ -1,7 +1,7 @@
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 
-import type { PostSummary } from "./types";
+import { countReadingMinutes, type PostSummary } from "./types";
 
 const postFrontmatterSchema = z
   .object({
@@ -15,7 +15,7 @@ const postFrontmatterSchema = z
   })
   .strict();
 
-export type MarkdownSource = {
+export type PostSource = {
   slug: string;
   draft: boolean;
   summary: PostSummary;
@@ -34,7 +34,7 @@ function splitFrontmatter(source: string) {
   };
 }
 
-export function parseMarkdownSource(source: string, slug: string): MarkdownSource {
+export function parsePostSource(source: string, slug: string): PostSource {
   const { frontmatter, markdown } = splitFrontmatter(source);
   const metadata = postFrontmatterSchema.parse(frontmatter);
   const { draft, cover, ...summaryMetadata } = metadata;
@@ -46,6 +46,7 @@ export function parseMarkdownSource(source: string, slug: string): MarkdownSourc
     summary: {
       ...summaryMetadata,
       slug,
+      readingMinutes: countReadingMinutes(markdown),
       ...(cover || firstImage ? { cover: cover ?? firstImage } : {}),
     },
     markdown,

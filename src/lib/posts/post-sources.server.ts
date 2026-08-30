@@ -1,6 +1,6 @@
 import "@tanstack/react-start/server-only";
 
-import { parseMarkdownSource, type MarkdownSource } from "./markdown-source";
+import { parsePostSource, type PostSource } from "./post-source";
 
 // Markdown 原文の読み込みとフロントマターの検証はここだけで行う。
 // このモジュールはサーバー限定。クライアントへ漏れると原文・yaml・zod を
@@ -17,19 +17,19 @@ function slugFromPath(filePath: string) {
   return slug;
 }
 
-const markdownSources: readonly MarkdownSource[] = Object.entries(sources)
-  .map(([filePath, source]) => parseMarkdownSource(source, slugFromPath(filePath)))
+const postSources: readonly PostSource[] = Object.entries(sources)
+  .map(([filePath, source]) => parsePostSource(source, slugFromPath(filePath)))
   .sort(
     (a, b) =>
       b.summary.date.localeCompare(a.summary.date) || a.summary.slug.localeCompare(b.summary.slug),
   );
 
-const publishedSources = markdownSources.filter((source) => !source.draft);
+const publishedSources = postSources.filter((source) => !source.draft);
 
-export function getPublishedMarkdownSource(slug: string) {
+export function getPublishedPostSource(slug: string) {
   return publishedSources.find((source) => source.slug === slug);
 }
 
-export function getPublishedMarkdownSources() {
+export function getPublishedPostSources() {
   return publishedSources;
 }

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Resvg } from "@resvg/resvg-js";
 import satori, { type Font as SatoriFont } from "satori";
-import { parseMarkdownSource, type MarkdownSource } from "../src/lib/posts/markdown-source";
+import { parsePostSource, type PostSource } from "../src/lib/posts/post-source";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const postsDirectory = join(projectRoot, "src/content/posts");
@@ -125,7 +125,7 @@ function requiredValue(args: readonly string[], index: number, option: string) {
   return value;
 }
 
-function withOverrides(source: MarkdownSource, options: CliOptions): MarkdownSource {
+function withOverrides(source: PostSource, options: CliOptions): PostSource {
   if (!options.slug && !options.tags && !options.title) return source;
 
   return {
@@ -143,7 +143,7 @@ function withOverrides(source: MarkdownSource, options: CliOptions): MarkdownSou
 async function readPost(filePath: string, options: CliOptions, allowDraft = false) {
   const markdown = await readFile(filePath, "utf8");
   const slug = options.slug ?? basename(dirname(filePath));
-  const source = parseMarkdownSource(markdown, slug);
+  const source = parsePostSource(markdown, slug);
   if (source.draft && !allowDraft) {
     throw new Error(`Refusing to generate an OGP image for a draft: ${source.slug}`);
   }
@@ -156,7 +156,7 @@ async function readSources(options: CliOptions) {
   }
 
   const entries = await readdir(postsDirectory, { withFileTypes: true });
-  const sources: MarkdownSource[] = [];
+  const sources: PostSource[] = [];
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
@@ -194,7 +194,7 @@ function compactText(value: string, maxLength: number) {
   return characters.length > maxLength ? `${characters.slice(0, maxLength - 1).join("")}…` : text;
 }
 
-function OGPCard({ source }: { source: MarkdownSource }) {
+function OGPCard({ source }: { source: PostSource }) {
   const title = compactText(source.summary.title, 48);
   const tags = source.summary.tags.slice(0, 4).map((tag) => compactText(tag, 18));
   const titleFontSize = title.length > 24 ? 52 : 58;
@@ -318,7 +318,7 @@ function OGPCard({ source }: { source: MarkdownSource }) {
   );
 }
 
-async function renderOgp(source: MarkdownSource, fonts: readonly SatoriFont[]) {
+async function renderOgp(source: PostSource, fonts: readonly SatoriFont[]) {
   const svg = await satori(<OGPCard source={source} />, {
     embedFont: true,
     fonts: [...fonts],
@@ -329,7 +329,7 @@ async function renderOgp(source: MarkdownSource, fonts: readonly SatoriFont[]) {
   return Buffer.from(new Resvg(svg).render().asPng());
 }
 
-function contentHash(source: MarkdownSource) {
+function contentHash(source: PostSource) {
   return createHash("sha256")
     .update(
       JSON.stringify({

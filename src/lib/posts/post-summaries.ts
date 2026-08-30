@@ -12,12 +12,12 @@ function matches(summary: PostSummary, options: PostListOptions) {
   return true;
 }
 
-export function listMarkdownPostSummaries(options: PostListOptions = {}): readonly PostSummary[] {
+export function listPostSummaries(options: PostListOptions = {}): readonly PostSummary[] {
   return publishedSummaries.filter((summary) => matches(summary, options));
 }
 
-export class MarkdownPostSummaryRepository implements PostSummaryRepository {
+export class PostSummaryRepositoryImpl implements PostSummaryRepository {
   async list(options: PostListOptions = {}) {
-    return listMarkdownPostSummaries(options);
+    return listPostSummaries(options);
   }
 }

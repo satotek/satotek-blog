@@ -4,13 +4,6 @@ export type TocItem = {
   level: number;
 };
 
-// 本文と目次は MDX モジュール側が持つ。ここに残すのは、
-// llms-full.txt と読了時間が必要とする原文だけ。
-export type PostContent = {
-  format: "mdx";
-  markdown: string;
-};
-
 /** MDX モジュールが frontmatter として名前付きエクスポートする生の値。 */
 export type PostFrontmatter = {
   title: string;
@@ -23,6 +16,8 @@ export type PostFrontmatter = {
 };
 
 export type PostSummary = {
+  /** 読了時間はビルド時に確定する。原文をクライアントへ運ばずに済む。 */
+  readingMinutes: number;
   slug: string;
   title: string;
   date: string;
@@ -30,10 +25,6 @@ export type PostSummary = {
   description: string;
   tags: readonly string[];
   cover?: string;
-};
-
-export type Post = PostSummary & {
-  content: PostContent;
 };
 
 export type PostListOptions = {
@@ -51,11 +42,6 @@ export interface PostSummaryRepository {
   list(options?: PostListOptions): Promise<readonly PostSummary[]>;
 }
 
-export interface PostRepository extends PostSummaryRepository {
-  listAll(): Promise<readonly Post[]>;
-  findBySlug(slug: string): Promise<Post | undefined>;
-}
-
 const READING_CHARS_PER_MIN = 600;
 
 // 数えたいのは「読み手が1文字と感じる単位」。文字列を展開するとコードポイント
@@ -70,8 +56,9 @@ function countCharacters(text: string) {
   return count;
 }
 
-export function getPostReadingMinutes(post: Post) {
-  const text = post.content.markdown
+/** ビルド時に一度だけ呼ぶ。結果は PostSummary.readingMinutes に焼き込む。 */
+export function countReadingMinutes(markdown: string) {
+  const text = markdown
     .replace(/```[\s\S]*?```/g, "")
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/<[^>]+>/g, "")

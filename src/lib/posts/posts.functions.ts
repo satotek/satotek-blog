@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { findPostBySlug } from "./markdown-posts.server";
+import { findPostBySlug } from "./posts.server";
 
 export const getPostBySlug = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1) }))

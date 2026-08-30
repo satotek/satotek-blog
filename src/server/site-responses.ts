@@ -1,6 +1,6 @@
 import { categoryBySlug, getCategories, getTags, tagPath } from "#/data/navigation";
 import { postRepository } from "#/lib/posts/repository";
-import { getPublishedMarkdownSources } from "#/lib/posts/markdown-sources.server";
+import { getPublishedPostSources } from "#/lib/posts/post-sources.server";
 import { absoluteUrl, SITE_DESCRIPTION, SITE_URL } from "#/lib/site";
 
 function textResponse(body: string, contentType: string, maxAge: number) {
@@ -146,7 +146,7 @@ ${articles.join("\n")}
 }
 
 export function llmsFullResponse() {
-  const sources = getPublishedMarkdownSources();
+  const sources = getPublishedPostSources();
   const sections = sources.map(({ summary, markdown }) => {
     const category = categoryBySlug(summary.category)?.name ?? summary.category;
     const meta = [

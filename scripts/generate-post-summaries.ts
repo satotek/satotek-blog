@@ -2,22 +2,22 @@ import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promise
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { parseMarkdownSource, type MarkdownSource } from "../src/lib/posts/markdown-source";
+import { parsePostSource, type PostSource } from "../src/lib/posts/post-source";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const postsDirectory = join(projectRoot, "src/content/posts");
 const generatedDirectory = join(projectRoot, "src/content/.generated");
 
-async function readMarkdownSources(): Promise<MarkdownSource[]> {
+async function readPostSources(): Promise<PostSource[]> {
   const entries = await readdir(postsDirectory, { withFileTypes: true });
-  const sources: MarkdownSource[] = [];
+  const sources: PostSource[] = [];
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
 
     const slug = entry.name;
     const markdown = await readFile(join(postsDirectory, slug, "index.mdx"), "utf8");
-    sources.push(parseMarkdownSource(markdown, slug));
+    sources.push(parsePostSource(markdown, slug));
   }
 
   return sources
@@ -46,7 +46,7 @@ async function writeAtomically(path: string, content: string) {
  * 読み込まずに済む。
  */
 async function main() {
-  const sources = await readMarkdownSources();
+  const sources = await readPostSources();
 
   await mkdir(generatedDirectory, { recursive: true });
   await writeAtomically(
