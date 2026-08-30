@@ -36,6 +36,33 @@ const LATIN_FONT_PRELOADS = ["/fonts/geist-400-4.woff2", "/fonts/geist-700-9.wof
     ({ rel: "preload", href, as: "font", type: "font/woff2", crossOrigin: "anonymous" }) as const,
 );
 
+// カスタムフォントは font-display: swap なので、フォント定義を待たずに本文を描画できる。
+// preload で CSS だけを先に取得し、初回描画後の idle 時に stylesheet へ切り替える。
+// これにより HTML → fonts.css → 日本語サブセットという依存を初期表示から外す。
+const DEFERRED_FONTS_SCRIPT = `(() => {
+  const link = document.querySelector('link[data-site-fonts]');
+  if (!link) return;
+
+  const enable = () => {
+    link.rel = "stylesheet";
+    link.removeAttribute("as");
+  };
+
+  const schedule = () => {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(enable, { timeout: 1200 });
+    } else {
+      window.setTimeout(enable, 0);
+    }
+  };
+
+  if (window.requestAnimationFrame) {
+    window.requestAnimationFrame(schedule);
+  } else {
+    window.setTimeout(schedule, 0);
+  }
+})();`;
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -51,14 +78,7 @@ export const Route = createRootRoute({
       }),
     ],
     links: [
-      // woff2 の URL は fonts.css をパースし終えるまで判明せず、取得は HTML→CSS→font の
-      // 3 往復目になる。全ページで必ず使う Latin 基本域だけ先読みして 1 段短くする。
-      // 和文は端末内蔵に任せているので、先読みするのはこの 2 つで足りる。
-      ...LATIN_FONT_PRELOADS,
       { rel: "stylesheet", href: appCss },
-      // フォント定義は通常の stylesheet として読む。JS で差し込むと
-      // プリロードスキャナに発見されず、取得が数十ms遅れるため。
-      { rel: "stylesheet", href: FONTS_HREF },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/icons/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
@@ -132,6 +152,19 @@ function RootDocument({ children }: { children: ReactNode }) {
         {WEBMCP_ORIGIN_TRIAL_TOKEN ? (
           <meta httpEquiv="origin-trial" content={WEBMCP_ORIGIN_TRIAL_TOKEN} />
         ) : null}
+        {LATIN_FONT_PRELOADS.map(({ href, ...props }) => (
+          <link key={href} href={href} {...props} />
+        ))}
+        <link
+          rel="preload"
+          as="style"
+          href={FONTS_HREF}
+          data-site-fonts="deferred"
+          suppressHydrationWarning
+        />
+        <noscript>
+          <link rel="stylesheet" href={FONTS_HREF} />
+        </noscript>
         {/* HeadContent は同名 meta を dedupe するので、media 付きのペアは直接置く。
             system のときは OS に従い、明示選択時は下の初期化スクリプトが media を
             差し替えて片方だけを有効にする。だからスクリプトより前に置く。 */}
@@ -151,6 +184,7 @@ function RootDocument({ children }: { children: ReactNode }) {
         />
         <script>{THEME_INIT_SCRIPT}</script>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: DEFERRED_FONTS_SCRIPT }} />
       </head>
       <body>
         <SiteChrome>
