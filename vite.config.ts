@@ -22,7 +22,9 @@ const mediaBaseUrl = (
 
 function readMediaManifest(): MediaManifest {
   try {
-    return JSON.parse(readFileSync(resolve(process.cwd(), "content/media-manifest.json"), "utf8"));
+    return JSON.parse(
+      readFileSync(resolve(process.cwd(), "src/content/media-manifest.json"), "utf8"),
+    );
   } catch {
     return {};
   }
@@ -60,7 +62,7 @@ function mdxPlugin() {
   };
 }
 
-const contentPostsDirectory = resolve(process.cwd(), "content/posts");
+const contentPostsDirectory = resolve(process.cwd(), "src/content/posts");
 
 function isMarkdownPost(file: string) {
   const relativePath = relative(contentPostsDirectory, resolve(file));

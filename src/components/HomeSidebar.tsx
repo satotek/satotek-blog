@@ -1,7 +1,7 @@
 import { Bot, Rss } from "lucide-react";
 
 import { Link as AriaLink, RouterLink } from "#/components/ui";
-import type { PostSummary } from "#/content/types";
+import type { PostSummary } from "#/lib/posts/types";
 import type { TagCount } from "./TagList";
 
 type CategoryCount = {

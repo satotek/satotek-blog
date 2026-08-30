@@ -1,4 +1,4 @@
-import { postRepository } from "#/content/repository";
+import { postRepository } from "#/lib/posts/repository";
 
 export const categories = [
   { slug: "tech", name: "技術" },

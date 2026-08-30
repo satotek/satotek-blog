@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { PostList } from "#/components/PostList";
 import { SectionHeading } from "#/components/SectionHeading";
-import { postRepository } from "#/content/repository";
+import { postRepository } from "#/lib/posts/repository";
 import { createPageHead, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/posts/")({

@@ -2,11 +2,11 @@ import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promise
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { parseMarkdownSource, type MarkdownSource } from "../src/content/markdown-source";
+import { parseMarkdownSource, type MarkdownSource } from "../src/lib/posts/markdown-source";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const postsDirectory = join(projectRoot, "content/posts");
-const generatedDirectory = join(projectRoot, "content/.generated");
+const postsDirectory = join(projectRoot, "src/content/posts");
+const generatedDirectory = join(projectRoot, "src/content/.generated");
 
 async function readMarkdownSources(): Promise<MarkdownSource[]> {
   const entries = await readdir(postsDirectory, { withFileTypes: true });

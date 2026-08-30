@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 
-import mediaManifest from "../../content/media-manifest.json";
+import mediaManifest from "../content/media-manifest.json";
 import { mediaFormatsForUrl, type MediaManifest } from "#/lib/media-manifest";
 import { MEDIA_BASE_URL } from "#/lib/site";
 import { createResponsiveMedia } from "#/lib/media-variants";

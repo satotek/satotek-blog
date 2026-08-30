@@ -1,6 +1,6 @@
 import { categoryBySlug, getCategories, getTags, tagPath } from "#/data/navigation";
-import { postRepository } from "#/content/repository";
-import { getPublishedMarkdownSources } from "#/content/markdown-sources.server";
+import { postRepository } from "#/lib/posts/repository";
+import { getPublishedMarkdownSources } from "#/lib/posts/markdown-sources.server";
 import { absoluteUrl, SITE_DESCRIPTION, SITE_URL } from "#/lib/site";
 
 function textResponse(body: string, contentType: string, maxAge: number) {

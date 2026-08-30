@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import type { PostSummary } from "#/content/types";
+import type { PostSummary } from "#/lib/posts/types";
 
 import { createBlogWebMcpTools, listPostSummaries, searchPostSummaries } from "./blog-tools";
 

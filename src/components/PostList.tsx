@@ -1,4 +1,4 @@
-import type { PostSummary } from "#/content/types";
+import type { PostSummary } from "#/lib/posts/types";
 
 import { PostCard, type PostCardVariant } from "./PostCard";
 

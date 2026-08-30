@@ -6,10 +6,10 @@ import { fileURLToPath } from "node:url";
 import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Resvg } from "@resvg/resvg-js";
 import satori, { type Font as SatoriFont } from "satori";
-import { parseMarkdownSource, type MarkdownSource } from "../src/content/markdown-source";
+import { parseMarkdownSource, type MarkdownSource } from "../src/lib/posts/markdown-source";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const postsDirectory = join(projectRoot, "content/posts");
+const postsDirectory = join(projectRoot, "src/content/posts");
 const localOutputDirectory = join(projectRoot, ".ogp");
 const ogpKeyPrefix = "blog/ogp";
 const imageWidth = 1200;
@@ -38,7 +38,7 @@ type R2Uploader = {
 
 function printUsage() {
   console.log(`Usage:
-  bun run generate-ogp -- --file content/posts/<slug>/index.md
+  bun run generate-ogp -- --file src/content/posts/<slug>/index.mdx
   bun run generate-ogp -- --all
   bun run generate-ogp -- --file <path> --upload
   bun run generate-ogp -- --all --upload

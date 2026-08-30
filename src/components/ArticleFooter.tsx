@@ -3,7 +3,7 @@ import { ExternalLink, FileText } from "lucide-react";
 import { DeferredShareButton } from "#/components/DeferredShareButton";
 import { PostList } from "#/components/PostList";
 import { Link as AriaLink } from "#/components/ui";
-import type { Post, PostSummary } from "#/content/types";
+import type { Post, PostSummary } from "#/lib/posts/types";
 import { postSourceUrl, SITE_URL } from "#/lib/site";
 
 const actionLinkClass =

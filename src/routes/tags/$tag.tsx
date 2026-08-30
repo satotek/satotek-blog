@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute, notFound } from "@tanstack/react-router";
 
-import { postRepository } from "#/content/repository";
+import { postRepository } from "#/lib/posts/repository";
 
 export const Route = createFileRoute("/tags/$tag")({
   loader: async ({ params }) => {

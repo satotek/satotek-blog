@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 import { TagPageContent } from "#/components/TaxonomyPage";
-import { postRepository } from "#/content/repository";
+import { postRepository } from "#/lib/posts/repository";
 import { createPageHead, withSiteName } from "#/lib/site";
 import { parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
 

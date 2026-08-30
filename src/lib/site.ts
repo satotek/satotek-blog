@@ -75,7 +75,7 @@ export function createSocialMeta({
 }
 
 export function postSourceUrl(slug: string) {
-  return `${SOURCE_REPOSITORY_URL}/blob/main/content/posts/${encodeURIComponent(slug)}/index.md`;
+  return `${SOURCE_REPOSITORY_URL}/blob/main/src/content/posts/${encodeURIComponent(slug)}/index.mdx`;
 }
 
 type PageHeadOptions = Omit<SocialMetaOptions, "url"> & {

@@ -1,5 +1,5 @@
-import type { PostSummary } from "#/content/types";
-import { postRepository } from "#/content/repository";
+import type { PostSummary } from "#/lib/posts/types";
+import { postRepository } from "#/lib/posts/repository";
 import { categories } from "#/data/navigation";
 import { SITE_URL } from "#/lib/site";
 

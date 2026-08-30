@@ -1,7 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { TagPageContent } from "#/components/TaxonomyPage";
-import { postRepository } from "#/content/repository";
+import { postRepository } from "#/lib/posts/repository";
 import { createPageHead, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/tags/$tag/")({

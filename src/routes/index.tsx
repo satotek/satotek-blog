@@ -8,10 +8,10 @@ import { HomeHero } from "#/components/HomeHero";
 import { HomeSidebar } from "#/components/HomeSidebar";
 import { PostList } from "#/components/PostList";
 import { RouterLink } from "#/components/ui";
-import type { PostSummary } from "#/content/types";
+import type { PostSummary } from "#/lib/posts/types";
 import { PICKED_POST_SLUGS } from "#/data/home";
 import { getCategories, getTags } from "#/data/navigation";
-import { postRepository } from "#/content/repository";
+import { postRepository } from "#/lib/posts/repository";
 import { SITE_NAME, createPageHead } from "#/lib/site";
 
 export const Route = createFileRoute("/")({

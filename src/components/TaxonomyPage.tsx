@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { PostSummary } from "#/content/types";
+import type { PostSummary } from "#/lib/posts/types";
 import { RouterLink } from "#/components/ui";
 import { categoryBySlug } from "#/data/navigation";
 import { paginate } from "#/lib/pagination";

@@ -6,9 +6,14 @@ import { ArticleFooter } from "#/components/ArticleFooter";
 import { TableOfContents } from "#/components/article/TableOfContents";
 import { useToc } from "#/components/article/useToc";
 import { RouterLink } from "#/components/ui";
-import { getPostBySlug } from "#/content/posts.functions";
-import { postRepository } from "#/content/repository";
-import { getPostReadingMinutes, type Post, type PostSummary, type TocItem } from "#/content/types";
+import { getPostBySlug } from "#/lib/posts/posts.functions";
+import { postRepository } from "#/lib/posts/repository";
+import {
+  getPostReadingMinutes,
+  type Post,
+  type PostSummary,
+  type TocItem,
+} from "#/lib/posts/types";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
 import { createPageHead, generatedPostOgImageUrl, withSiteName } from "#/lib/site";
@@ -154,7 +159,7 @@ type ArticleModule = {
 // 待たずに抜け、prerender した HTML から記事が丸ごと落ちる。
 const articleModules = new Map(
   Object.entries(
-    import.meta.glob<ArticleModule>("../../../content/posts/*/index.mdx", { eager: true }),
+    import.meta.glob<ArticleModule>("../../content/posts/*/index.mdx", { eager: true }),
   ).map(([path, module]) => [slugOf(path), module]),
 );
 

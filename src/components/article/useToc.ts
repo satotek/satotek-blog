@@ -1,6 +1,6 @@
 import { useEffect, useState, type RefObject } from "react";
 
-import type { TocItem } from "#/content/types";
+import type { TocItem } from "#/lib/posts/types";
 
 const TOC_MIN = 3;
 const TOC_STATE_KEY = "toc-state";

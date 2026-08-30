@@ -1,7 +1,7 @@
 declare module "*.mdx" {
   import type { MDXProps } from "mdx/types";
 
-  import type { PostFrontmatter, TocItem } from "#/content/types";
+  import type { PostFrontmatter, TocItem } from "#/lib/posts/types";
 
   // remark-mdx-frontmatter と remarkExportToc が名前付きエクスポートとして埋め込む。
   export const frontmatter: PostFrontmatter;

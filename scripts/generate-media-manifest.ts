@@ -11,8 +11,8 @@ import {
 import { mediaKeyFromUrl, type MediaManifest } from "../src/lib/media-manifest";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const postsDirectory = join(projectRoot, "content/posts");
-const manifestPath = join(projectRoot, "content/media-manifest.json");
+const postsDirectory = join(projectRoot, "src/content/posts");
+const manifestPath = join(projectRoot, "src/content/media-manifest.json");
 const mediaBaseUrl = (
   process.env.R2_PUBLIC_BASE_URL?.trim() ||
   process.env.VITE_MEDIA_BASE_URL?.trim() ||
@@ -141,7 +141,7 @@ async function main() {
   }
 
   await writeFile(manifestPath, `${JSON.stringify(manifest, undefined, 2)}\n`, "utf8");
-  console.log(`Wrote ${Object.keys(manifest).length} entries to content/media-manifest.json.`);
+  console.log(`Wrote ${Object.keys(manifest).length} entries to src/content/media-manifest.json.`);
 }
 
 await main();

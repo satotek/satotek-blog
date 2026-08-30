@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { PostSummary } from "#/content/types";
+import type { PostSummary } from "#/lib/posts/types";
 import { ResponsiveImage } from "#/components/ResponsiveImage";
 import { RouterLink } from "#/components/ui";
 import { categoryBySlug } from "#/data/navigation";
