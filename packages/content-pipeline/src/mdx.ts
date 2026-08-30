@@ -49,7 +49,7 @@ export function createMdxPlugins(options: ImageResolverOptions = {}): {
           defaultColor: "light-dark()",
           defaultLanguage: "text",
           fallbackLanguage: "text",
-          themes: { dark: "vitesse-dark", light: "vitesse-light" },
+          themes: { dark: "github-dark", light: "github-light" },
           transformers: [
             transformerNotationDiff(),
             transformerNotationHighlight(),

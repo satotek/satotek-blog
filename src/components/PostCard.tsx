@@ -149,11 +149,11 @@ function PostTags({ post }: { post: PostSummary }) {
   if (post.tags.length === 0) return null;
 
   return (
-    <ul className="m-0 mt-3 flex list-none flex-wrap gap-x-3 gap-y-1 p-0" aria-label="タグ">
+    <ul className="m-0 mt-3 flex list-none flex-wrap gap-x-3 gap-y-2 p-0" aria-label="タグ">
       {post.tags.slice(0, 3).map((tag) => (
         <li key={tag}>
           <RouterLink
-            className="text-[0.75rem] text-muted no-underline hover:text-accent"
+            className="inline-flex min-h-12 min-w-12 items-center justify-center text-[0.75rem] text-muted no-underline hover:text-accent"
             to="/tags/$tag"
             params={{ tag }}
           >

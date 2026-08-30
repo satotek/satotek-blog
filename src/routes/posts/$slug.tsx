@@ -98,12 +98,9 @@ function PostPage() {
         </div>
         <ul className="m-0 mt-4 flex list-none flex-wrap gap-2 p-0" aria-label="タグ">
           {post.tags.map((tag) => (
-            <li
-              className="rounded-full border border-line text-[0.8rem] transition-colors hover:border-accent-border"
-              key={tag}
-            >
+            <li key={tag}>
               <RouterLink
-                className="block px-3 py-[3px] text-muted no-underline hover:text-ink"
+                className="relative inline-flex min-h-12 min-w-12 items-center justify-center rounded-full px-3 text-[0.8rem] text-muted no-underline transition-colors before:pointer-events-none before:absolute before:inset-x-0 before:inset-y-[10px] before:rounded-full before:border before:border-line before:content-[''] hover:text-ink hover:before:border-accent-border focus-visible:before:border-accent-border"
                 to="/tags/$tag"
                 params={{ tag }}
               >
