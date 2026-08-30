@@ -150,6 +150,12 @@ const config = defineConfig(({ mode }) => {
           postContentWatcher(),
           cloudflare({ viteEnvironment: { name: "ssr" } }),
           tanstackStart({
+            // CSS を外部ファイルにすると、HTML 到着後にもう一往復が要り、その取得が
+            // modulepreload された JS と帯域を奪い合う。描画はそれを待つので FCP が
+            // 数百ms 遅れる。prerender した HTML へ直接埋め込んで往復ごと無くす。
+            // 対象は Vite がチャンクとして追跡する CSS だけなので、styles.css は
+            // ?url ではなく通常の import で読む必要がある（__root.tsx）。
+            server: { build: { inlineCss: { enabled: true } } },
             // MarkdownとShikiはデプロイ時に実行し、公開済みページは静的HTMLとして配信する。
             // 動的なserver routeや将来のCMSプレビュー用にWorker SSR自体は残す。
             prerender: {

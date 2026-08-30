@@ -13,7 +13,7 @@ import {
   createSocialMeta,
 } from "#/lib/site";
 import { THEME_COLOR, THEME_INIT_SCRIPT } from "#/lib/theme";
-import appCss from "../styles.css?url";
+import "../styles.css";
 
 // エラー画面でしか使わないゲームは通常ページの初期バンドルへ含めない。
 const BlockPuzzle = lazy(() =>
@@ -74,7 +74,6 @@ export const Route = createRootRoute({
       }),
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "icon", href: "/icons/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
