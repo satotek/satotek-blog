@@ -4,11 +4,22 @@ export type TocItem = {
   level: number;
 };
 
+// 本文と目次は MDX モジュール側が持つ。ここに残すのは、
+// llms-full.txt と読了時間が必要とする原文だけ。
 export type PostContent = {
-  format: "markdown";
+  format: "mdx";
   markdown: string;
-  html: string;
-  toc: readonly TocItem[];
+};
+
+/** MDX モジュールが frontmatter として名前付きエクスポートする生の値。 */
+export type PostFrontmatter = {
+  title: string;
+  date: string;
+  category: string;
+  draft?: boolean;
+  description?: string;
+  tags?: readonly string[];
+  cover?: string;
 };
 
 export type PostSummary = {
@@ -60,10 +71,11 @@ function countCharacters(text: string) {
 }
 
 export function getPostReadingMinutes(post: Post) {
-  const text = post.content.html
-    .replace(/<pre[\s\S]*?<\/pre>/gi, "")
+  const text = post.content.markdown
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/<[^>]+>/g, "")
-    .replace(/&[a-z]+;|&#\d+;/gi, "")
+    .replace(/[#>*_`~|-]/g, "")
     .replace(/\s+/g, "");
   return Math.max(1, Math.ceil(countCharacters(text) / READING_CHARS_PER_MIN));
 }

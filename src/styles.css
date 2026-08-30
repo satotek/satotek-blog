@@ -528,17 +528,9 @@
     font-size: inherit;
   }
 
-  .copy-layer {
-    position: absolute;
-    z-index: 2;
-    inset: 0;
-    pointer-events: none;
-  }
-
   .copy-btn {
-    position: absolute;
-    right: 10px;
     display: inline-flex;
+    flex: none;
     width: 28px;
     height: 28px;
     align-items: center;
@@ -781,22 +773,17 @@
     overscroll-behavior: contain;
   }
 
-  .lightbox-trigger-layer {
-    position: absolute;
-    z-index: 1;
-    inset: 0;
-    pointer-events: none;
-  }
-
+  /* 画像そのものを包むボタン。本文の流れに乗せるので絶対配置はしない。 */
   .lightbox-trigger {
-    position: absolute;
     display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
     padding: 0;
     border: 0;
     border-radius: var(--radius-site);
     background: transparent;
     cursor: zoom-in;
-    pointer-events: auto;
     touch-action: manipulation;
   }
 

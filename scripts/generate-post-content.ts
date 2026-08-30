@@ -2,21 +2,11 @@ import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promise
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createMarkdownRenderer } from "@satotek/content-pipeline";
 import { parseMarkdownSource, type MarkdownSource } from "../src/content/markdown-source";
-import { createResponsiveMedia } from "../src/lib/media-variants";
-import { mediaKeyFromUrl, type MediaManifest } from "../src/lib/media-manifest";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const postsDirectory = join(projectRoot, "content/posts");
 const generatedDirectory = join(projectRoot, "content/.generated");
-const wasmPath = join(projectRoot, "packages/content-pipeline/assets/onig.wasm");
-const manifestPath = join(projectRoot, "content/media-manifest.json");
-const mediaBaseUrl = (
-  process.env.R2_PUBLIC_BASE_URL?.trim() ||
-  process.env.VITE_MEDIA_BASE_URL?.trim() ||
-  "https://img.satotek.dev"
-).replace(/\/+$/, "");
 
 async function readMarkdownSources(): Promise<MarkdownSource[]> {
   const entries = await readdir(postsDirectory, { withFileTypes: true });
@@ -26,8 +16,7 @@ async function readMarkdownSources(): Promise<MarkdownSource[]> {
     if (!entry.isDirectory()) continue;
 
     const slug = entry.name;
-    const markdownPath = join(postsDirectory, slug, "index.md");
-    const markdown = await readFile(markdownPath, "utf8");
+    const markdown = await readFile(join(postsDirectory, slug, "index.mdx"), "utf8");
     sources.push(parseMarkdownSource(markdown, slug));
   }
 
@@ -51,71 +40,26 @@ async function writeAtomically(path: string, content: string) {
   }
 }
 
-async function readMediaManifest(): Promise<MediaManifest> {
-  try {
-    return JSON.parse(await readFile(manifestPath, "utf8")) as MediaManifest;
-  } catch {
-    console.warn("No content/media-manifest.json; run `bun run generate-media-manifest`.");
-    return {};
-  }
-}
-
+/**
+ * 本文と目次は MDX モジュールが直接持つので、ここで書き出すのは一覧用のサマリだけ。
+ * 別ファイルにしておくことで、ブラウザ側が Markdown 原文・yaml パーサ・zod を
+ * 読み込まずに済む。
+ */
 async function main() {
-  const [sources, wasm, manifest] = await Promise.all([
-    readMarkdownSources(),
-    readFile(wasmPath),
-    readMediaManifest(),
-  ]);
-  const missingDimensions = new Set<string>();
-
-  const renderer = createMarkdownRenderer(wasm, {
-    resolveImage: (source) => {
-      const key = mediaKeyFromUrl(source, mediaBaseUrl);
-      const entry = key ? manifest[key] : undefined;
-      const responsive = createResponsiveMedia(source, {
-        baseUrl: mediaBaseUrl,
-        formats: entry?.formats,
-        sizes: "(max-width: 768px) 100vw, 768px",
-      });
-
-      const dimensions = entry ? { width: entry.width, height: entry.height } : undefined;
-      if (key && !entry) missingDimensions.add(key);
-
-      if (!responsive && !dimensions) return undefined;
-      return { ...responsive, ...dimensions };
-    },
-  });
+  const sources = await readMarkdownSources();
 
   await mkdir(generatedDirectory, { recursive: true });
-
-  const generatedFiles = new Set(["summaries.json"]);
-
-  for (const source of sources) {
-    const rendered = await renderer.renderMarkdown(source.markdown);
-    const outputPath = join(generatedDirectory, `${source.slug}.json`);
-    await writeAtomically(outputPath, `${JSON.stringify(rendered)}\n`);
-    generatedFiles.add(`${source.slug}.json`);
-  }
-
-  // 一覧が必要とするのはサマリだけ。これを別ファイルにしておくことで、
-  // ブラウザ側が Markdown 原文・yaml パーサ・zod を読み込まずに済む。
   await writeAtomically(
     join(generatedDirectory, "summaries.json"),
     `${JSON.stringify(sources.map((source) => source.summary))}\n`,
   );
 
   for (const entry of await readdir(generatedDirectory, { withFileTypes: true })) {
-    if (!entry.isFile() || !entry.name.endsWith(".json") || generatedFiles.has(entry.name))
-      continue;
+    if (!entry.isFile() || entry.name === "summaries.json") continue;
     await rm(join(generatedDirectory, entry.name), { force: true });
   }
 
-  // 寸法が無い画像は読み込みまで高さ 0 で描かれ、レイアウトシフトとして表面化する。
-  for (const key of [...missingDimensions].sort()) {
-    console.warn(`No dimensions for ${key}; run \`bun run generate-media-manifest\`.`);
-  }
-
-  console.log(`Generated ${sources.length} rendered Markdown posts.`);
+  console.log(`Generated summaries for ${sources.length} posts.`);
 }
 
 await main();

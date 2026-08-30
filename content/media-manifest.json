@@ -8,11 +8,6 @@
     "height": 1065,
     "formats": ["webp"]
   },
-  "nix-flakes-dotfiles/nix-cover.png": {
-    "width": 1280,
-    "height": 640,
-    "formats": ["webp"]
-  },
   "webmcp-blog-tools/chrome-webmcp-testing-flag.png": {
     "width": 1486,
     "height": 172,

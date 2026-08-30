@@ -1,14 +1,14 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useRef } from "react";
 
+import { Article } from "#/components/article/Article";
 import { ArticleFooter } from "#/components/ArticleFooter";
-import { DeferredArticleEnhancers } from "#/components/DeferredArticleEnhancers";
-import { TableOfContents } from "#/components/TableOfContents";
-import { useToc } from "#/components/useToc";
+import { TableOfContents } from "#/components/article/TableOfContents";
+import { useToc } from "#/components/article/useToc";
 import { RouterLink } from "#/components/ui";
 import { getPostBySlug } from "#/content/posts.functions";
 import { postRepository } from "#/content/repository";
-import { getPostReadingMinutes, type Post, type PostSummary } from "#/content/types";
+import { getPostReadingMinutes, type Post, type PostSummary, type TocItem } from "#/content/types";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
 import { createPageHead, generatedPostOgImageUrl, withSiteName } from "#/lib/site";
@@ -120,7 +120,7 @@ function PostPage() {
 
 function PostBody({ post }: { post: Post }) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const toc = useToc(contentRef, post.content.toc);
+  const toc = useToc(contentRef, articleModules.get(post.slug)?.toc ?? []);
 
   if (!toc.hasToc) return <MarkdownContent containerRef={contentRef} post={post} />;
 
@@ -143,6 +143,21 @@ function PostBody({ post }: { post: Post }) {
   );
 }
 
+const slugOf = (path: string) => path.split("/").at(-2) ?? "";
+
+type ArticleModule = {
+  default: () => React.JSX.Element;
+  toc: readonly TocItem[];
+};
+
+// SSR で本文を出すため eager に読む。React.lazy だとサーバー描画が本文を
+// 待たずに抜け、prerender した HTML から記事が丸ごと落ちる。
+const articleModules = new Map(
+  Object.entries(
+    import.meta.glob<ArticleModule>("../../../content/posts/*/index.mdx", { eager: true }),
+  ).map(([path, module]) => [slugOf(path), module]),
+);
+
 function MarkdownContent({
   containerRef,
   post,
@@ -150,16 +165,11 @@ function MarkdownContent({
   containerRef: React.RefObject<HTMLDivElement | null>;
   post: Post;
 }) {
+  const Body = articleModules.get(post.slug)?.default;
+
   return (
-    <>
-      <div className="markdown-content">
-        <div
-          ref={containerRef}
-          className="markdown-body"
-          dangerouslySetInnerHTML={{ __html: post.content.html }}
-        />
-        <DeferredArticleEnhancers containerRef={containerRef} contentKey={post.slug} />
-      </div>
-    </>
+    <div className="markdown-content" ref={containerRef}>
+      <Article>{Body ? <Body /> : null}</Article>
+    </div>
   );
 }

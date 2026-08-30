@@ -2,7 +2,7 @@ import { AlignLeft, ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 
 import { Button, Link as AriaLink } from "#/components/ui";
-import type { TocState } from "#/components/useToc";
+import type { TocState } from "#/components/article/useToc";
 
 function scrollableAncestor(from: HTMLElement) {
   for (let node = from.parentElement; node; node = node.parentElement) {

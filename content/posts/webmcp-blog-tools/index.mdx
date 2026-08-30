@@ -265,14 +265,14 @@ annotations: {
 1. `chrome://flags/#enable-webmcp-testing` を開く
 2. WebMCP testing を Enabled にする
 
-   ![Chrome の chrome://flags で WebMCP for testing を Enabled にした状態](https://img.satotek.dev/webmcp-blog-tools/chrome-webmcp-testing-flag.png "WebMCP for testing の設定"){width=768 .center}
+   ![Chrome の chrome://flags で WebMCP for testing を Enabled にした状態](https://img.satotek.dev/webmcp-blog-tools/chrome-webmcp-testing-flag.png "WebMCP for testing の設定")
 
 3. Chrome を再起動する
 4. `http://localhost:3000` を開く
 
 Chrome DevTools の Application パネルには WebMCP ペインがあり、ページが公開しているツール名、説明、入力スキーマ、呼び出し履歴を確認できます。
 
-![Chrome DevTools の Application > WebMCP パネルに表示されたブログのツール一覧](https://img.satotek.dev/webmcp-blog-tools/devtools-webmcp.png "Chrome DevTools の WebMCP パネル"){width=1200 .center}
+![Chrome DevTools の Application > WebMCP パネルに表示されたブログのツール一覧](https://img.satotek.dev/webmcp-blog-tools/devtools-webmcp.png "Chrome DevTools の WebMCP パネル")
 
 今回のローカル環境では、次の 3 つが表示されました。
 
@@ -288,7 +288,7 @@ Chrome DevTools MCP を使って、起動中の Chrome に接続しました。�
 
 `--category-experimental-webmcp` が WebMCP 用ツールを有効にするオプションです。`--auto-connect` を使う場合は、Chrome の `chrome://inspect/#remote-debugging` からリモートデバッグを許可しておきます。
 
-![Chrome DevTools の Remote debugging 設定画面。リモートデバッグを許可し、127.0.0.1:9222 でサーバーが起動している状態](https://img.satotek.dev/webmcp-blog-tools/remote-debugging.png "Chrome DevTools の Remote debugging 設定"){width=1200 .center}
+![Chrome DevTools の Remote debugging 設定画面。リモートデバッグを許可し、127.0.0.1:9222 でサーバーが起動している状態](https://img.satotek.dev/webmcp-blog-tools/remote-debugging.png "Chrome DevTools の Remote debugging 設定")
 
 Codex から使えるようにするには、次のコマンドを実行します。
 
@@ -329,11 +329,11 @@ chrome-devtoolsを使って
 
 最後に、Chrome の現在のタブが `http://localhost:3000/posts/nix-flakes-dotfiles` に遷移しました。
 
-![Codex から WebMCP ツールを呼び出し、検索結果の記事を Chrome で開いた実行例](https://img.satotek.dev/webmcp-blog-tools/codex-webmcp-execution.png "Codex から WebMCP ツールを呼び出した実行例"){width=1200 .center}
+![Codex から WebMCP ツールを呼び出し、検索結果の記事を Chrome で開いた実行例](https://img.satotek.dev/webmcp-blog-tools/codex-webmcp-execution.png "Codex から WebMCP ツールを呼び出した実行例")
 
 `Application > WebMCP` パネルでは呼び出し履歴も確認できます。実行結果に加えて、エージェントが渡した入力値とツールが返した出力が一覧で見られます。
 
-![Chrome DevTools の WebMCP パネルに表示された search_posts と open_post の実行履歴](https://img.satotek.dev/webmcp-blog-tools/devtools-webmcp-invocation-history.png "WebMCP ツールの実行履歴"){width=1200 .center}
+![Chrome DevTools の WebMCP パネルに表示された search_posts と open_post の実行履歴](https://img.satotek.dev/webmcp-blog-tools/devtools-webmcp-invocation-history.png "WebMCP ツールの実行履歴")
 
 ここまで動くと、WebMCP が「AI に読ませるためのページ情報」ではなく「ページ自身が提供する操作のインターフェース」だということが実感できます。
 

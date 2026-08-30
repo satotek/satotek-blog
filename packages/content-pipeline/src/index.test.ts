@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vite-plus/test";
 
-import { createMarkdownRenderer } from "./index";
+import { createMarkdownRenderer } from "./index.ts";
 
 const onigWasm = await readFile(new URL("../assets/onig.wasm", import.meta.url));
 const renderer = createMarkdownRenderer(onigWasm);

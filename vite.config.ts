@@ -8,6 +8,57 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
 
 import viteReact from "@vitejs/plugin-react";
+import mdx from "@mdx-js/rollup";
+import { createMdxPlugins } from "@satotek/content-pipeline";
+import { createResponsiveMedia } from "./src/lib/media-variants";
+import { mediaKeyFromUrl, type MediaManifest } from "./src/lib/media-manifest";
+import { readFileSync } from "node:fs";
+
+const mediaBaseUrl = (
+  process.env.R2_PUBLIC_BASE_URL?.trim() ||
+  process.env.VITE_MEDIA_BASE_URL?.trim() ||
+  "https://img.satotek.dev"
+).replace(/\/+$/, "");
+
+function readMediaManifest(): MediaManifest {
+  try {
+    return JSON.parse(readFileSync(resolve(process.cwd(), "content/media-manifest.json"), "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function mdxPlugin() {
+  const manifest = readMediaManifest();
+  const plugin = mdx({
+    jsxImportSource: "react",
+    providerImportSource: "@mdx-js/react",
+    ...createMdxPlugins({
+      resolveImage: (source) => {
+        const responsive = createResponsiveMedia(source, {
+          baseUrl: mediaBaseUrl,
+          sizes: "(max-width: 768px) 100vw, 768px",
+        });
+        const key = mediaKeyFromUrl(source, mediaBaseUrl);
+        const dimensions = key ? manifest[key] : undefined;
+        if (!responsive && !dimensions) return undefined;
+        return { ...responsive, ...dimensions };
+      },
+    }),
+  });
+
+  // 原文は llms-full.txt と読了時間が ?raw で読む。MDX プラグインは
+  // enforce: "pre" で先に走るので、明示的に素通しさせる必要がある。
+  const transform = plugin.transform;
+  return {
+    ...plugin,
+    enforce: "pre" as const,
+    transform(this: unknown, code: string, id: string) {
+      if (id.includes("?raw")) return null;
+      return (transform as (code: string, id: string) => unknown).call(this, code, id);
+    },
+  };
+}
 
 const contentPostsDirectory = resolve(process.cwd(), "content/posts");
 
@@ -15,7 +66,7 @@ function isMarkdownPost(file: string) {
   const relativePath = relative(contentPostsDirectory, resolve(file));
   const segments = relativePath.split(sep);
 
-  return segments.length === 2 && segments[1] === "index.md";
+  return segments.length === 2 && segments[1] === "index.mdx";
 }
 
 function regeneratePostContent() {
@@ -93,6 +144,7 @@ const config = defineConfig(({ mode }) => {
       ? []
       : [
           tailwindcss(),
+          mdxPlugin(),
           postContentWatcher(),
           cloudflare({ viteEnvironment: { name: "ssr" } }),
           tanstackStart({

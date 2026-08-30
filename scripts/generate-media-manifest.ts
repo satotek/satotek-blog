@@ -3,19 +3,16 @@ import { basename, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  createMarkdownRenderer,
   MEDIA_VARIANT_FORMATS,
   MEDIA_VARIANT_WIDTHS,
   readImageDimensions,
   type MediaVariantFormat,
 } from "@satotek/content-pipeline";
-import { parseMarkdownSource } from "../src/content/markdown-source";
 import { mediaKeyFromUrl, type MediaManifest } from "../src/lib/media-manifest";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const postsDirectory = join(projectRoot, "content/posts");
 const manifestPath = join(projectRoot, "content/media-manifest.json");
-const wasmPath = join(projectRoot, "packages/content-pipeline/assets/onig.wasm");
 const mediaBaseUrl = (
   process.env.R2_PUBLIC_BASE_URL?.trim() ||
   process.env.VITE_MEDIA_BASE_URL?.trim() ||
@@ -32,28 +29,24 @@ async function readManifest(): Promise<MediaManifest> {
 }
 
 /**
- * 記事に登場する画像 URL を集める。Markdown を正規表現で漁ると記法の揺れに弱いので、
- * レンダラの resolveImage フックを覗き穴として使い、実際に img になったものだけを拾う。
+ * 記事に登場する画像 URL を集める。MDX は React へコンパイルされるため
+ * レンダラを覗き穴には使えない。原文から Markdown 画像と JSX の src を拾う。
  */
 async function collectImageSources(slugs: readonly string[]) {
   const sources = new Map<string, string>();
-  const wasm = await readFile(wasmPath);
-  let currentSlug = "";
-  const renderer = createMarkdownRenderer(wasm, {
-    resolveImage: (source) => {
-      if (!sources.has(source)) sources.set(source, currentSlug);
-      return undefined;
-    },
-  });
+  const patterns = [
+    /!\[[^\]]*\]\(\s*(\S+?)(?:\s+"[^"]*")?\s*\)/g,
+    /<[A-Za-z][^>]*\ssrc=["']([^"']+)["']/g,
+  ];
 
   for (const slug of slugs) {
-    currentSlug = slug;
-    const markdown = await readFile(join(postsDirectory, slug, "index.md"), "utf8");
-    const source = parseMarkdownSource(markdown, slug);
-    if (source.summary.cover && !sources.has(source.summary.cover)) {
-      sources.set(source.summary.cover, slug);
+    const markdown = await readFile(join(postsDirectory, slug, "index.mdx"), "utf8");
+    for (const pattern of patterns) {
+      for (const match of markdown.matchAll(pattern)) {
+        const source = match[1];
+        if (source && !sources.has(source)) sources.set(source, slug);
+      }
     }
-    await renderer.renderMarkdown(source.markdown);
   }
 
   return sources;

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import sharp from "sharp";
 import { describe, expect, it } from "vite-plus/test";
 
-import { generateMediaVariants } from "./media";
+import { generateMediaVariants } from "./media.ts";
 
 describe("generateMediaVariants", () => {
   it("generates AVIF and WebP variants", async () => {

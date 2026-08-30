@@ -16,6 +16,7 @@
     "@shikijs/engine-oniguruma": "4.4.3",
     "@shikijs/rehype": "^4.4.3",
     "@shikijs/transformers": "^4.4.3",
+    "estree-util-value-to-estree": "^3.5.0",
     "github-slugger": "^2.0.0",
     "mdast-util-to-string": "^4.0.0",
     "rehype-autolink-headings": "^7.1.0",
