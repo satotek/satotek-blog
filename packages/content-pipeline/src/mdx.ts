@@ -16,7 +16,7 @@ import {
   rehypeImageFigure,
   rehypeResponsiveImages,
   transformerCodeChrome,
-  type MarkdownRendererOptions,
+  type ImageResolverOptions,
 } from "./plugins.ts";
 import { remarkExportToc } from "./remark-toc.ts";
 
@@ -27,7 +27,7 @@ import { remarkExportToc } from "./remark-toc.ts";
  * 見出しアンカーやコードブロックの外枠、ライトボックスのような
  * 出来上がった要素への肉付けは、MDX の components マップ側で行う。
  */
-export function createMdxPlugins(options: MarkdownRendererOptions = {}): {
+export function createMdxPlugins(options: ImageResolverOptions = {}): {
   remarkPlugins: PluggableList;
   rehypePlugins: PluggableList;
 } {

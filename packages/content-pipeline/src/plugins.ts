@@ -1,9 +1,5 @@
 import type { Element, Root as HastRoot } from "hast";
-import type { Paragraph, Root } from "mdast";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import { SKIP, visit } from "unist-util-visit";
-
-type ImageAttribute = string | number | boolean | string[];
 
 export type ResolvedImage = {
   avifSrcSet?: string;
@@ -13,57 +9,9 @@ export type ResolvedImage = {
   height?: number;
 };
 
-export type MarkdownRendererOptions = {
+export type ImageResolverOptions = {
   resolveImage?: (source: string) => ResolvedImage | undefined;
 };
-
-function parseImageAttributes(raw: string) {
-  const attributes: Record<string, ImageAttribute> = {};
-  const classes: string[] = [];
-  const attributePattern = /([.#]?[\w-]+)(?:=("[^"]*"|'[^']*'|\S+))?/g;
-
-  for (const match of raw.matchAll(attributePattern)) {
-    const key = match[1];
-    if (!key) continue;
-
-    let value = match[2];
-    if (value && (value.startsWith('"') || value.startsWith("'"))) {
-      value = value.slice(1, -1);
-    }
-
-    if (key.startsWith(".")) {
-      classes.push(key.slice(1));
-    } else if (key.startsWith("#")) {
-      attributes.id = key.slice(1);
-    } else if (key === "width" || key === "height") {
-      attributes[key] = value ? Number(value) || value : true;
-    }
-  }
-
-  if (classes.length > 0) attributes.className = classes;
-  return attributes;
-}
-
-export function remarkImageAttributes() {
-  return (tree: Root) => {
-    visit(tree, "paragraph", (node) => {
-      const paragraph = node as Paragraph;
-      for (let index = 0; index < paragraph.children.length - 1; index += 1) {
-        const image = paragraph.children[index];
-        const suffix = paragraph.children[index + 1];
-        if (image?.type !== "image" || suffix?.type !== "text") continue;
-
-        const match = /^\s*\{([^}]*)\}/.exec(suffix.value);
-        if (!match) continue;
-
-        image.data ??= {};
-        image.data.hProperties = parseImageAttributes(match[1] ?? {});
-        suffix.value = suffix.value.slice(match[0].length);
-        if (suffix.value.length === 0) paragraph.children.splice(index + 1, 1);
-      }
-    });
-  };
-}
 
 export function rehypeImageFigure() {
   return (tree: HastRoot) => {
@@ -124,52 +72,6 @@ export function transformerCodeChrome() {
   };
 }
 
-export function rehypeCodeBlocks() {
-  return (tree: HastRoot) => {
-    visit(tree, "element", (node, index, parent) => {
-      if (node.type !== "element" || node.tagName !== "pre" || !parent || index == null) return;
-
-      const title = node.properties["data-title"];
-      const lang = node.properties["data-lang"];
-      const name = typeof title === "string" ? title : typeof lang === "string" ? lang : "";
-
-      parent.children[index] = {
-        type: "element",
-        tagName: "div",
-        properties: { className: ["code-block"] },
-        children: [
-          {
-            type: "element",
-            tagName: "div",
-            properties: { className: ["code-block__bar"] },
-            children: [
-              {
-                type: "element",
-                tagName: "span",
-                properties: { className: ["code-block__name"] },
-                children: name ? [{ type: "text", value: name }] : [],
-              },
-            ],
-          },
-          node,
-        ],
-      } satisfies Element;
-    });
-  };
-}
-
-export function rehypeHeadingLinks() {
-  return rehypeAutolinkHeadings({
-    behavior: "append",
-    properties: {
-      ariaHidden: "true",
-      className: ["heading-anchor"],
-      tabIndex: -1,
-    },
-    content: { type: "text", value: "#" } as const,
-  });
-}
-
 function positiveInteger(value: unknown) {
   const numeric = typeof value === "string" ? Number(value) : value;
   return typeof numeric === "number" && Number.isFinite(numeric) && numeric > 0
@@ -200,7 +102,7 @@ function applyIntrinsicSize(node: Element, resolved: ResolvedImage) {
   node.properties.height = intrinsicHeight;
 }
 
-export function rehypeResponsiveImages(resolveImage: MarkdownRendererOptions["resolveImage"]) {
+export function rehypeResponsiveImages(resolveImage: ImageResolverOptions["resolveImage"]) {
   return (tree: HastRoot) => {
     if (!resolveImage) return;
 
