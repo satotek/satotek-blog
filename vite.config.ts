@@ -73,7 +73,7 @@ function isMarkdownPost(file: string) {
 
 function regeneratePostContent() {
   return new Promise<void>((resolvePromise, reject) => {
-    const child = spawn("bun", ["run", "generate-content"], {
+    const child = spawn("bun", ["run", "generate-summaries"], {
       cwd: process.cwd(),
       stdio: "inherit",
     });
@@ -86,7 +86,7 @@ function regeneratePostContent() {
       }
 
       reject(
-        new Error(`generate-content exited with ${signal ? `signal ${signal}` : `code ${code}`}`),
+        new Error(`generate-summaries exited with ${signal ? `signal ${signal}` : `code ${code}`}`),
       );
     });
   });

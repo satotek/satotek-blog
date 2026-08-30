@@ -9,8 +9,8 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "bun run generate-content && vp dev . --port 3000",
-    "generate-content": "bun scripts/generate-post-content.ts",
+    "dev": "bun run generate-summaries && vp dev . --port 3000",
+    "generate-summaries": "bun scripts/generate-post-summaries.ts",
     "generate-media-manifest": "bun scripts/generate-media-manifest.ts",
     "generate-ogp": "bun scripts/generate-ogp.tsx",
     "generate-ogp:all": "bun run generate-ogp -- --all",
@@ -21,9 +21,9 @@
     "format": "vp fmt",
     "test": "vp test run",
     "test:watch": "vp test",
-    "build": "bun run generate-content && vp build .",
+    "build": "bun run generate-summaries && vp build .",
     "preview": "vp preview .",
-    "check": "bun run generate-content && vp check",
+    "check": "bun run generate-summaries && vp check",
     "deploy": "bun run check && bun run test && bun run build && wrangler deploy",
     "cf-typegen": "wrangler types"
   },

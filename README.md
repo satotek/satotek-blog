@@ -9,11 +9,11 @@
 - `/posts/$slug` の記事ルート
 - カテゴリ／タグ一覧と記事一覧、`/page/N` のページ送り
 - `robots.txt`、サイトマップ、RSS、`llms.txt`、`security.txt`
-- `content/posts/<slug>/index.md` のfrontmatter付きMarkdown記事
+- `src/content/posts/<slug>/index.mdx` のfrontmatter付きMDX記事
 - 記事タイトル・カテゴリ・タグから生成する1200×630のOGP画像
 - レスポンシブ対応、キーボードフォーカス、OSのダークモード対応
 
-記事データは `PostRepository` の境界越しに取得しています。現在はGit管理のMarkdownをViteのglob importで取り込み、frontmatterを検証してremark/rehypeとShikiでビルド時にHTMLと目次へ変換しています。公開済みの画面とテキスト配信物は静的アセットとして配信し、将来のCMSプレビューやAPI用にTanStack StartのWorker SSRも残しています。CMSを導入する場合も、画面ルートから取得元を切り離したままアダプターを追加できます。
+記事データは `PostRepository` の境界越しに取得しています。現在はGit管理のMDXをViteのglob importで取り込み、frontmatterを検証したうえで、ビルド時にReactコンポーネントと目次へ変換しています。公開済みの画面とテキスト配信物は静的アセットとして配信し、将来のCMSプレビューやAPI用にTanStack StartのWorker SSRも残しています。CMSを導入する場合も、画面ルートから取得元を切り離したままアダプターを追加できます。
 
 ## 技術スタック
 
@@ -78,19 +78,19 @@ bunx wrangler secret put GA4_PRIVATE_KEY
 
 記事画像とサイト内のコンテンツ画像はGitに置かず、Cloudflare R2の `satotek-media` バケットから配信します。公開用カスタムドメインは `https://img.satotek.dev` です。faviconやPWA用アイコンなど、アプリの静的アセットだけは `public/` に残します。
 
-ローカルで作業中の画像は `.r2-media/` または `content/posts/<slug>/assets/` に置けます。どちらもGit管理対象外です。WranglerでCloudflareにログインした状態で、次のコマンドでアップロードします。
+ローカルで作業中の画像は `.r2-media/` または `src/content/posts/<slug>/assets/` に置けます。どちらもGit管理対象外です。WranglerでCloudflareにログインした状態で、次のコマンドでアップロードします。
 
 ```sh
 # 1枚アップロード。keyはR2上の公開パス
 bun run upload-media -- \
-  --file content/posts/first-post/assets/photo.webp \
+  --file src/content/posts/first-post/assets/photo.webp \
   --key first-post/photo.webp
 
 # .r2-media/ 以下を相対パスのまままとめてアップロード
 bun run upload-media -- --directory .r2-media
 ```
 
-アップロード後、Markdownでは出力された `https://img.satotek.dev/...` のURLを使います。
+アップロード後、記事では出力された `https://img.satotek.dev/...` のURLを使います。
 
 ```md
 ![写真](https://img.satotek.dev/first-post/photo.webp)
@@ -98,7 +98,7 @@ bun run upload-media -- --directory .r2-media
 
 `bun run deploy` はWorkerのデプロイだけを行い、画像を自動アップロードしません。画像を追加・差し替えたときは先に `bun run upload-media` を実行します。`upload-media` はS3 APIキーを直接扱わず、WranglerのCloudflare OAuth（CIでは `CLOUDFLARE_API_TOKEN`）を利用します。バケットを変更する場合は `R2_BUCKET_NAME` で上書きできます。
 
-`upload-media` は元画像に加えて、幅320 / 480 / 768 / 1200pxのAVIFとWebP派生画像も同時にアップロードします。サイト側は `content/media-manifest.json` に実在する形式だけを `picture` と `srcset` で利用します。既存画像へAVIFを追加した場合は、アップロード後に `bun run generate-media-manifest` を実行して形式情報を更新してください。OGP画像など派生画像が不要なファイルは `--no-variants` を付けてください。通常のビルドやデプロイでは、R2から画像を取得したり派生画像を生成したりしません。
+`upload-media` は元画像に加えて、幅320 / 480 / 768 / 1200pxのAVIFとWebP派生画像も同時にアップロードします。サイト側は `src/content/media-manifest.json` に実在する形式だけを `picture` と `srcset` で利用します。既存画像へAVIFを追加した場合は、アップロード後に `bun run generate-media-manifest` を実行して形式情報を更新してください。OGP画像など派生画像が不要なファイルは `--no-variants` を付けてください。通常のビルドやデプロイでは、R2から画像を取得したり派生画像を生成したりしません。
 
 `public/_headers` では、Viteが生成するハッシュ付きアセットと、ファイル名を固定して運用するフォントへ `Cache-Control: public, max-age=31536000, immutable` を付けています。Cloudflare Workersの静的アセットはCloudflare側でキャッシュされ、テキスト系のレスポンスは対応クライアントへ圧縮して配信されます。
 
@@ -128,7 +128,7 @@ VITE_OGP_BASE_URL=https://img.satotek.dev
 
 既存のR2メディアバケットに紐づく `img.satotek.dev` を使用し、記事ページは `https://img.satotek.dev/blog/ogp/<slug>.png` を `og:image` として使用します。未設定の場合は、R2上の `https://img.satotek.dev/site/og-image.png` にフォールバックします。
 
-記事Markdownが`main`へマージされると、`.github/workflows/generate-ogp.yaml` が変更された記事だけを生成してR2へアップロードします。GitHubリポジトリには次のActions Secretsを登録してください。
+記事が`main`へマージされると、`.github/workflows/generate-ogp.yaml` が変更された記事だけを生成してR2へアップロードします。GitHubリポジトリには次のActions Secretsを登録してください。
 
 - `R2_ACCOUNT_ID`
 - `R2_ACCESS_KEY_ID`
@@ -150,7 +150,7 @@ bunx wrangler whoami
 bun run deploy
 ```
 
-`bun run deploy` は、MarkdownのHTML生成、Vite+のチェック、Cloudflare向けビルド、`wrangler deploy` を順に実行します。実行前にローカルで表示と主要ルートを確認してください。
+`bun run deploy` は、記事サマリの生成、Vite+のチェック、Cloudflare向けビルド、`wrangler deploy` を順に実行します。実行前にローカルで表示と主要ルートを確認してください。
 
 `.env.local`、`.env.*`、`.dev.vars*` はGit管理対象外です。APIキー、秘密鍵、サービスアカウント認証情報などをリポジトリへ追加しないでください。GA4の測定IDは `.env.local` の `VITE_GA_MEASUREMENT_ID` で渡します。
 
@@ -165,7 +165,7 @@ bun run build
 bun run preview
 ```
 
-`bun run check` はMarkdownのHTML生成と、Vite+によるリポジトリ全体のフォーマット・Lint・TypeScriptの型検査を実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run test` は一度だけテストを実行し、`bun run test:watch` は監視モードで実行します。`bun run dev` は起動時にMarkdownのHTMLを生成してから開発サーバーを起動し、起動後も `content/posts/*/index.md` の変更を検知して再生成・ブラウザ更新を行います。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
+`bun run check` は記事サマリの生成と、Vite+によるリポジトリ全体のフォーマット・Lint・TypeScriptの型検査を実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run test` は一度だけテストを実行し、`bun run test:watch` は監視モードで実行します。`bun run dev` は起動時に記事サマリを生成してから開発サーバーを起動し、起動後も `src/content/posts/*/index.mdx` の変更を検知して再生成・ブラウザ更新を行います。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
 
 ### WebMCP PoC
 
@@ -182,25 +182,27 @@ Chrome Origin Trialを使う場合は、対象origin用のトークンを `.env.
 ## ディレクトリ構成
 
 ```text
-content/
-├── posts/                  Git管理するMarkdown記事
-└── .generated/             ビルド時に生成するHTMLと目次
-
 packages/
-└── content-pipeline/       Shikiを含むMarkdown変換専用パッケージ
+└── content-pipeline/       MDXのビルド時変換と画像処理
 
 src/
 ├── analytics/               GA4ビーコンと人気記事取得の境界
-├── components/              React Ariaを使う操作部品、記事カード、一覧
-├── content/                 PostRepositoryとMarkdownソースの読み込み
+├── components/
+│   ├── article/             記事本文の構成部品（MDXのcomponentsマップ、目次）
+│   └── ui/                  React Ariaを使う操作部品
+├── content/                 散文のみ
+│   ├── posts/               Git管理するMDX記事とローカル画像
+│   ├── media-manifest.json  画像の実寸と配信形式
+│   └── .generated/          ビルド時に生成する一覧用サマリ
 ├── data/                    カテゴリ・タグなどのサイト分類データ
-├── lib/                     ページ送り、サイトURLなどの共通処理
+├── lib/
+│   └── posts/               PostRepositoryとMDXソースの読み込み
 ├── routes/                  画面ルートと配信メタデータのサーバールート
 ├── server/                  RSS、サイトマップ、robotsなどのレスポンス生成
 └── styles.css               Tailwind CSSのエントリーポイントとデザイントークン
 ```
 
-`scripts/generate-post-content.ts` は `packages/content-pipeline` のMarkdown変換処理を呼び出し、公開MarkdownをShikiで変換して `content/.generated/` にビルド用のHTMLと目次を生成します。変換系の依存関係とOniguruma WASMはこのパッケージに閉じているため、ルートアプリの本番依存関係には含まれません。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` はGit管理外の画像をR2へアップロードします。これらのディレクトリは生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
+`scripts/generate-post-summaries.ts` は公開記事のfrontmatterを検証し、一覧用のサマリを `src/content/.generated/` に生成します。本文と目次はMDXモジュール自身が持つため、ここでは書き出しません。変換系の依存関係は `packages/content-pipeline` に閉じているため、ルートアプリの本番依存関係には含まれません。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` はGit管理外の画像をR2へアップロードします。これらのディレクトリは生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
 
 `src/routeTree.gen.ts` はTanStack Routerが生成するファイルです。ルートファイルを追加したときは、必要に応じて次を実行します。
 
@@ -210,9 +212,9 @@ bun run generate-routes
 
 ## 今後の拡張方針
 
-まずはGit管理Markdownを記事のsource of truthとして運用します。
+まずはGit管理のMDXを記事のsource of truthとして運用します。
 
 - Headless CMSは、複数人編集・Web上の執筆・承認フローなどが必要になった段階でRepositoryアダプターとして追加する
 - ElysiaなどのAPIフレームワークは、管理APIやWebhookなどの具体的な要件が出た段階で別Workerとして追加する
 - 人気記事を Cloudflare Web Analytics の集計から作るか、定期生成した静的データとして配るか
-- 検索、隠しゲーム、記事本文のMarkdown表示をどの順番で復元するか
+- 検索、隠しゲーム、記事本文の表示をどの順番で復元するか

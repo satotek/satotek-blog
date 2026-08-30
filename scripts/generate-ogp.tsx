@@ -160,7 +160,7 @@ async function readSources(options: CliOptions) {
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    const source = await readPost(join(postsDirectory, entry.name, "index.md"), options, true);
+    const source = await readPost(join(postsDirectory, entry.name, "index.mdx"), options, true);
     if (!source.draft) sources.push(source);
   }
 
