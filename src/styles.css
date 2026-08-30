@@ -495,7 +495,20 @@
     background: var(--code-bar);
   }
 
-  .code-block__name {
+  .code-block__meta {
+    display: inline-flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .code-block__filename {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
     overflow: hidden;
     color: var(--muted);
     font-family: var(--mono);
@@ -503,6 +516,27 @@
     letter-spacing: 0.04em;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .code-block__icon {
+    color: var(--accent);
+    font-size: 0.7rem;
+  }
+
+  /* 言語はピル型にして、ファイル名と一目で区別できるようにする。 */
+  .code-block__lang {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    padding: 0 7px;
+    border: 1px solid var(--code-border);
+    border-radius: 999px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    text-transform: lowercase;
   }
 
   .markdown-body pre {

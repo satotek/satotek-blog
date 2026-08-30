@@ -39,7 +39,10 @@ async function copyText(text: string) {
 export function CodeBlock({ children, ...props }: CodeBlockProps) {
   const preRef = useRef<HTMLPreElement>(null);
   const [copied, setCopied] = useState(false);
-  const name = props["data-title"] ?? props["data-lang"] ?? "";
+  // ファイル名と言語は別物なので併記する。title を書いた途端に言語が消えると
+  // 「これは何のコードか」が読み取れなくなる。値の解釈はビルド時に済んでいる。
+  const filename = props["data-title"];
+  const lang = props["data-lang"];
 
   const handlePress = async () => {
     const code = preRef.current?.textContent ?? "";
@@ -57,9 +60,19 @@ export function CodeBlock({ children, ...props }: CodeBlockProps) {
   return (
     <div className="code-block">
       <div className="code-block__bar">
-        <span className="code-block__name">{name}</span>
+        <span className="code-block__meta">
+          {filename ? (
+            <span className="code-block__filename">
+              <span aria-hidden="true" className="code-block__icon">
+                ▸
+              </span>
+              {filename}
+            </span>
+          ) : null}
+          {lang ? <span className="code-block__lang">{lang}</span> : null}
+        </span>
         <Button
-          aria-label={copied ? "コードをコピーしました" : "コードをコピー"}
+          aria-label="コードをコピー"
           className="copy-btn"
           onPress={handlePress}
           type="button"
@@ -70,6 +83,10 @@ export function CodeBlock({ children, ...props }: CodeBlockProps) {
             <Copy aria-hidden="true" className="icon-copy" size={16} />
           )}
         </Button>
+        {/* aria-label の差し替えでは、フォーカスが外れていると結果が伝わらない。 */}
+        <span aria-atomic="true" aria-live="polite" className="sr-only" role="status">
+          {copied ? "コードをコピーしました" : ""}
+        </span>
       </div>
       <pre ref={preRef} {...props}>
         {children}
