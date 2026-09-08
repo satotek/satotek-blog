@@ -1,4 +1,14 @@
 @import "tailwindcss";
+/* pl-* クラスの色規則。値は :root の --color-prettylights-syntax-* が持つ。 */
+@import "@satotek/content-pipeline/highlight.css";
+
+/* GitHub の Nix 文法は `"${...}"` を鍵にした属性の直後の = と ; を invalid として
+   拾う。文法側の都合でしかないので、赤い枠は出さず素の文字として見せる。
+   core.css はレイヤ外なので、打ち消す側もレイヤ外に置く必要がある。 */
+.pl-ii {
+  background-color: transparent;
+  color: inherit;
+}
 
 @theme inline {
   --breakpoint-sm: 641px;
@@ -26,6 +36,40 @@
    色は light-dark() が自動で追従するので、OS 追従に JS の購読は要らない。 */
 :root {
   color-scheme: light dark;
+
+  /* シンタックスハイライトのトークン色。starry-night の light.css / dark.css を
+     light-dark() に畳んだもの。規則本体は core.css を @import している。 */
+  --color-prettylights-syntax-brackethighlighter-angle: light-dark(#59636e, #9198a1);
+  --color-prettylights-syntax-brackethighlighter-unmatched: light-dark(#82071e, #f85149);
+  --color-prettylights-syntax-carriage-return-bg: light-dark(#cf222e, #b62324);
+  --color-prettylights-syntax-carriage-return-text: light-dark(#f6f8fa, #f0f6fc);
+  --color-prettylights-syntax-comment: light-dark(#59636e, #9198a1);
+  --color-prettylights-syntax-constant: light-dark(#0550ae, #79c0ff);
+  --color-prettylights-syntax-constant-other-reference-link: light-dark(#0a3069, #a5d6ff);
+  --color-prettylights-syntax-entity: light-dark(#6639ba, #d2a8ff);
+  --color-prettylights-syntax-entity-tag: light-dark(#0550ae, #7ee787);
+  --color-prettylights-syntax-invalid-illegal-bg: light-dark(#82071e, #8e1519);
+  --color-prettylights-syntax-invalid-illegal-text: light-dark(#f6f8fa, #f0f6fc);
+  --color-prettylights-syntax-keyword: light-dark(#cf222e, #ff7b72);
+  --color-prettylights-syntax-markup-changed-bg: light-dark(#ffd8b5, #5a1e02);
+  --color-prettylights-syntax-markup-changed-text: light-dark(#953800, #ffdfb6);
+  --color-prettylights-syntax-markup-deleted-bg: light-dark(#ffebe9, #67060c);
+  --color-prettylights-syntax-markup-deleted-text: light-dark(#82071e, #ffdcd7);
+  --color-prettylights-syntax-markup-heading: light-dark(#0550ae, #1f6feb);
+  --color-prettylights-syntax-markup-ignored-bg: light-dark(#0550ae, #1158c7);
+  --color-prettylights-syntax-markup-ignored-text: light-dark(#d1d9e0, #f0f6fc);
+  --color-prettylights-syntax-markup-inserted-bg: light-dark(#dafbe1, #033a16);
+  --color-prettylights-syntax-markup-inserted-text: light-dark(#116329, #aff5b4);
+  --color-prettylights-syntax-markup-list: light-dark(#3b2300, #f2cc60);
+  --color-prettylights-syntax-meta-diff-range: light-dark(#8250df, #d2a8ff);
+  --color-prettylights-syntax-string: light-dark(#0a3069, #a5d6ff);
+  --color-prettylights-syntax-string-regexp: light-dark(#116329, #7ee787);
+  --color-prettylights-syntax-sublimelinter-gutter-mark: light-dark(#818b98, #3d444d);
+  --color-prettylights-syntax-variable: light-dark(#953800, #ffa657);
+  --color-prettylights-syntax-markup-bold: light-dark(#1f2328, #f0f6fc);
+  --color-prettylights-syntax-markup-italic: light-dark(#1f2328, #f0f6fc);
+  --color-prettylights-syntax-storage-modifier-import: light-dark(#1f2328, #f0f6fc);
+
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* テーマ切り替えアニメーションの進行度。light-dark() は色専用なので数値はここで分岐する。 */
@@ -688,22 +732,6 @@
     font-size: 0.7rem;
   }
 
-  /* 言語はピル型にして、ファイル名と一目で区別できるようにする。 */
-  .code-block__lang {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    padding: 0 7px;
-    border: 1px solid var(--code-border);
-    border-radius: 999px;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.04em;
-    line-height: 1.5;
-    text-transform: lowercase;
-  }
-
   .markdown-body pre {
     overflow-x: auto;
     margin: 0;
@@ -757,49 +785,6 @@
 
   .copy-btn .icon-check {
     color: var(--code-add);
-  }
-
-  .markdown-body pre .line {
-    display: inline-block;
-    width: 100%;
-    margin: 0 -4px;
-    padding: 0 4px;
-    border-left: 2px solid transparent;
-  }
-
-  .markdown-body pre .line.highlighted {
-    border-left-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-  }
-
-  .markdown-body pre .line.diff.add {
-    border-left-color: var(--code-add);
-    background: color-mix(in srgb, var(--code-add) 15%, transparent);
-  }
-
-  .markdown-body pre .line.diff.remove {
-    border-left-color: var(--code-remove);
-    background: color-mix(in srgb, var(--code-remove) 15%, transparent);
-    opacity: 0.8;
-  }
-
-  .markdown-body pre .line.diff.add::before {
-    color: var(--code-add);
-    content: "+";
-  }
-
-  .markdown-body pre .line.diff.remove::before {
-    color: var(--code-remove);
-    content: "-";
-  }
-
-  .markdown-body pre.has-focused .line:not(.focused) {
-    opacity: 0.45;
-    transition: opacity 200ms ease;
-  }
-
-  .markdown-body pre.has-focused:hover .line:not(.focused) {
-    opacity: 1;
   }
 
   .markdown-body table {
@@ -1188,8 +1173,7 @@
     .toc-mobile-trigger,
     .toc-sheet-close,
     .copy-btn,
-    .markdown-body .heading-anchor,
-    .markdown-body pre.has-focused .line:not(.focused) {
+    .markdown-body .heading-anchor {
       transition: none;
     }
   }

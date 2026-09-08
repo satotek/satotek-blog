@@ -1,0 +1,3 @@
+/* starry-night が出す pl-* クラスの色規則。値は利用側の
+   --color-prettylights-syntax-* が持つ（src/styles.css を参照）。 */
+@import "@wooorm/starry-night/style/core";

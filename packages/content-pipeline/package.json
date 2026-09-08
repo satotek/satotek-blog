@@ -6,15 +6,14 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
-    }
+    },
+    "./highlight.css": "./src/highlight.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@shikijs/rehype": "^4.4.3",
-    "@shikijs/transformers": "^4.4.3",
-    "@tanstack/highlight": "^0.0.10",
+    "@wooorm/starry-night": "^3.11.0",
     "estree-util-value-to-estree": "^3.5.0",
     "github-slugger": "^2.0.0",
     "mdast-util-to-string": "^4.0.0",

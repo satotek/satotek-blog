@@ -1,6 +1,7 @@
 export { createMdxPlugins } from "./mdx.ts";
 export { remarkExportToc } from "./remark-toc.ts";
-export { rehypeImageFigure, rehypeResponsiveImages, transformerCodeChrome } from "./plugins.ts";
+export { rehypeImageFigure, rehypeResponsiveImages } from "./plugins.ts";
+export { rehypeCodeBlocks } from "./highlight.ts";
 export type { ImageResolverOptions, ResolvedImage } from "./plugins.ts";
 export {
   MEDIA_VARIANT_FORMATS,

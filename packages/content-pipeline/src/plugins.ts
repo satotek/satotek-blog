@@ -48,30 +48,6 @@ export function rehypeImageFigure() {
   };
 }
 
-export function transformerCodeChrome() {
-  return {
-    name: "code-chrome",
-    pre(this: { options?: { lang?: string; meta?: { __raw?: string } } }, node: Element) {
-      const raw = this.options?.meta?.__raw;
-      const title = raw?.match(/title=("([^"]*)"|'([^']*)'|(\S+))/);
-      const value = title?.[2] ?? title?.[3] ?? title?.[4];
-      if (value) node.properties["data-title"] = value;
-
-      const lang = this.options?.lang;
-      if (lang && lang !== "text") node.properties["data-lang"] = lang;
-
-      // テーマの背景色は捨てて、サイト側の面色（--code-surface）で塗る。
-      const style = node.properties.style;
-      if (typeof style === "string") {
-        node.properties.style = style
-          .replace(/(?:^|;)\s*background-color:[^;]*/g, "")
-          .replace(/(?:^|;)\s*--shiki-(?:light|dark)-bg:[^;]*/g, "")
-          .replace(/^;+/, "");
-      }
-    },
-  };
-}
-
 function positiveInteger(value: unknown) {
   const numeric = typeof value === "string" ? Number(value) : value;
   return typeof numeric === "number" && Number.isFinite(numeric) && numeric > 0

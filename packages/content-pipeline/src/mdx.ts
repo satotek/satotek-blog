@@ -1,23 +1,12 @@
 import type { PluggableList } from "unified";
 
-import rehypeShiki from "@shikijs/rehype";
-import {
-  transformerMetaHighlight,
-  transformerNotationDiff,
-  transformerNotationFocus,
-  transformerNotationHighlight,
-} from "@shikijs/transformers";
 import rehypeSlug from "rehype-slug";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 
-import {
-  rehypeImageFigure,
-  rehypeResponsiveImages,
-  transformerCodeChrome,
-  type ImageResolverOptions,
-} from "./plugins.ts";
+import { rehypeCodeBlocks } from "./highlight.ts";
+import { rehypeImageFigure, rehypeResponsiveImages, type ImageResolverOptions } from "./plugins.ts";
 import { remarkExportToc } from "./remark-toc.ts";
 
 /**
@@ -42,23 +31,7 @@ export function createMdxPlugins(options: ImageResolverOptions = {}): {
       rehypeImageFigure,
       [rehypeResponsiveImages, options.resolveImage],
       rehypeSlug,
-      [
-        rehypeShiki,
-        {
-          // light-dark() を直接出すので、CSS 側の上書きも !important も要らない。
-          defaultColor: "light-dark()",
-          defaultLanguage: "text",
-          fallbackLanguage: "text",
-          themes: { dark: "github-dark", light: "github-light" },
-          transformers: [
-            transformerNotationDiff(),
-            transformerNotationHighlight(),
-            transformerNotationFocus(),
-            transformerMetaHighlight(),
-            transformerCodeChrome(),
-          ],
-        },
-      ],
+      rehypeCodeBlocks,
     ],
   };
 }

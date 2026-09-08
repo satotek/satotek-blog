@@ -5,7 +5,6 @@ import { Button } from "#/components/ui";
 
 type CodeBlockProps = HTMLAttributes<HTMLPreElement> & {
   "data-title"?: string;
-  "data-lang"?: string;
 };
 
 async function copyText(text: string) {
@@ -39,10 +38,9 @@ async function copyText(text: string) {
 export function CodeBlock({ children, ...props }: CodeBlockProps) {
   const preRef = useRef<HTMLPreElement>(null);
   const [copied, setCopied] = useState(false);
-  // ファイル名と言語は別物なので併記する。title を書いた途端に言語が消えると
-  // 「これは何のコードか」が読み取れなくなる。値の解釈はビルド時に済んでいる。
+  // 言語はハイライトの色が示すので、ラベルとしては出さない。バーに載せるのは
+  // 場所の情報（どのファイルか）だけにする。値の解釈はビルド時に済んでいる。
   const filename = props["data-title"];
-  const lang = props["data-lang"];
 
   const handlePress = async () => {
     const code = preRef.current?.textContent ?? "";
@@ -69,7 +67,6 @@ export function CodeBlock({ children, ...props }: CodeBlockProps) {
               {filename}
             </span>
           ) : null}
-          {lang ? <span className="code-block__lang">{lang}</span> : null}
         </span>
         <Button
           aria-label="コードをコピー"
