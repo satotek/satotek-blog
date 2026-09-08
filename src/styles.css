@@ -706,6 +706,7 @@
     font-family: var(--mono);
     font-size: 0.875rem;
     line-height: 1.7;
+    font-variant-ligatures: none;
     scrollbar-color: oklch(from var(--fg) l c h / 22%) transparent;
     scrollbar-width: thin;
     tab-size: 2;
