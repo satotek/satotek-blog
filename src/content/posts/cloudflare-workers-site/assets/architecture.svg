@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="640" viewBox="0 0 1180 640" font-family="system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+    <marker id="arrowO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#B85C12"/>
+    </marker>
+    <marker id="arrowP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9673A6"/>
+    </marker>
+
+    <!-- Cloudflare-style cloud mark -->
+    <symbol id="ico-cloud" viewBox="0 0 40 26">
+      <path d="M9,25 a8.5,8.5 0 0,1 -1,-16.6 a11,11 0 0,1 21,-1 a7.2,7.2 0 0,1 2,17.6 z" fill="currentColor"/>
+    </symbol>
+    <!-- Markdown mark -->
+    <symbol id="ico-md" viewBox="0 0 32 20">
+      <rect x="1.2" y="1.2" width="29.6" height="17.6" rx="3" fill="#ffffff" stroke="#333" stroke-width="2"/>
+      <path d="M6,15 V6 l4,4 l4,-4 V15" fill="none" stroke="#333" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M23,5 V13 M23,13 l-3,-3 M23,13 l3,-3" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Hono flame -->
+    <symbol id="ico-flame" viewBox="0 0 24 26">
+      <path d="M12,1 C9,7 4,9 5,16 a7,7 0 0,0 14,0 C19,11 16,10 15,6 C14,9 13,9 12,8 C11,6 12,3 12,1 Z" fill="#F38020"/>
+      <path d="M12,12 C10.5,14 9.2,15 10,18.5 a3,3 0 0,0 5.6,-0.6 C15.8,15.5 14,14.6 14,12.6 C13.3,13.8 12.6,13.6 12,12 Z" fill="#FFC83D"/>
+    </symbol>
+    <!-- Browser window -->
+    <symbol id="ico-browser" viewBox="0 0 28 22">
+      <rect x="1.2" y="1.2" width="25.6" height="19.6" rx="3" fill="#ffffff" stroke="#666" stroke-width="2"/>
+      <path d="M1.2,7.5 H26.8" stroke="#666" stroke-width="2"/>
+      <circle cx="5" cy="4.3" r="1.2" fill="#999"/>
+      <circle cx="9" cy="4.3" r="1.2" fill="#999"/>
+      <circle cx="13" cy="4.3" r="1.2" fill="#999"/>
+    </symbol>
+    <!-- Bar chart -->
+    <symbol id="ico-chart" viewBox="0 0 24 22">
+      <rect x="2" y="12" width="5" height="8" rx="1" fill="#9673A6"/>
+      <rect x="9.5" y="7" width="5" height="13" rx="1" fill="#9673A6"/>
+      <rect x="17" y="3" width="5" height="17" rx="1" fill="#9673A6"/>
+    </symbol>
+  </defs>
+
+  <!-- card background (keeps it readable on dark theme too) -->
+  <rect x="0" y="0" width="1180" height="640" rx="14" fill="#ffffff" stroke="#e5e7eb"/>
+
+  <!-- ===== Build group ===== -->
+  <rect x="24" y="24" width="372" height="592" rx="8" fill="#EAF2FD" stroke="#6C8EBF"/>
+  <text x="44" y="52" font-size="17" font-weight="700" fill="#1f3a5f">① ビルド時（ローカル / CI）</text>
+
+  <rect x="56" y="74" width="308" height="58" rx="8" fill="#DAE8FC" stroke="#6C8EBF"/>
+  <use href="#ico-md" x="68" y="93" width="30" height="19"/>
+  <text x="222" y="98" font-size="14" font-weight="600" text-anchor="middle" fill="#13294b">content/posts/*.md</text>
+  <text x="222" y="118" font-size="12" text-anchor="middle" fill="#33507a">（Markdown 記事）</text>
+
+  <rect x="56" y="166" width="308" height="64" rx="8" fill="#D5E8D4" stroke="#82B366"/>
+  <text x="210" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1e3d1e">build:posts</text>
+  <text x="210" y="210" font-size="11.5" text-anchor="middle" fill="#33602f">remark / rehype・Shiki・KaTeX で HTML 化</text>
+
+  <rect x="56" y="264" width="308" height="58" rx="8" fill="#DAE8FC" stroke="#6C8EBF"/>
+  <text x="210" y="288" font-size="14" font-weight="600" text-anchor="middle" fill="#13294b">src/generated/*.ts</text>
+  <text x="210" y="308" font-size="11.5" text-anchor="middle" fill="#33507a">posts.ts / styles.ts / icons.ts</text>
+
+  <rect x="56" y="356" width="308" height="72" rx="8" fill="#D5E8D4" stroke="#82B366"/>
+  <text x="210" y="384" font-size="14" font-weight="600" text-anchor="middle" fill="#1e3d1e">build:site</text>
+  <text x="210" y="404" font-size="11.5" text-anchor="middle" fill="#33602f">Hono の app.request() で</text>
+  <text x="210" y="420" font-size="11.5" text-anchor="middle" fill="#33602f">全ルートを描画</text>
+
+  <rect x="56" y="462" width="308" height="58" rx="8" fill="#FFE6CC" stroke="#D79B00"/>
+  <text x="210" y="486" font-size="14" font-weight="600" text-anchor="middle" fill="#7a4b00">public/**</text>
+  <text x="210" y="506" font-size="11.5" text-anchor="middle" fill="#9a6300">静的 HTML・OG画像（事前生成）</text>
+
+  <line x1="210" y1="132" x2="210" y2="164" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="210" y1="230" x2="210" y2="262" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="210" y1="322" x2="210" y2="354" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="210" y1="428" x2="210" y2="460" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ===== Deploy bridge ===== -->
+  <rect x="430" y="450" width="146" height="80" rx="10" fill="#F38020" stroke="#B85C12"/>
+  <use href="#ico-cloud" x="440" y="459" width="26" height="17" color="#ffffff"/>
+  <text x="503" y="490" font-size="14" font-weight="700" text-anchor="middle" fill="#ffffff">wrangler deploy</text>
+  <text x="503" y="512" font-size="12" text-anchor="middle" fill="#fff4e8">⬆ アップロード</text>
+  <line x1="364" y1="491" x2="428" y2="491" stroke="#B85C12" stroke-width="2" marker-end="url(#arrowO)"/>
+
+  <!-- ===== Edge group ===== -->
+  <rect x="612" y="24" width="544" height="592" rx="8" fill="#FFF2E6" stroke="#F38020"/>
+  <use href="#ico-cloud" x="1086" y="32" width="46" height="30" color="#F38020"/>
+  <text x="632" y="52" font-size="17" font-weight="700" fill="#8a4a12">② 配信時（Cloudflare エッジ）</text>
+
+  <rect x="744" y="70" width="180" height="48" rx="8" fill="#F5F5F5" stroke="#666"/>
+  <use href="#ico-browser" x="754" y="83" width="26" height="20"/>
+  <text x="848" y="99" font-size="13.5" font-weight="600" text-anchor="middle" fill="#333">ブラウザ / 読者</text>
+
+  <rect x="640" y="160" width="488" height="62" rx="8" fill="#D5E8D4" stroke="#82B366"/>
+  <use href="#ico-cloud" x="654" y="178" width="30" height="20" color="#82B366"/>
+  <text x="892" y="186" font-size="14" font-weight="600" text-anchor="middle" fill="#1e3d1e">Static Assets（エッジ配信）</text>
+  <text x="892" y="206" font-size="11.5" text-anchor="middle" fill="#33602f">HTML / CSS / フォント / アイコン / 画像</text>
+
+  <rect x="640" y="262" width="488" height="140" rx="8" fill="#FFF2CC" stroke="#D6B656"/>
+  <use href="#ico-flame" x="1096" y="270" width="22" height="24"/>
+  <text x="884" y="288" font-size="14" font-weight="700" text-anchor="middle" fill="#6b551b">Worker（Hono）</text>
+  <text x="884" y="307" font-size="11.5" text-anchor="middle" fill="#6b551b">SSG されない動的ルートを担当</text>
+  <text x="784" y="335" font-size="12" fill="#5a4a18">• sitemap.xml / robots.txt</text>
+  <text x="784" y="358" font-size="12" fill="#5a4a18">• リダイレクト（旧 URL の正規化）</text>
+  <text x="784" y="381" font-size="12" fill="#5a4a18">• 404 / 500 エラーページ</text>
+
+  <rect x="640" y="468" width="488" height="58" rx="8" fill="#E1D5E7" stroke="#9673A6"/>
+  <use href="#ico-chart" x="654" y="486" width="22" height="20"/>
+  <text x="894" y="492" font-size="14" font-weight="600" text-anchor="middle" fill="#4a2f59">Cloudflare Web Analytics</text>
+  <text x="894" y="512" font-size="11.5" text-anchor="middle" fill="#6a4a7a">Cookie / localStorage 不使用の計測</text>
+
+  <!-- edge flow arrows -->
+  <line x1="834" y1="118" x2="834" y2="158" stroke="#82B366" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="848" y="142" font-size="11" fill="#3f6b2f">HTTP リクエスト</text>
+  <line x1="884" y1="222" x2="884" y2="260" stroke="#D6B656" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="898" y="246" font-size="11" fill="#8a6f1f">アセットが無ければフォールバック</text>
+
+  <!-- measurement beacon: down the right margin, clear of all boxes -->
+  <path d="M924,96 C1010,100 1146,124 1146,158 L1146,492 C1146,500 1140,497 1130,497" fill="none" stroke="#9673A6" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrowP)"/>
+  <text x="1058" y="112" font-size="11" text-anchor="middle" fill="#6a4a7a">計測ビーコン</text>
+
+  <!-- deploy -> edge (uploads), routed through the gap, no box crossings -->
+  <path d="M548,452 C600,410 612,250 638,196" fill="none" stroke="#B85C12" stroke-width="2" marker-end="url(#arrowO)"/>
+  <path d="M576,498 C606,475 618,400 638,358" fill="none" stroke="#B85C12" stroke-width="2" marker-end="url(#arrowO)"/>
+</svg>

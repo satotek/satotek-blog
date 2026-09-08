@@ -1,6 +1,8 @@
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 
+import { MEDIA_BASE_URL } from "../site";
+import { mediaUrlForKey, postAssetKey } from "./post-assets";
 import { countReadingMinutes, type PostSummary } from "./types";
 
 const postFrontmatterSchema = z
@@ -11,7 +13,7 @@ const postFrontmatterSchema = z
     draft: z.boolean().default(false),
     description: z.string().default(""),
     tags: z.array(z.string()).default([]),
-    cover: z.string().url().optional(),
+    cover: z.string().min(1).optional(),
   })
   .strict();
 
@@ -21,6 +23,17 @@ export type PostSource = {
   summary: PostSummary;
   markdown: string;
 };
+
+/**
+ * 原文の `./assets/photo.webp` を配信 URL に開く。MDX 本文は rehype 側が
+ * 同じことをするが、cover と llms-full.txt は原文のまま扱うのでここで解く。
+ */
+function resolveAssetPath(slug: string, source: string) {
+  const key = postAssetKey(slug, source);
+  return key ? mediaUrlForKey(MEDIA_BASE_URL, key) : source;
+}
+
+const markdownImagePattern = /(!\[[^\]]*\]\()(\.\/assets\/[^\s)]+)/g;
 
 function splitFrontmatter(source: string) {
   const match = /^(?:\uFEFF)?---\s*\r?\n([\s\S]*?)\r?\n---(?:\s*\r?\n|$)/.exec(source);
@@ -35,10 +48,15 @@ function splitFrontmatter(source: string) {
 }
 
 export function parsePostSource(source: string, slug: string): PostSource {
-  const { frontmatter, markdown } = splitFrontmatter(source);
+  const { frontmatter, markdown: authored } = splitFrontmatter(source);
   const metadata = postFrontmatterSchema.parse(frontmatter);
   const { draft, cover, ...summaryMetadata } = metadata;
+  const markdown = authored.replace(
+    markdownImagePattern,
+    (_match, prefix: string, path: string) => `${prefix}${resolveAssetPath(slug, path)}`,
+  );
   const firstImage = /!\[[^\]]*\]\((\S+?)(?:\s+"[^"]*")?\)/.exec(markdown)?.[1];
+  const resolvedCover = cover ? resolveAssetPath(slug, cover) : undefined;
 
   return {
     slug,
@@ -47,7 +65,7 @@ export function parsePostSource(source: string, slug: string): PostSource {
       ...summaryMetadata,
       slug,
       readingMinutes: countReadingMinutes(markdown),
-      ...(cover || firstImage ? { cover: cover ?? firstImage } : {}),
+      ...(resolvedCover || firstImage ? { cover: resolvedCover ?? firstImage } : {}),
     },
     markdown,
   };

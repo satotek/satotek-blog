@@ -18,7 +18,6 @@ worker-configuration.d.ts
 .vinxi
 .design-home
 src/content/.generated/
-src/content/posts/**/assets/
 .ogp/
 .r2-media/
 .playwright-mcp/

@@ -19,7 +19,7 @@ tags:
 
 全体像はこんな感じです。ビルド時に Markdown を静的 HTML 化しておき、配信時は Cloudflare のエッジから静的アセットを返す。動的な処理だけ Worker（Hono）がフォールバックで受け持つ、という構成です。
 
-![システム構成図：ビルド時に Markdown を静的HTML化し、配信時は Cloudflare エッジから静的アセットを返す](https://img.satotek.dev/cloudflare-workers-site/architecture.svg)
+![システム構成図：ビルド時に Markdown を静的HTML化し、配信時は Cloudflare エッジから静的アセットを返す](./assets/architecture.svg)
 
 ## なぜ Azure ではなく Cloudflare にしたのか
 

@@ -1,6 +1,9 @@
 const rasterExtensions = new Set([".avif", ".jpeg", ".jpg", ".png", ".webp"]);
 const mediaVariantWidths = [320, 480, 768, 1200] as const;
-const defaultMediaVariantFormats = ["webp"] as const;
+// upload-media は原本ごとに AVIF と WebP を必ず両方焼く。ここも同じ前提で書く。
+// <picture> は対応フォーマットだけで <source> を選び、その URL が 404 でも
+// 次の <source> へは落ちない。片方でも欠けている画像を通してはいけない。
+const defaultMediaVariantFormats = ["avif", "webp"] as const;
 
 export type MediaVariantFormat = "avif" | "webp";
 

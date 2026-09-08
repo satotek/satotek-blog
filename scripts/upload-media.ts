@@ -28,6 +28,7 @@ type Options = {
   file?: string;
   help: boolean;
   key?: string;
+  posts: boolean;
   prefix: string;
   variants: boolean;
 };
@@ -39,10 +40,12 @@ type Upload = {
 
 function printUsage() {
   console.log(`Usage:
+  bun run upload-media -- --posts
   bun run upload-media -- --file <path> --key <r2-key>
   bun run upload-media -- --directory <path> [--prefix <r2-prefix>]
 
 Options:
+  --posts             Upload every src/content/posts/*/assets/ file, keyed by slug.
   --file <path>       Upload one local image file.
   --key <r2-key>      Destination key, for example first-post/photo.webp.
   --directory <path>  Upload every file under a local directory.
@@ -68,6 +71,7 @@ function parseArgs(args: readonly string[]): Options {
   const options: Options = {
     bucket: process.env.R2_BUCKET_NAME?.trim() || defaultBucket,
     help: false,
+    posts: false,
     prefix: "",
     variants: true,
   };
@@ -91,6 +95,9 @@ function parseArgs(args: readonly string[]): Options {
       case "--key":
         options.key = requiredValue(args, ++index, "--key");
         break;
+      case "--posts":
+        options.posts = true;
+        break;
       case "--prefix":
         options.prefix = requiredValue(args, ++index, "--prefix");
         break;
@@ -102,12 +109,12 @@ function parseArgs(args: readonly string[]): Options {
     }
   }
 
-  if (options.file && options.directory) {
-    throw new Error("--file and --directory cannot be used together");
+  if ([options.file, options.directory, options.posts || undefined].filter(Boolean).length > 1) {
+    throw new Error("--posts, --file and --directory cannot be combined");
   }
 
-  if (!options.help && !options.file && !options.directory) {
-    throw new Error("Specify --file or --directory");
+  if (!options.help && !options.file && !options.directory && !options.posts) {
+    throw new Error("Specify --posts, --file or --directory");
   }
 
   if (options.file && !options.key) {
@@ -148,7 +155,39 @@ async function collectFiles(directory: string): Promise<string[]> {
   return files.sort();
 }
 
+/**
+ * 記事の原本は index.mdx の隣の assets/ にある。R2 のキーは記事の slug から
+ * 導けるので、記事を書く側がキーを打ち込む必要はない。
+ */
+async function createPostUploads(): Promise<Upload[]> {
+  const postsDirectory = join(projectRoot, "src/content/posts");
+  const uploads: Upload[] = [];
+
+  for (const entry of await readdir(postsDirectory, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+
+    const assetsDirectory = join(postsDirectory, entry.name, "assets");
+    let files: string[];
+    try {
+      files = await collectFiles(assetsDirectory);
+    } catch {
+      continue;
+    }
+
+    for (const file of files) {
+      uploads.push({
+        file,
+        key: normalizeKey(`${entry.name}/${relative(assetsDirectory, file).split(sep).join("/")}`),
+      });
+    }
+  }
+
+  return uploads;
+}
+
 async function createUploads(options: Options): Promise<Upload[]> {
+  if (options.posts) return createPostUploads();
+
   if (options.file) {
     const file = resolve(projectRoot, options.file);
     const fileInfo = await stat(file);

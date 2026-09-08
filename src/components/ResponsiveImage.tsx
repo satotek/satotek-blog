@@ -1,7 +1,5 @@
 import type { ComponentProps } from "react";
 
-import mediaManifest from "../content/media-manifest.json";
-import { mediaFormatsForUrl, type MediaManifest } from "#/lib/media-manifest";
 import { MEDIA_BASE_URL } from "#/lib/site";
 import { createResponsiveMedia } from "#/lib/media-variants";
 
@@ -11,12 +9,7 @@ type ResponsiveImageProps = Omit<ComponentProps<"img">, "sizes" | "src" | "srcSe
 };
 
 export function ResponsiveImage({ src, sizes = "100vw", ...props }: ResponsiveImageProps) {
-  const formats = mediaFormatsForUrl(src, MEDIA_BASE_URL, mediaManifest as MediaManifest);
-  const responsive = createResponsiveMedia(src, {
-    baseUrl: MEDIA_BASE_URL,
-    formats,
-    sizes,
-  });
+  const responsive = createResponsiveMedia(src, { baseUrl: MEDIA_BASE_URL, sizes });
 
   const image = (
     <img

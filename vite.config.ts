@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { relative, resolve, sep } from "node:path";
+import { existsSync } from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
 
 import { defineConfig } from "vite-plus";
 
@@ -9,10 +10,11 @@ import tailwindcss from "@tailwindcss/vite";
 
 import viteReact from "@vitejs/plugin-react";
 import mdx from "@mdx-js/rollup";
-import { createMdxPlugins } from "@satotek/content-pipeline";
+import { createMdxPlugins, readImageDimensions } from "@satotek/content-pipeline";
 import { createResponsiveMedia } from "./src/lib/media-variants";
-import { mediaKeyFromUrl, type MediaManifest } from "./src/lib/media-manifest";
-import { readFileSync } from "node:fs";
+import { mediaUrlForKey } from "./src/lib/posts/post-assets";
+
+const contentPostsDirectory = resolve(process.cwd(), "src/content/posts");
 
 const mediaBaseUrl = (
   process.env.R2_PUBLIC_BASE_URL?.trim() ||
@@ -20,31 +22,67 @@ const mediaBaseUrl = (
   "https://img.satotek.dev"
 ).replace(/\/+$/, "");
 
-function readMediaManifest(): MediaManifest {
+/** src/content/posts/<slug>/assets/<file> を R2 のオブジェクトキーへ写す。 */
+function mediaKeyForPostAsset(assetPath: string) {
+  const segments = relative(contentPostsDirectory, assetPath).split(sep);
+  if (segments.length !== 3 || segments[1] !== "assets") return undefined;
+  if (segments[0] === "" || segments[0] === "..") return undefined;
+  return `${segments[0]}/${segments[2]}`;
+}
+
+function isAbsoluteUrl(source: string) {
   try {
-    return JSON.parse(
-      readFileSync(resolve(process.cwd(), "src/content/media-manifest.json"), "utf8"),
-    );
+    new URL(source);
+    return true;
   } catch {
-    return {};
+    return false;
   }
 }
 
+/**
+ * 記事に隣接する assets/ の原本から、配信 URL と実寸を組み立てる。
+ * 原本がリポジトリにあるので寸法はここで測れる。生成物をコミットする
+ * マニフェストは要らない。
+ */
+async function resolvePostImage(source: string, filePath: string | undefined) {
+  if (isAbsoluteUrl(source)) {
+    const responsive = createResponsiveMedia(source, {
+      baseUrl: mediaBaseUrl,
+      sizes: "(max-width: 768px) 100vw, 768px",
+    });
+    return responsive ? { ...responsive } : undefined;
+  }
+
+  if (!filePath) {
+    throw new Error(`Cannot resolve the relative image ${source}: the MDX path is unknown`);
+  }
+
+  const assetPath = resolve(dirname(filePath.split("?")[0]), source);
+  const key = mediaKeyForPostAsset(assetPath);
+  if (!key) {
+    throw new Error(`${source} in ${filePath} must live in the post's own assets/ directory`);
+  }
+  if (!existsSync(assetPath)) {
+    throw new Error(
+      `Missing image ${relative(process.cwd(), assetPath)} referenced by ${filePath}`,
+    );
+  }
+
+  const url = mediaUrlForKey(mediaBaseUrl, key);
+  const responsive = createResponsiveMedia(url, {
+    baseUrl: mediaBaseUrl,
+    sizes: "(max-width: 768px) 100vw, 768px",
+  });
+  const dimensions = await readImageDimensions(assetPath);
+
+  return { src: url, ...responsive, ...dimensions };
+}
+
 function mdxPlugin() {
-  const manifest = readMediaManifest();
   const plugin = mdx({
     jsxImportSource: "react",
     ...createMdxPlugins({
-      resolveImage: (source) => {
-        const responsive = createResponsiveMedia(source, {
-          baseUrl: mediaBaseUrl,
-          sizes: "(max-width: 768px) 100vw, 768px",
-        });
-        const key = mediaKeyFromUrl(source, mediaBaseUrl);
-        const dimensions = key ? manifest[key] : undefined;
-        if (!responsive && !dimensions) return undefined;
-        return { ...responsive, ...dimensions };
-      },
+      resolveImage: (source, { filePath }) => resolvePostImage(source, filePath),
     }),
   });
 
@@ -61,13 +99,18 @@ function mdxPlugin() {
   };
 }
 
-const contentPostsDirectory = resolve(process.cwd(), "src/content/posts");
-
 function isMarkdownPost(file: string) {
   const relativePath = relative(contentPostsDirectory, resolve(file));
   const segments = relativePath.split(sep);
 
   return segments.length === 2 && segments[1] === "index.mdx";
+}
+
+/** 原本を差し替えたら、その寸法を焼き込んだ記事モジュールを作り直す。 */
+function postForChangedAsset(file: string) {
+  const segments = relative(contentPostsDirectory, resolve(file)).split(sep);
+  if (segments.length !== 3 || segments[1] !== "assets") return undefined;
+  return join(contentPostsDirectory, segments[0], "index.mdx");
 }
 
 function regeneratePostContent() {
@@ -91,6 +134,8 @@ function regeneratePostContent() {
   });
 }
 
+type HotModule = { id: string | null };
+
 function postContentWatcher() {
   let generation: Promise<void> | undefined;
 
@@ -104,8 +149,23 @@ function postContentWatcher() {
       server,
     }: {
       file: string;
-      server: { ws: { send: (message: { type: "full-reload" }) => void } };
+      server: {
+        moduleGraph: {
+          getModulesByFile: (file: string) => Set<HotModule> | undefined;
+          invalidateModule: (module: HotModule) => void;
+        };
+        ws: { send: (message: { type: "full-reload" }) => void };
+      };
     }) {
+      const changedPost = postForChangedAsset(file);
+      if (changedPost) {
+        for (const module of server.moduleGraph.getModulesByFile(changedPost) ?? []) {
+          server.moduleGraph.invalidateModule(module);
+        }
+        server.ws.send({ type: "full-reload" });
+        return [];
+      }
+
       if (!isMarkdownPost(file)) return;
 
       generation ??= regeneratePostContent().finally(() => {
