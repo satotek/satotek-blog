@@ -4,11 +4,17 @@ import { MEDIA_BASE_URL } from "#/lib/site";
 import { createResponsiveMedia } from "#/lib/media-variants";
 
 type ResponsiveImageProps = Omit<ComponentProps<"img">, "sizes" | "src" | "srcSet"> & {
+  pictureClassName?: string;
   sizes?: string;
   src: string;
 };
 
-export function ResponsiveImage({ src, sizes = "100vw", ...props }: ResponsiveImageProps) {
+export function ResponsiveImage({
+  pictureClassName,
+  src,
+  sizes = "100vw",
+  ...props
+}: ResponsiveImageProps) {
   const responsive = createResponsiveMedia(src, { baseUrl: MEDIA_BASE_URL, sizes });
 
   const image = (
@@ -22,7 +28,7 @@ export function ResponsiveImage({ src, sizes = "100vw", ...props }: ResponsiveIm
   if (!responsive?.avifSrcSet && !responsive?.srcSet) return image;
 
   return (
-    <picture>
+    <picture className={pictureClassName}>
       {responsive.avifSrcSet ? (
         <source type="image/avif" sizes={responsive.sizes} srcSet={responsive.avifSrcSet} />
       ) : null}

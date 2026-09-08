@@ -34,6 +34,7 @@ function Profile() {
           type="button"
         >
           <ResponsiveImage
+            pictureClassName="shrink-0"
             className="h-32 w-32 rounded-[24px] border border-line object-cover"
             src={mediaUrl("site/my-avater.jpg")}
             sizes="128px"

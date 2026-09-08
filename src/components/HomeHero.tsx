@@ -8,6 +8,7 @@ export function HomeHero({ total, topics }: { total: number; topics: number }) {
   return (
     <section className="flex items-start gap-5 pt-6 sm:gap-6" aria-labelledby="home-title">
       <ResponsiveImage
+        pictureClassName="shrink-0"
         className="size-14 shrink-0 rounded-full border border-line object-cover sm:size-16"
         src={mediaUrl("site/my-avater.jpg")}
         sizes="64px"
