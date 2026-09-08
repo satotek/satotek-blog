@@ -1,6 +1,5 @@
 import type { PluggableList } from "unified";
 
-import rehypeSlug from "rehype-slug";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
@@ -30,7 +29,6 @@ export function createMdxPlugins(options: ImageResolverOptions = {}): {
     rehypePlugins: [
       rehypeImageFigure,
       [rehypeResponsiveImages, options.resolveImage],
-      rehypeSlug,
       rehypeCodeBlocks,
     ],
   };

@@ -5,6 +5,9 @@ import { visit } from "unist-util-visit";
 
 import type { Heading, Root } from "mdast";
 
+/** mdast-util-to-hast が hProperties を見て、生成する要素の属性にする。 */
+type HeadingData = Heading["data"] & { hProperties?: Record<string, unknown> };
+
 export type TocItem = {
   id: string;
   text: string;
@@ -14,8 +17,13 @@ export type TocItem = {
 const TOC_LEVELS = new Set([2, 3, 4]);
 
 /**
- * 見出しを集めて `export const toc` として MDX モジュールに埋め込む。
- * rehype-slug と同じ github-slugger を使うので id は本文側と一致する。
+ * 見出しに id を振り、目次を `export const toc` として MDX モジュールに埋め込む。
+ *
+ * id は目次のリンク先であり、HeadingAnchor が出すアンカーの参照先であり、
+ * useToc がスクロール追従で見出しを引くための鍵でもある。3者が同じ値を
+ * 見る必要があるので、slug はここで1度だけ計算して本文にも書き込む。
+ * （以前は rehype-slug が本文側を別に計算していて、github-slugger の
+ * 連番まで一致することが暗黙の前提になっていた。）
  *
  * MDX は本文を React コンポーネントへコンパイルするため、目次のような
  * 「本文から導出したデータ」は名前付きエクスポートとして持ち出すしかない。
@@ -25,11 +33,17 @@ export function remarkExportToc() {
     const slugger = new GithubSlugger();
     const toc: TocItem[] = [];
 
+    // 目次に出すのは h2〜h4 だけだが、slug は全ての見出しで進める。
+    // 連番（同じ文言が2度出たときの -1, -2）が本文の並び順で決まるため。
     visit(tree, "heading", (node: Heading) => {
-      if (!TOC_LEVELS.has(node.depth)) return;
       const text = toString(node).trim();
       if (!text) return;
-      toc.push({ id: slugger.slug(text), text, level: node.depth });
+
+      const id = slugger.slug(text);
+      const data: HeadingData = (node.data ??= {});
+      data.hProperties = { ...data.hProperties, id };
+
+      if (TOC_LEVELS.has(node.depth)) toc.push({ id, text, level: node.depth });
     });
 
     file.data.toc = toc;
