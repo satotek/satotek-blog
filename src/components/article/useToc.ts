@@ -12,9 +12,9 @@ const NO_ITEMS: readonly TocItem[] = [];
 export type TocState = {
   activeId?: string;
   hasToc: boolean;
-  isOpen: boolean;
+  isDesktopOpen: boolean;
   items: readonly TocItem[];
-  onToggle: () => void;
+  onDesktopToggle: () => void;
 };
 
 function useActiveHeading(contentRef: RefObject<HTMLElement | null>, items: readonly TocItem[]) {
@@ -79,8 +79,8 @@ function useActiveHeading(contentRef: RefObject<HTMLElement | null>, items: read
 }
 
 /**
- * 目次の状態をまとめて持つ。開閉はモバイルとデスクトップで同じ目次を 2 箇所に
- * 描くため共有が要る。DOM 上の位置が違うので CSS だけでは出し分けられない。
+ * 目次のデータと、デスクトップのサイドバーの開閉状態をまとめて持つ。
+ * モバイルのシートは記事ごとに閉じて始める一時状態なので、ここでは管理しない。
  */
 export function useToc(
   contentRef: RefObject<HTMLElement | null>,
@@ -89,16 +89,16 @@ export function useToc(
   const hasToc = items.length >= TOC_MIN;
   const tocItems = hasToc ? items : NO_ITEMS;
   const activeId = useActiveHeading(contentRef, tocItems);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isDesktopOpen, setIsDesktopOpen] = useState(true);
 
   useEffect(() => {
     try {
-      setIsOpen(localStorage.getItem(TOC_STATE_KEY) !== "close");
+      setIsDesktopOpen(localStorage.getItem(TOC_STATE_KEY) !== "close");
     } catch {}
   }, []);
 
-  const onToggle = () => {
-    setIsOpen((open) => {
+  const onDesktopToggle = () => {
+    setIsDesktopOpen((open) => {
       const next = !open;
       try {
         localStorage.setItem(TOC_STATE_KEY, next ? "open" : "close");
@@ -107,5 +107,5 @@ export function useToc(
     });
   };
 
-  return { activeId, hasToc, isOpen, items: tocItems, onToggle };
+  return { activeId, hasToc, isDesktopOpen, items: tocItems, onDesktopToggle };
 }

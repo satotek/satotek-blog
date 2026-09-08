@@ -3,7 +3,7 @@ import { Suspense, use, useRef } from "react";
 
 import { Article, articleComponents } from "#/components/article/Article";
 import { ArticleFooter } from "#/components/ArticleFooter";
-import { TableOfContents } from "#/components/article/TableOfContents";
+import { MobileTableOfContents, TableOfContents } from "#/components/article/TableOfContents";
 import { useToc } from "#/components/article/useToc";
 import { RouterLink } from "#/components/ui";
 import { getPostBySlug } from "#/lib/posts/posts.functions";
@@ -119,7 +119,7 @@ function PostPage() {
         </ul>
       </header>
 
-      <PostBody post={post} tocItems={toc} />
+      <PostBody key={post.slug} post={post} tocItems={toc} />
       <ArticleFooter post={post} relatedPosts={relatedPosts} />
     </article>
   );
@@ -133,12 +133,14 @@ function PostBody({ post, tocItems }: { post: PostSummary; tocItems: readonly To
 
   return (
     <>
-      {/* モバイルは本文の上、デスクトップは右サイド。DOM 上の位置が違うので
-          同じ目次を 2 箇所に描いて CSS で出し分ける。状態は useToc が共有する。 */}
+      {/* 1000px未満は固定ボタンからシート、デスクトップは右サイド。見出し追従は共有し、
+          開閉状態はデスクトップの保存状態とモバイルの一時状態を分ける。 */}
       <div className="toc toc-mobile">
-        <TableOfContents toc={toc} />
+        <MobileTableOfContents toc={toc} />
       </div>
-      <div className={`post-layout${toc.isOpen ? "" : " post-layout--toc-closed"}`}>
+      <div
+        className={`post-layout post-layout--has-toc${toc.isDesktopOpen ? "" : " post-layout--toc-closed"}`}
+      >
         <div className="post-content">
           <MarkdownContent containerRef={contentRef} post={post} />
         </div>
