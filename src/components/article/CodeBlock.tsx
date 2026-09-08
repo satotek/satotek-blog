@@ -55,36 +55,44 @@ export function CodeBlock({ children, ...props }: CodeBlockProps) {
     }
   };
 
+  const copyButton = (
+    <Button aria-label="コードをコピー" className="copy-btn" onPress={handlePress} type="button">
+      {copied ? (
+        <Check aria-hidden="true" className="icon-check" size={16} strokeWidth={2.5} />
+      ) : (
+        <Copy aria-hidden="true" className="icon-copy" size={16} />
+      )}
+    </Button>
+  );
+
+  const copyStatus = (
+    <span aria-atomic="true" aria-live="polite" className="sr-only" role="status">
+      {copied ? "コードをコピーしました" : ""}
+    </span>
+  );
+
   return (
-    <div className="code-block">
-      <div className="code-block__bar">
-        <span className="code-block__meta">
-          {filename ? (
+    <div className={`code-block${filename ? "" : " code-block--untitled"}`}>
+      {filename ? (
+        <div className="code-block__bar">
+          <span className="code-block__meta">
             <span className="code-block__filename">
               <span aria-hidden="true" className="code-block__icon">
                 ▸
               </span>
               {filename}
             </span>
-          ) : null}
-        </span>
-        <Button
-          aria-label="コードをコピー"
-          className="copy-btn"
-          onPress={handlePress}
-          type="button"
-        >
-          {copied ? (
-            <Check aria-hidden="true" className="icon-check" size={16} strokeWidth={2.5} />
-          ) : (
-            <Copy aria-hidden="true" className="icon-copy" size={16} />
-          )}
-        </Button>
-        {/* aria-label の差し替えでは、フォーカスが外れていると結果が伝わらない。 */}
-        <span aria-atomic="true" aria-live="polite" className="sr-only" role="status">
-          {copied ? "コードをコピーしました" : ""}
-        </span>
-      </div>
+          </span>
+          {copyButton}
+          {/* aria-label の差し替えでは、フォーカスが外れていると結果が伝わらない。 */}
+          {copyStatus}
+        </div>
+      ) : (
+        <div className="code-block__actions">
+          {copyButton}
+          {copyStatus}
+        </div>
+      )}
       <pre ref={preRef} {...props}>
         {children}
       </pre>

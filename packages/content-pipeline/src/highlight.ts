@@ -77,11 +77,68 @@ function collectText(node: RootContent | Element): string {
   return "";
 }
 
+function splitNodeByLines(node: ElementContent): ElementContent[][] {
+  if (node.type === "text" || node.type === "comment") {
+    return node.value.split("\n").map((value) => (value ? [{ ...node, value }] : []));
+  }
+
+  if (node.type === "element") {
+    return splitChildrenByLines(node.children).map((children) => [{ ...node, children }]);
+  }
+
+  return [[node]];
+}
+
+function splitChildrenByLines(children: ElementContent[]) {
+  const lines: ElementContent[][] = [[]];
+
+  for (const child of children) {
+    const childLines = splitNodeByLines(child);
+    lines[lines.length - 1].push(...childLines[0]);
+    lines.push(...childLines.slice(1));
+  }
+
+  return lines;
+}
+
+function codeLineBreak(): Element {
+  return {
+    type: "element",
+    tagName: "span",
+    properties: { className: ["code-line__break"], ariaHidden: "true" },
+    children: [{ type: "text", value: "\n" }],
+  };
+}
+
+function codeLine(line: ElementContent[]): Element {
+  return {
+    type: "element",
+    tagName: "span",
+    properties: { className: ["code-line"], dataLine: true },
+    children: [
+      {
+        type: "element",
+        tagName: "span",
+        properties: { className: ["code-line__content"] },
+        children: line,
+      },
+    ],
+  };
+}
+
+function wrapCodeLines(children: ElementContent[]): ElementContent[] {
+  const lines = splitChildrenByLines(children);
+
+  return lines.flatMap((line, index): ElementContent[] =>
+    index > 0 ? [codeLineBreak(), codeLine(line)] : [codeLine(line)],
+  );
+}
+
 /**
  * コードフェンスを starry-night でハイライトする。
  *
- * pre と code の要素はそのまま残し、code の中身だけを差し替える。色は
- * pl-* クラスが指すだけで、要素に焼き込まれない。
+ * pre と code の要素はそのまま残し、code の中身だけを行単位で差し替える。
+ * 色は pl-* クラスが指すだけで、要素に焼き込まれない。
  */
 export function rehypeCodeBlocks() {
   return async (tree: HastRoot) => {
@@ -98,16 +155,21 @@ export function rehypeCodeBlocks() {
 
       const language = fenceLanguage(code);
       const scope = language ? highlighter.flagToScope(language) : undefined;
-      if (!scope) return;
+      const source = collectText(code).replace(/\r\n?/g, "\n").trimEnd();
 
       // highlight() が返すのは Root。中身は要素とテキストだけだが、型の上では
       // doctype なども入りうるので、code に入れられるものだけを通す。
-      code.children = highlighter
-        .highlight(collectText(code).trimEnd(), scope)
-        .children.filter(
-          (child): child is ElementContent =>
-            child.type === "element" || child.type === "text" || child.type === "comment",
-        );
+      const highlightedChildren = scope
+        ? highlighter
+            .highlight(source, scope)
+            .children.filter(
+              (child): child is ElementContent =>
+                child.type === "element" || child.type === "text" || child.type === "comment",
+            )
+        : [{ type: "text" as const, value: source }];
+
+      code.properties = { ...code.properties, dataLineNumbers: true };
+      code.children = wrapCodeLines(highlightedChildren);
     });
   };
 }
