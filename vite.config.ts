@@ -34,7 +34,6 @@ function mdxPlugin() {
   const manifest = readMediaManifest();
   const plugin = mdx({
     jsxImportSource: "react",
-    providerImportSource: "@mdx-js/react",
     ...createMdxPlugins({
       resolveImage: (source) => {
         const responsive = createResponsiveMedia(source, {

@@ -1,4 +1,3 @@
-import { MDXProvider } from "@mdx-js/react";
 import type { MDXComponents } from "mdx/types";
 import type { ReactNode } from "react";
 
@@ -12,8 +11,11 @@ import { HeadingAnchor } from "./HeadingAnchor";
  * 記事の書き方は素の Markdown のままで、見出しアンカーもコードブロックの
  * 外枠もライトボックスもここで足す。ビルド時に構文を解釈する必要がある
  * ものだけが remark/rehype プラグイン側に残っている。
+ *
+ * MDXProvider は使わない。コンパイル済みの MDX は components を prop で
+ * 直接受け取れるので、Context を一段挟むだけ無駄になる。
  */
-const components: MDXComponents = {
+export const articleComponents: MDXComponents = {
   pre: CodeBlock,
   img: ArticleImage,
   a: ArticleLink,
@@ -23,9 +25,5 @@ const components: MDXComponents = {
 };
 
 export function Article({ children }: { children: ReactNode }) {
-  return (
-    <div className="markdown-body">
-      <MDXProvider components={components}>{children}</MDXProvider>
-    </div>
-  );
+  return <div className="markdown-body">{children}</div>;
 }

@@ -1,7 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useRef } from "react";
+import { Suspense, use, useRef } from "react";
 
-import { Article } from "#/components/article/Article";
+import { Article, articleComponents } from "#/components/article/Article";
 import { ArticleFooter } from "#/components/ArticleFooter";
 import { TableOfContents } from "#/components/article/TableOfContents";
 import { useToc } from "#/components/article/useToc";
@@ -16,9 +16,17 @@ import { createPageHead, generatedPostOgImageUrl, withSiteName } from "#/lib/sit
 export const Route = createFileRoute("/posts/$slug")({
   loader: async ({
     params,
-  }): Promise<{ post: PostSummary; relatedPosts: readonly PostSummary[] }> => {
+  }): Promise<{
+    post: PostSummary;
+    relatedPosts: readonly PostSummary[];
+    toc: readonly TocItem[];
+  }> => {
     const post = await getPostBySlug({ data: { slug: params.slug } });
     if (!post) throw notFound();
+
+    // 本文チャンクをここで解決しておく。サーバーではこの await が効くので
+    // 描画は同期で済み、prerender した HTML に本文がそのまま載る。
+    const article = await loadArticle(params.slug);
 
     const relatedPosts = (await postRepository.list())
       .filter((candidate) => candidate.slug !== post.slug)
@@ -35,7 +43,7 @@ export const Route = createFileRoute("/posts/$slug")({
       .slice(0, 3)
       .map(({ post: candidate }) => candidate);
 
-    return { post, relatedPosts };
+    return { post, relatedPosts, toc: article?.toc ?? [] };
   },
   head: ({ params, loaderData }) => {
     const post = loaderData?.post;
@@ -64,7 +72,7 @@ export const Route = createFileRoute("/posts/$slug")({
 });
 
 function PostPage() {
-  const { post, relatedPosts } = Route.useLoaderData();
+  const { post, relatedPosts, toc } = Route.useLoaderData();
 
   const category = categoryBySlug(post.category);
   const readingMinutes = post.readingMinutes;
@@ -111,15 +119,15 @@ function PostPage() {
         </ul>
       </header>
 
-      <PostBody post={post} />
+      <PostBody post={post} tocItems={toc} />
       <ArticleFooter post={post} relatedPosts={relatedPosts} />
     </article>
   );
 }
 
-function PostBody({ post }: { post: PostSummary }) {
+function PostBody({ post, tocItems }: { post: PostSummary; tocItems: readonly TocItem[] }) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const toc = useToc(contentRef, articleModules.get(post.slug)?.toc ?? []);
+  const toc = useToc(contentRef, tocItems);
 
   if (!toc.hasToc) return <MarkdownContent containerRef={contentRef} post={post} />;
 
@@ -142,20 +150,32 @@ function PostBody({ post }: { post: PostSummary }) {
   );
 }
 
-const slugOf = (path: string) => path.split("/").at(-2) ?? "";
-
 type ArticleModule = {
-  default: () => React.JSX.Element;
+  default: (props: { components?: typeof articleComponents }) => React.JSX.Element;
   toc: readonly TocItem[];
 };
 
-// SSR で本文を出すため eager に読む。React.lazy だとサーバー描画が本文を
-// 待たずに抜け、prerender した HTML から記事が丸ごと落ちる。
-const articleModules = new Map(
-  Object.entries(
-    import.meta.glob<ArticleModule>("../../content/posts/*/index.mdx", { eager: true }),
-  ).map(([path, module]) => [slugOf(path), module]),
-);
+// eager に読むと全記事が 1 チャンクに固まり、1 本開くだけで他の記事の本文まで
+// 運ぶことになる。slug ごとに分けたうえで、loader 側で await して SSR に間に合わせる。
+const articleImporters = import.meta.glob<ArticleModule>("../../content/posts/*/index.mdx");
+
+// use() に毎回別の Promise を渡すと解決し直しになるので、Promise ごと覚える。
+const articlePromises = new Map<string, Promise<ArticleModule | undefined>>();
+
+function loadArticle(slug: string): Promise<ArticleModule | undefined> {
+  const cached = articlePromises.get(slug);
+  if (cached) return cached;
+
+  const importer = articleImporters[`../../content/posts/${slug}/index.mdx`];
+  const promise = importer ? importer() : Promise.resolve(undefined);
+  articlePromises.set(slug, promise);
+  return promise;
+}
+
+function ArticleBody({ slug }: { slug: string }) {
+  const Body = use(loadArticle(slug))?.default;
+  return Body ? <Body components={articleComponents} /> : null;
+}
 
 function MarkdownContent({
   containerRef,
@@ -164,11 +184,15 @@ function MarkdownContent({
   containerRef: React.RefObject<HTMLDivElement | null>;
   post: PostSummary;
 }) {
-  const Body = articleModules.get(post.slug)?.default;
-
   return (
     <div className="markdown-content" ref={containerRef}>
-      <Article>{Body ? <Body /> : null}</Article>
+      <Article>
+        {/* サーバーでは loader が解決済みなので中断せず、prerender の HTML は
+            本文入りで出る。境界が要るのは、その HTML を hydrate する初回だけ。 */}
+        <Suspense fallback={null}>
+          <ArticleBody slug={post.slug} />
+        </Suspense>
+      </Article>
     </div>
   );
 }
