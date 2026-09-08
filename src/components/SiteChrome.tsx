@@ -46,7 +46,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[color-mix(in_srgb,var(--bg)_80%,transparent)] backdrop-blur-[8px] backdrop-saturate-[180%]">
+      <header className="sticky top-0 z-50 bg-[oklch(from_var(--bg)_l_c_h_/_80%)] backdrop-blur-[8px] backdrop-saturate-[180%]">
         <div className="mx-auto flex max-w-[1120px] flex-col gap-3.5 px-4 pb-3 pt-4 sm:px-6">
           <div className="flex items-center justify-between gap-3">
             <SiteLogo />

@@ -41,44 +41,32 @@
   text-size-adjust: 100%;
   /* テーマ切り替えアニメーションの進行度。light-dark() は色専用なので数値はここで分岐する。 */
   --dark: 1;
-  --bg: light-dark(#f3ece0, #1f1e1d);
-  --fg: light-dark(#2e2820, #edeae2);
-  --muted: light-dark(#6f6657, #a39e94);
-  --accent: light-dark(#a0412a, #e0876a);
-  --border: light-dark(
-    color-mix(in srgb, var(--fg) 12%, transparent),
-    color-mix(in srgb, var(--fg) 14%, transparent)
-  );
-  --card: light-dark(
-    color-mix(in srgb, var(--fg) 3%, transparent),
-    color-mix(in srgb, var(--fg) 5%, transparent)
-  );
+  --bg: light-dark(oklch(0.9453 0.0177 81.3), oklch(0.2357 0 0));
+  --fg: light-dark(oklch(0.2808 0.0167 74.9), oklch(0.9372 0.0112 89.7));
+  --muted: light-dark(oklch(0.5142 0.0255 80.6), oklch(0.7006 0.0154 84.6));
+  --accent: light-dark(oklch(0.4996 0.1318 34.9), oklch(0.7112 0.1173 38.8));
+  --border: light-dark(oklch(from var(--fg) l c h / 12%), oklch(from var(--fg) l c h / 14%));
+  --card: light-dark(oklch(from var(--fg) l c h / 3%), oklch(from var(--fg) l c h / 5%));
   --code-surface: light-dark(
-    color-mix(in srgb, #fffdf8 62%, var(--bg)),
-    color-mix(in srgb, #000 26%, var(--bg))
+    color-mix(in oklch, var(--fg) 8%, var(--bg)),
+    color-mix(in oklch, oklch(0 0 0) 26%, var(--bg))
   );
   --code-bar: light-dark(
-    color-mix(in srgb, var(--fg) 5%, var(--code-surface)),
-    color-mix(in srgb, var(--fg) 6%, var(--code-surface))
+    color-mix(in oklch, var(--fg) 5%, var(--code-surface)),
+    color-mix(in oklch, var(--fg) 6%, var(--code-surface))
   );
-  --code-border: light-dark(
-    color-mix(in srgb, var(--fg) 11%, transparent),
-    color-mix(in srgb, var(--fg) 13%, transparent)
-  );
+  --code-border: light-dark(oklch(from var(--fg) l c h / 11%), oklch(from var(--fg) l c h / 13%));
   --code-add: light-dark(oklch(0.5 0.11 150), oklch(0.74 0.12 150));
   --code-remove: light-dark(oklch(0.5 0.14 25), oklch(0.72 0.13 25));
-  --hover: color-mix(in srgb, var(--fg) 7%, transparent);
-  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
-  --accent-hover: color-mix(in srgb, var(--accent) 16%, transparent);
-  --accent-border: color-mix(in srgb, var(--accent) 50%, var(--border));
-  --surface: light-dark(
-    color-mix(in srgb, #fffdf8 66%, transparent),
-    color-mix(in srgb, var(--fg) 5%, transparent)
-  );
+  --hover: oklch(from var(--fg) l c h / 7%);
+  --accent-soft: oklch(from var(--accent) l c h / 10%);
+  --accent-hover: oklch(from var(--accent) l c h / 16%);
+  --accent-border: color-mix(in oklch, var(--accent) 50%, var(--border));
+  --surface: light-dark(oklch(0.9942 0.0069 88.6 / 66%), oklch(from var(--fg) l c h / 5%));
   /* ダークでは影を透明にして実質 none にする（色なので light-dark() で表現できる）。 */
   --surface-shadow:
-    0 1px 2px light-dark(rgb(46 40 32 / 0.04), transparent),
-    0 8px 24px -18px light-dark(rgb(46 40 32 / 0.35), transparent);
+    0 1px 2px light-dark(oklch(0.2808 0.0167 74.9 / 0.04), transparent),
+    0 8px 24px -18px light-dark(oklch(0.2808 0.0167 74.9 / 0.35), transparent);
 }
 
 /* --dark はアイコンのモーフを動かす数値。light-dark() は色専用なのでここだけ
@@ -120,10 +108,10 @@
       linear-gradient(
         135deg,
         transparent 0 48%,
-        color-mix(in srgb, var(--accent) 14%, transparent) 48% 49%,
+        oklch(from var(--accent) l c h / 14%) 48% 49%,
         transparent 49% 100%
       ),
-      color-mix(in srgb, var(--accent) 7%, var(--bg));
+      color-mix(in oklch, var(--accent) 7%, var(--bg));
   }
 
   .post-cover__fallback::before,
@@ -317,7 +305,7 @@
 
   .toc-list a.is-active {
     border-left-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    background: oklch(from var(--accent) l c h / 8%);
     color: var(--accent);
     font-weight: 500;
   }
@@ -341,7 +329,7 @@
     border: 1px solid var(--accent);
     border-radius: 999px;
     background: var(--accent);
-    box-shadow: 0 8px 24px rgb(46 40 32 / 16%);
+    box-shadow: 0 8px 24px oklch(0.2808 0.0167 74.9 / 16%);
     color: var(--bg);
     cursor: pointer;
     font-size: 0.875rem;
@@ -358,7 +346,7 @@
 
   .toc-mobile-trigger:hover,
   .toc-mobile-trigger[aria-expanded="true"] {
-    background: color-mix(in srgb, var(--accent) 88%, var(--fg));
+    background: color-mix(in oklch, var(--accent) 88%, var(--fg));
     color: var(--bg);
   }
 
@@ -372,7 +360,7 @@
     inset: 0;
     display: flex;
     align-items: flex-end;
-    background: rgb(0 0 0 / 40%);
+    background: oklch(0 0 0 / 40%);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
   }
@@ -385,7 +373,7 @@
     border-bottom: 0;
     border-radius: var(--radius-site) var(--radius-site) 0 0;
     background: var(--bg);
-    box-shadow: 0 -12px 32px rgb(0 0 0 / 18%);
+    box-shadow: 0 -12px 32px oklch(0 0 0 / 18%);
   }
 
   .toc-sheet-dialog {
@@ -577,7 +565,7 @@
 
   .markdown-body a {
     color: var(--accent);
-    text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    text-decoration-color: oklch(from var(--accent) l c h / 40%);
     text-underline-offset: 2px;
   }
 
@@ -718,7 +706,7 @@
     font-family: var(--mono);
     font-size: 0.875rem;
     line-height: 1.7;
-    scrollbar-color: color-mix(in srgb, var(--fg) 22%, transparent) transparent;
+    scrollbar-color: oklch(from var(--fg) l c h / 22%) transparent;
     scrollbar-width: thin;
     tab-size: 2;
   }
@@ -792,7 +780,7 @@
 
   .copy-btn:hover,
   .copy-btn:focus-visible {
-    border-color: color-mix(in srgb, var(--fg) 28%, transparent);
+    border-color: oklch(from var(--fg) l c h / 28%);
     color: var(--fg);
     opacity: 1;
   }
@@ -819,12 +807,12 @@
   }
 
   .markdown-body thead th {
-    background: color-mix(in srgb, var(--fg) 5%, transparent);
+    background: oklch(from var(--fg) l c h / 5%);
     font-weight: 700;
   }
 
   .markdown-body tbody tr:nth-child(even) {
-    background: color-mix(in srgb, var(--fg) 2.5%, transparent);
+    background: oklch(from var(--fg) l c h / 2.5%);
   }
 
   .markdown-body blockquote {
@@ -894,7 +882,7 @@
     position: fixed;
     z-index: 998;
     inset: 0;
-    background: rgb(0 0 0 / 40%);
+    background: oklch(0 0 0 / 40%);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
   }
@@ -908,7 +896,7 @@
     overflow-y: auto;
     border-left: 1px solid var(--border);
     background: var(--bg);
-    box-shadow: -10px 0 30px rgb(0 0 0 / 16%);
+    box-shadow: -10px 0 30px oklch(0 0 0 / 16%);
     overscroll-behavior: contain;
   }
 
@@ -967,7 +955,7 @@
     justify-content: center;
     overflow: auto;
     padding: 72px 4vw 5vh;
-    background: color-mix(in srgb, #17130f 86%, transparent);
+    background: oklch(0.1901 0.0102 67.1 / 86%);
     -webkit-backdrop-filter: blur(6px) saturate(120%);
     backdrop-filter: blur(6px) saturate(120%);
     overscroll-behavior: contain;
@@ -1023,15 +1011,15 @@
     max-width: 100%;
     height: auto;
     max-height: 78vh;
-    border: 1px solid rgb(255 255 255 / 10%);
+    border: 1px solid oklch(1 0 0 / 10%);
     border-radius: var(--radius-site);
-    background: rgb(255 255 255 / 4%);
-    box-shadow: 0 30px 80px rgb(0 0 0 / 55%);
+    background: oklch(1 0 0 / 4%);
+    box-shadow: 0 30px 80px oklch(0 0 0 / 55%);
   }
 
   .lightbox-figure figcaption {
     max-width: min(720px, 92vw);
-    color: rgb(247 242 234 / 82%);
+    color: oklch(0.9628 0.0119 79.8 / 82%);
     font-size: 0.875rem;
     line-height: 1.7;
     text-align: center;
@@ -1048,10 +1036,10 @@
     height: 40px;
     place-items: center;
     padding: 0;
-    border: 1px solid rgb(255 255 255 / 18%);
+    border: 1px solid oklch(1 0 0 / 18%);
     border-radius: 999px;
-    background: rgb(255 255 255 / 8%);
-    color: rgb(247 242 234 / 88%);
+    background: oklch(1 0 0 / 8%);
+    color: oklch(0.9628 0.0119 79.8 / 88%);
     cursor: pointer;
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
@@ -1062,9 +1050,9 @@
   }
 
   .lightbox-close:hover {
-    border-color: rgb(255 255 255 / 32%);
-    background: rgb(255 255 255 / 16%);
-    color: #fff;
+    border-color: oklch(1 0 0 / 32%);
+    background: oklch(1 0 0 / 16%);
+    color: oklch(1 0 0);
   }
 
   .lightbox-close:active {

@@ -102,7 +102,7 @@ export function BugHunt() {
             type="button"
             aria-label="バグを潰す"
             onPress={() => whack(index)}
-            className="relative aspect-square overflow-hidden rounded-full border border-line bg-card shadow-[inset_0_6px_14px_color-mix(in_srgb,var(--fg)_14%,transparent)] [-webkit-tap-highlight-color:transparent]"
+            className="relative aspect-square overflow-hidden rounded-full border border-line bg-card shadow-[inset_0_6px_14px_oklch(from_var(--fg)_l_c_h_/_14%)] [-webkit-tap-highlight-color:transparent]"
           >
             <Sprite emoji="🐛" shown={up} />
             <Sprite emoji="💥" shown={Boolean(hits[index])} />
