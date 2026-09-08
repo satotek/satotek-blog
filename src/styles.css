@@ -468,19 +468,21 @@
   }
 
   .toc-sheet-overlay[data-entering] {
-    animation: toc-sheet-fade 220ms ease-out;
+    animation: toc-sheet-fade 200ms ease-out;
   }
 
   .toc-sheet-overlay[data-exiting] {
-    animation: toc-sheet-fade 170ms ease-in reverse;
+    animation: toc-sheet-fade 200ms ease-in reverse;
+    animation-fill-mode: forwards;
   }
 
   .toc-sheet-overlay[data-entering] .toc-sheet {
-    animation: toc-sheet-rise 260ms cubic-bezier(0.2, 0.8, 0.25, 1);
+    animation: toc-sheet-rise 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .toc-sheet-overlay[data-exiting] .toc-sheet {
-    animation: toc-sheet-rise 190ms cubic-bezier(0.4, 0, 0.2, 1) reverse;
+    animation: toc-sheet-rise 200ms cubic-bezier(0.4, 0, 0.2, 1) reverse;
+    animation-fill-mode: forwards;
   }
 
   .toc-desktop {
