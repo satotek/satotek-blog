@@ -642,8 +642,8 @@
   }
 
   .code-block {
-    --code-surface: oklch(0.16 0.005 80);
-    --code-bar: oklch(0.21 0.008 80);
+    --code-surface: light-dark(oklch(0.16 0.005 80), oklch(0.255 0.008 80));
+    --code-bar: light-dark(oklch(0.21 0.008 80), oklch(0.29 0.008 80));
     --code-border: oklch(0.75 0.012 88 / 22%);
     --code-fg: oklch(0.93 0.012 88);
     --code-muted: oklch(0.68 0.018 82);
@@ -800,30 +800,74 @@
     color: var(--code-add);
   }
 
+  /* display:block でテーブル自身を横スクロール枠にする。border-collapse は
+     separate のままにしないと、セルの境界線が角丸を上書きして角が四角く残る。 */
   .markdown-body table {
     display: block;
     width: max-content;
     max-width: 100%;
-    margin: 1.5em 0;
+    margin: 1.75em auto;
     overflow-x: auto;
-    border-collapse: collapse;
-    font-size: 0.95rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--surface-shadow);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    overscroll-behavior-x: contain;
+    scrollbar-color: var(--border) transparent;
+    scrollbar-width: thin;
   }
 
+  /* 罫線は横方向だけ。縦罫と縞模様を足すと表計算の見た目になり、
+     本文の中で表だけが浮くので、行の区切りに絞る。 */
   .markdown-body th,
   .markdown-body td {
-    padding: 8px 14px;
-    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border: 0;
+    border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+    font-variant-numeric: tabular-nums;
     text-align: left;
+    vertical-align: top;
+  }
+
+  .markdown-body tbody tr:last-child > * {
+    border-bottom: 0;
   }
 
   .markdown-body thead th {
-    background: oklch(from var(--fg) l c h / 5%);
+    position: relative;
+    border-bottom: 2px solid var(--accent-border);
+    background: light-dark(
+      color-mix(in oklch, var(--accent) 7%, var(--card)),
+      color-mix(in oklch, var(--accent) 11%, var(--card))
+    );
+    color: var(--fg);
+    font-size: 0.8125rem;
     font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
   }
 
-  .markdown-body tbody tr:nth-child(even) {
-    background: oklch(from var(--fg) l c h / 2.5%);
+  .markdown-body tbody tr {
+    transition: background-color 120ms ease;
+  }
+
+  .markdown-body tbody tr:hover {
+    background: var(--hover);
+  }
+
+  /* 1 列目が見出し扱いの表（先頭セルが空のヘッダ）でも読み筋が追えるよう、
+     行ラベルになりやすい先頭列だけ少し強くする。 */
+  .markdown-body tbody td:first-child {
+    color: var(--fg);
+    font-weight: 500;
+  }
+
+  .markdown-body table code {
+    white-space: nowrap;
   }
 
   .markdown-body blockquote {
