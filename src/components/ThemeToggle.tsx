@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import type { PressEvent } from "react-aria-components";
 
 import { IconButton } from "#/components/ui";
 import {
@@ -10,7 +11,12 @@ import {
   type Theme,
 } from "#/lib/theme";
 
-const CROSSFADE_MS = 280;
+const THEME_REVEAL_MS = 460;
+
+type ViewportPoint = {
+  x: number;
+  y: number;
+};
 
 function applyTheme(onApplied: (theme: Theme) => void) {
   const next = nextTheme(readTheme());
@@ -20,15 +26,22 @@ function applyTheme(onApplied: (theme: Theme) => void) {
   onApplied(next);
 }
 
+function pressPoint(event: PressEvent): ViewportPoint {
+  const bounds = event.target.getBoundingClientRect();
+  const keyboardPress = event.pointerType === "keyboard" || event.pointerType === "virtual";
+
+  return {
+    x: bounds.left + (keyboardPress ? bounds.width / 2 : event.x),
+    y: bounds.top + (keyboardPress ? bounds.height / 2 : event.y),
+  };
+}
+
 /**
- * View Transitions で新旧のテーマをクロスフェードする。
- * opacity だけを動かすのは、Chrome で clip-path の形状アニメーションが
- * スナップショットの再ラスタライズを伴い、大きなビューポートでコマ落ちするため。
- * opacity はコンポジタだけで完結する。
+ * View Transitions で押した場所から新しいテーマを円形に広げる。
  *
  * 非対応ブラウザと「動きを減らす」設定では、そのまま即座に切り替える。
  */
-function toggleTheme(onApplied: (theme: Theme) => void) {
+function toggleTheme(onApplied: (theme: Theme) => void, origin: ViewportPoint) {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduce || !document.startViewTransition) {
     applyTheme(onApplied);
@@ -47,11 +60,22 @@ function toggleTheme(onApplied: (theme: Theme) => void) {
   });
   transition.ready
     .then(() => {
+      const radius = Math.hypot(
+        Math.max(origin.x, window.innerWidth - origin.x),
+        Math.max(origin.y, window.innerHeight - origin.y),
+      );
+
       root.animate(
-        { opacity: [0, 1] },
         {
-          duration: CROSSFADE_MS,
-          easing: "ease",
+          clipPath: [
+            `circle(0px at ${origin.x}px ${origin.y}px)`,
+            `circle(${radius}px at ${origin.x}px ${origin.y}px)`,
+          ],
+        },
+        {
+          duration: THEME_REVEAL_MS,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          fill: "both",
           pseudoElement: "::view-transition-new(root)",
         },
       );
@@ -74,7 +98,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     <IconButton
       className={`theme-toggle ${className ?? ""}`}
       aria-label={theme ? `テーマ: ${THEME_LABEL[theme]}（切り替える）` : "テーマを切り替え"}
-      onPress={() => toggleTheme(setTheme)}
+      onPress={(event) => toggleTheme(setTheme, pressPoint(event))}
     >
       <svg className="theme-toggle-glyph size-5" viewBox="0 0 24 24" aria-hidden="true">
         <mask id={maskId}>
