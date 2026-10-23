@@ -112,13 +112,16 @@
   }
 
   /* 記事カードはライトでは枠を消して、地面と同じ暖色の影だけで浮かせる。
-     ダークは影が潰れるので、枠と一段明るい面を残す。 */
+     ダークは影が潰れるので、枠と一段明るい面を残す。
+     角丸と枠はここで完結させる。ホームの各行が単独のカードになる。 */
   .post-card {
-    border-color: light-dark(transparent, var(--border));
+    overflow: hidden;
+    border: 1px solid light-dark(transparent, var(--border));
+    border-radius: var(--radius-site);
     background: light-dark(var(--card), var(--surface));
     box-shadow:
       0 1px 2px light-dark(oklch(0.25 0.03 55 / 6%), transparent),
-      0 16px 36px -14px light-dark(oklch(0.25 0.03 55 / 26%), transparent);
+      0 10px 18px -12px light-dark(oklch(0.25 0.03 55 / 28%), transparent);
   }
 
   .post-cover__fallback {

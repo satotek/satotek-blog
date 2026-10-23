@@ -15,7 +15,7 @@ export function PostList({
         variant === "grid"
           ? "m-0 grid list-none gap-x-5 gap-y-8 p-0 sm:grid-cols-2"
           : variant === "panel"
-            ? "m-0 grid list-none gap-3 p-0"
+            ? "post-index m-0 grid list-none gap-3 p-0 sm:gap-4"
             : "m-0 grid list-none gap-0 border-t border-line p-0"
       }
     >
