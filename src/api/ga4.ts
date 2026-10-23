@@ -1,7 +1,11 @@
-import "@tanstack/react-start/server-only";
+import { aggregatePopularPosts, postPathToSlug } from "../analytics/popular-posts";
+import type { PopularPost } from "../analytics/types";
 
-import { aggregatePopularPosts, postPathToSlug } from "./popular-posts";
-import type { PopularPost } from "./types";
+export type Ga4Env = {
+  GA4_PROPERTY_ID?: string;
+  GA4_CLIENT_EMAIL?: string;
+  GA4_PRIVATE_KEY?: string;
+};
 
 const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_ANALYTICS_DATA_URL = "https://analyticsdata.googleapis.com/v1beta";
@@ -28,12 +32,10 @@ type Ga4ReportResponse = {
   rows?: Ga4ReportRow[];
 };
 
-function getConfiguration(): Ga4Configuration | undefined {
-  // This function is only called from a TanStack Start server function. Reading
-  // process.env here keeps the credentials request-time-only on edge SSR.
-  const propertyId = process.env.GA4_PROPERTY_ID?.trim();
-  const clientEmail = process.env.GA4_CLIENT_EMAIL?.trim();
-  const privateKey = process.env.GA4_PRIVATE_KEY?.trim();
+function getConfiguration(env: Ga4Env): Ga4Configuration | undefined {
+  const propertyId = env.GA4_PROPERTY_ID?.trim();
+  const clientEmail = env.GA4_CLIENT_EMAIL?.trim();
+  const privateKey = env.GA4_PRIVATE_KEY?.trim();
 
   if (!propertyId || !clientEmail || !privateKey) return undefined;
 
@@ -173,13 +175,12 @@ async function runPopularPostsReport(
 }
 
 /**
- * Fetches the public popular-post snapshot without exposing GA4 credentials
- * to the browser. Missing or invalid analytics configuration intentionally
- * degrades to the fixed Pick up list at the route boundary.
+ * 直近7日の記事パスを GA4 から読む。資格情報が無い、または取得に失敗したときは
+ * 空を返し、呼び出し側が Pick up へ戻せるようにする。
  */
-export async function getPopularPostsFromGa4(): Promise<readonly PopularPost[]> {
+export async function getPopularPostsFromGa4(env: Ga4Env): Promise<readonly PopularPost[]> {
   try {
-    const configuration = getConfiguration();
+    const configuration = getConfiguration(env);
     if (!configuration) return [];
 
     const accessToken = await getAccessToken(configuration);

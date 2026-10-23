@@ -1,4 +1,6 @@
-export const SITE_URL = "https://satotek.dev";
+import { SITE_URL } from "./site-url";
+
+export { SITE_URL };
 export const SITE_NAME = "satotek.dev";
 export const SITE_DESCRIPTION = "個人ブログ・技術メモ";
 export const WEBMCP_ORIGIN_TRIAL_TOKEN = (

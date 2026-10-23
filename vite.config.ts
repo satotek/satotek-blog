@@ -78,6 +78,30 @@ async function resolvePostImage(source: string, filePath: string | undefined) {
   return { src: url, ...responsive, ...dimensions };
 }
 
+/** 開発中は /api を同じポートで Hono に渡す。本番は別 Worker がこの経路を受ける。 */
+function apiDevPlugin() {
+  return {
+    name: "satotek-api-dev",
+    apply: "serve" as const,
+    async configureServer(server: {
+      middlewares: {
+        use: (
+          handler: (
+            req: import("node:http").IncomingMessage,
+            res: import("node:http").ServerResponse,
+            next: (error?: unknown) => void,
+          ) => void,
+        ) => void;
+      };
+    }) {
+      const { handleApiDevRequest } = await import("./src/api/dev.ts");
+      server.middlewares.use((req, res, next) => {
+        void handleApiDevRequest(req, res, next);
+      });
+    },
+  };
+}
+
 function mdxPlugin() {
   const plugin = mdx({
     jsxImportSource: "react",
@@ -208,6 +232,7 @@ const config = defineConfig(({ mode }) => {
           mdxPlugin(),
           postContentWatcher(),
           cloudflare({ viteEnvironment: { name: "ssr" } }),
+          apiDevPlugin(),
           tanstackStart({
             // CSS を外部ファイルにすると、HTML 到着後にもう一往復が要り、その取得が
             // modulepreload された JS と帯域を奪い合う。描画はそれを待つので FCP が
@@ -222,7 +247,7 @@ const config = defineConfig(({ mode }) => {
               concurrency: 2,
               crawlLinks: true,
               // The home page uses Pick up in the prerendered HTML and fetches
-              // the optional GA4 ranking after hydration.
+              // /api/posts/popular after hydration.
               // /play/* are the hidden-game entrances: one is a URL that must
               // stay missing, the other throws on purpose.
               filter: ({ path }) => !path.startsWith("/play/"),

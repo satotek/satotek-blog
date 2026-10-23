@@ -23,12 +23,14 @@
     "build": "bun run generate-summaries && vp build .",
     "preview": "vp preview .",
     "check": "bun run generate-summaries && vp check",
-    "deploy": "bun run check && bun run test && bun run build && wrangler deploy",
+    "deploy": "bun run check && bun run test && bun run build && wrangler deploy && wrangler deploy -c workers/api/wrangler.jsonc",
+    "deploy:api": "wrangler deploy -c workers/api/wrangler.jsonc",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.170.46",
     "@tanstack/react-start": "^1.169.4",
+    "hono": "^4.13.13",
     "lucide-react": "^1.61.0",
     "react": "^19.3.1",
     "react-aria-components": "^1.22.1",

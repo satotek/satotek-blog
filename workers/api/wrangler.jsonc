@@ -1,0 +1,17 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "satotek-api",
+  "main": "../../src/api/worker.ts",
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  // workers.dev には出さない。公開面は satotek.dev/api/* だけ。
+  "workers_dev": false,
+  // サイト Worker の Custom Domain より具体的な経路が優先され、
+  // /api はページ用の TanStack Start を起動しない。
+  "routes": [
+    {
+      "pattern": "satotek.dev/api/*",
+      "zone_name": "satotek.dev",
+    },
+  ],
+}

@@ -150,9 +150,15 @@ bunx wrangler whoami
 bun run deploy
 ```
 
-`bun run deploy` は、記事サマリの生成、Vite+のチェック、Cloudflare向けビルド、`wrangler deploy` を順に実行します。実行前にローカルで表示と主要ルートを確認してください。
+`bun run deploy` は、記事サマリの生成、Vite+のチェック、テスト、Cloudflare向けビルドのあと、サイト Worker `satotek` と API Worker `satotek-api` を順にデプロイします。実行前にローカルで表示と主要ルートを確認してください。`/api/*` は API Worker が受け、ページの HTML はサイト Worker の静的配信のままです。
 
-`.env.local`、`.env.*`、`.dev.vars*` はGit管理対象外です。APIキー、秘密鍵、サービスアカウント認証情報などをリポジトリへ追加しないでください。GA4の測定IDは `.env.local` の `VITE_GA_MEASUREMENT_ID` で渡します。
+`.env.local`、`.env.*`、`.dev.vars*` はGit管理対象外です。APIキー、秘密鍵、サービスアカウント認証情報などをリポジトリへ追加しないでください。GA4の測定IDは `.env.local` の `VITE_GA_MEASUREMENT_ID` で渡します。Data API の `GA4_PROPERTY_ID`、`GA4_CLIENT_EMAIL`、`GA4_PRIVATE_KEY` は API Worker のシークレットです。初回は次で登録します。
+
+```sh
+bunx wrangler secret put GA4_PROPERTY_ID -c workers/api/wrangler.jsonc
+bunx wrangler secret put GA4_CLIENT_EMAIL -c workers/api/wrangler.jsonc
+bunx wrangler secret put GA4_PRIVATE_KEY -c workers/api/wrangler.jsonc
+```
 
 旧サイトで使っていたリアクション・PV用のD1は、新アプリケーションからは参照していません。このリポジトリのデプロイ処理にD1データベースを削除する操作は含まれていません。
 

@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 
-import { getPopularPosts } from "#/analytics/functions";
-import type { PopularPost } from "#/analytics/types";
 import { HomeHero } from "#/components/HomeHero";
 import { HomeSidebar } from "#/components/HomeSidebar";
 import { PostList } from "#/components/PostList";
@@ -42,28 +39,32 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { allPosts, latest, total, categories, tags, pickedPosts } = Route.useLoaderData();
-  const fetchPopularPosts = useServerFn(getPopularPosts);
-  const [popular, setPopular] = useState<readonly PopularPost[]>([]);
+  const [popularSlugs, setPopularSlugs] = useState<readonly string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
 
-    void fetchPopularPosts()
-      .then((result) => {
-        if (!cancelled) setPopular(result);
+    void fetch("/api/posts/popular")
+      .then(async (response) => {
+        if (!response.ok) return [];
+        const body = (await response.json()) as { posts?: readonly { slug?: string }[] };
+        return (body.posts ?? []).flatMap((post) => (post.slug ? [post.slug] : []));
+      })
+      .then((slugs) => {
+        if (!cancelled) setPopularSlugs(slugs);
       })
       .catch(() => {
         // GA4は補助データ。取得できない場合はPick upをそのまま表示する。
-        if (!cancelled) setPopular([]);
+        if (!cancelled) setPopularSlugs([]);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [fetchPopularPosts]);
+  }, []);
 
-  const popularPosts = popular.flatMap((item) => {
-    const post = allPosts.find((candidate) => candidate.slug === item.slug);
+  const popularPosts = popularSlugs.flatMap((slug) => {
+    const post = allPosts.find((candidate) => candidate.slug === slug);
     return post ? [post] : [];
   });
   const highlights = popularPosts.length > 0 ? popularPosts : pickedPosts;
