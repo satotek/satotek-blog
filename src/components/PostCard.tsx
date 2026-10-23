@@ -19,7 +19,7 @@ export function PostCard({
 
   if (variant === "panel") {
     return (
-      <li className="panel group grid min-w-0 grid-cols-[118px_minmax(0,1fr)] gap-3.5 p-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-5">
+      <li className="panel post-card group grid min-w-0 grid-cols-[118px_minmax(0,1fr)] gap-3.5 p-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-5">
         <PostCover
           post={post}
           className="h-[88px] rounded-xl border border-line sm:h-[118px]"
