@@ -5,8 +5,6 @@ import { HomeHero } from "#/components/HomeHero";
 import { HomeSidebar } from "#/components/HomeSidebar";
 import { PostList } from "#/components/PostList";
 import { RouterLink } from "#/components/ui";
-import type { PostSummary } from "#/lib/posts/types";
-import { PICKED_POST_SLUGS } from "#/data/home";
 import { getCategories, getTags } from "#/data/navigation";
 import { postRepository } from "#/lib/posts/repository";
 import { SITE_NAME, createPageHead } from "#/lib/site";
@@ -31,14 +29,13 @@ export const Route = createFileRoute("/")({
       total: posts.length,
       categories,
       tags,
-      pickedPosts: postsBySlug(posts, PICKED_POST_SLUGS),
     };
   },
   component: Home,
 });
 
 function Home() {
-  const { allPosts, latest, total, categories, tags, pickedPosts } = Route.useLoaderData();
+  const { allPosts, latest, total, categories, tags } = Route.useLoaderData();
   const [popularSlugs, setPopularSlugs] = useState<readonly string[]>([]);
 
   useEffect(() => {
@@ -54,7 +51,6 @@ function Home() {
         if (!cancelled) setPopularSlugs(slugs);
       })
       .catch(() => {
-        // GA4は補助データ。取得できない場合はPick upをそのまま表示する。
         if (!cancelled) setPopularSlugs([]);
       });
 
@@ -67,8 +63,6 @@ function Home() {
     const post = allPosts.find((candidate) => candidate.slug === slug);
     return post ? [post] : [];
   });
-  const highlights = popularPosts.length > 0 ? popularPosts : pickedPosts;
-  const hasPopularPosts = popularPosts.length > 0;
 
   return (
     <div>
@@ -94,20 +88,8 @@ function Home() {
           )}
         </main>
 
-        <HomeSidebar
-          highlights={highlights}
-          hasPopularPosts={hasPopularPosts}
-          categories={categories}
-          tags={tags}
-        />
+        <HomeSidebar highlights={popularPosts} categories={categories} tags={tags} />
       </div>
     </div>
   );
-}
-
-function postsBySlug(posts: readonly PostSummary[], slugs: readonly string[]) {
-  return slugs.flatMap((slug) => {
-    const post = posts.find((candidate) => candidate.slug === slug);
-    return post ? [post] : [];
-  });
 }

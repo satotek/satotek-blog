@@ -246,8 +246,7 @@ const config = defineConfig(({ mode }) => {
               enabled: true,
               concurrency: 2,
               crawlLinks: true,
-              // The home page uses Pick up in the prerendered HTML and fetches
-              // /api/posts/popular after hydration.
+              // The home ranking is filled in the browser from /api/posts/popular.
               // /play/* are the hidden-game entrances: one is a URL that must
               // stay missing, the other throws on purpose.
               filter: ({ path }) => !path.startsWith("/play/"),

@@ -50,7 +50,7 @@ cp .env.example .env.local
 
 `bun run deploy` は `.env.local` を読んだ Vite ビルドのあとに `wrangler deploy` します。測定IDを変えたら、再ビルドしてからデプロイしてください。ローカルで ID を空にすると gtag は出ません。
 
-ホームページの人気記事は、表示後に `GET /api/posts/popular` を取ります。API Worker が GA4 Data API の `screenPageViews` で、直近7日間の `/posts/<slug>` を PV 降順で最大10件並べ、順位だけを返します。閲覧数はレスポンスに含めません。GA4 の認証情報は API Worker `satotek-api` の Secret からのみ読み、ブラウザへは渡しません。認証情報が未設定、取得失敗、該当記事が無いときは、`src/data/home.ts` の固定 Pick up のままです。ビルド済みの HTML も Pick up です。
+ホームページの人気記事は、表示後に `GET /api/posts/popular` を取ります。API Worker が GA4 Data API の `screenPageViews` で、直近7日間の `/posts/<slug>` を PV 降順で最大10件並べ、順位だけを返します。閲覧数はレスポンスに含めません。GA4 の認証情報は API Worker `satotek-api` の Secret からのみ読み、ブラウザへは渡しません。認証情報が未設定、取得失敗、該当記事が無いときは、人気記事の欄は出ません。ビルド済みの HTML にも載せていません。
 
 ローカルでGA4連携まで確認する場合は、サービスアカウントへ対象GA4プロパティの閲覧権限を付与し、`.dev.vars` を作成します。
 
