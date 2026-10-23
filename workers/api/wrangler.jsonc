@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "satotek-api",
-  "main": "../../src/api/worker.ts",
+  "main": "src/index.ts",
   "compatibility_date": "2026-08-22",
   "compatibility_flags": ["nodejs_compat"],
   // workers.dev には出さない。公開面は satotek.dev/api/* だけ。

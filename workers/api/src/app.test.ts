@@ -44,15 +44,19 @@ function app() {
   });
 }
 
+function request(appInstance: ReturnType<typeof createApp>, path: string) {
+  return appInstance.handle(new Request(`http://localhost${path}`));
+}
+
 describe("blog API", () => {
   it("reports health", async () => {
-    const response = await app().request("/api/health");
+    const response = await request(app(), "/api/health");
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
   });
 
   it("lists and filters published posts", async () => {
-    const response = await app().request("/api/posts?category=技術&limit=10");
+    const response = await request(app(), "/api/posts?category=技術&limit=10");
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -61,8 +65,8 @@ describe("blog API", () => {
   });
 
   it("returns one post and 404 for an unknown slug", async () => {
-    const found = await app().request("/api/posts/first-post");
-    const missing = await app().request("/api/posts/missing");
+    const found = await request(app(), "/api/posts/first-post");
+    const missing = await request(app(), "/api/posts/missing");
 
     expect(found.status).toBe(200);
     expect(await found.json()).toMatchObject({ slug: "first-post", category: "日常" });
@@ -70,7 +74,7 @@ describe("blog API", () => {
   });
 
   it("searches metadata", async () => {
-    const response = await app().request("/api/search?q=Nix");
+    const response = await request(app(), "/api/search?q=Nix");
     const body = await response.json();
 
     expect(body.total).toBe(1);
@@ -78,12 +82,12 @@ describe("blog API", () => {
   });
 
   it("rejects an empty search", async () => {
-    const response = await app().request("/api/search?q=");
+    const response = await request(app(), "/api/search?q=");
     expect(response.status).toBe(400);
   });
 
   it("returns taxonomy counts", async () => {
-    const response = await app().request("/api/taxonomy");
+    const response = await request(app(), "/api/taxonomy");
     const body = await response.json();
 
     expect(
@@ -101,7 +105,7 @@ describe("blog API", () => {
   });
 
   it("ranks published posts without view counts", async () => {
-    const response = await app().request("/api/posts/popular");
+    const response = await request(app(), "/api/posts/popular");
     const body = await response.json();
 
     expect(body).toEqual({
@@ -117,10 +121,13 @@ describe("blog API", () => {
   });
 
   it("caches an empty ranking briefly when analytics is unavailable", async () => {
-    const response = await createApp({
-      posts,
-      loadPopularPosts: async () => [],
-    }).request("/api/posts/popular");
+    const response = await request(
+      createApp({
+        posts,
+        loadPopularPosts: async () => [],
+      }),
+      "/api/posts/popular",
+    );
 
     expect(await response.json()).toMatchObject({ source: "unavailable", posts: [] });
     expect(response.headers.get("cache-control")).toBe("public, max-age=60");

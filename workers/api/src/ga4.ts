@@ -1,5 +1,5 @@
-import { aggregatePopularPosts, postPathToSlug } from "../analytics/popular-posts";
-import type { PopularPost } from "../analytics/types";
+import { aggregatePopularPosts, postPathToSlug } from "../../../src/analytics/popular-posts";
+import type { PopularPost } from "../../../src/analytics/types";
 
 export type Ga4Env = {
   GA4_PROPERTY_ID?: string;

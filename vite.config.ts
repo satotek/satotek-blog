@@ -78,7 +78,7 @@ async function resolvePostImage(source: string, filePath: string | undefined) {
   return { src: url, ...responsive, ...dimensions };
 }
 
-/** 開発中は /api を同じポートで Hono に渡す。本番は別 Worker がこの経路を受ける。 */
+/** 開発中は /api を同じポートで Elysia に渡す。本番は workers/api の Worker が受ける。 */
 function apiDevPlugin() {
   return {
     name: "satotek-api-dev",
@@ -94,7 +94,7 @@ function apiDevPlugin() {
         ) => void;
       };
     }) {
-      const { handleApiDevRequest } = await import("./src/api/dev.ts");
+      const { handleApiDevRequest } = await import("./workers/api/src/dev.ts");
       server.middlewares.use((req, res, next) => {
         void handleApiDevRequest(req, res, next);
       });
@@ -214,7 +214,7 @@ const config = defineConfig(({ mode }) => {
   return {
     resolve: { tsconfigPaths: true },
     test: {
-      include: ["src/**/*.test.ts", "packages/**/*.test.ts"],
+      include: ["src/**/*.test.ts", "packages/**/*.test.ts", "workers/**/*.test.ts"],
     },
     lint: {
       options: {

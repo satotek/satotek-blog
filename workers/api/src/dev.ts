@@ -1,8 +1,9 @@
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { createApp } from "./app";
 import type { Ga4Env } from "./ga4";
+import { runWithRequestState } from "./request-context";
 
 const app = createApp();
 
@@ -54,9 +55,8 @@ export async function handleApiDevRequest(
 
   try {
     const host = req.headers.host ?? "localhost";
-    const response = await app.fetch(
-      new Request(`http://${host}${url}`, { method: req.method }),
-      env,
+    const response = await runWithRequestState({ env }, () =>
+      app.handle(new Request(`http://${host}${url}`, { method: req.method })),
     );
     res.statusCode = response.status;
     response.headers.forEach((value, key) => {

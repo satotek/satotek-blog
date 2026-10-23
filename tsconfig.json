@@ -2,6 +2,7 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "workers/api/src/**/*.ts",
     "scripts/**/*.ts",
     "scripts/**/*.tsx",
     "vite.config.ts"

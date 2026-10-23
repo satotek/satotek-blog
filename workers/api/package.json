@@ -1,0 +1,12 @@
+{
+  "name": "@satotek/api",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/app.ts",
+    "./dev": "./src/dev.ts"
+  },
+  "dependencies": {
+    "elysia": "^1.4.30"
+  }
+}
