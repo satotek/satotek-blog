@@ -50,7 +50,7 @@ cp .env.example .env.local
 
 `bun run deploy` は `.env.local` を読んだ Vite ビルドのあとに `wrangler deploy` します。測定IDを変えたら、再ビルドしてからデプロイしてください。ローカルで ID を空にすると gtag は出ません。
 
-ホームページの人気記事は `AnalyticsRepository` 経由で、サーバー側のGA4 Data APIから取得します。`screenPageViews` を使い、直近7日間の `/posts/<slug>` をPV降順で最大10件取得します。GA4の認証情報はWorkerのSecretからのみ読み、ブラウザへは渡しません。認証情報が未設定・取得失敗・記事が存在しない場合は、`src/data/home.ts` の固定Pick upへフォールバックします。
+ホームページの人気記事は、表示後に `GET /api/posts/popular` を取ります。API Worker が GA4 Data API の `screenPageViews` で、直近7日間の `/posts/<slug>` を PV 降順で最大10件並べ、順位だけを返します。閲覧数はレスポンスに含めません。GA4 の認証情報は API Worker `satotek-api` の Secret からのみ読み、ブラウザへは渡しません。認証情報が未設定、取得失敗、該当記事が無いときは、`src/data/home.ts` の固定 Pick up のままです。ビルド済みの HTML も Pick up です。
 
 ローカルでGA4連携まで確認する場合は、サービスアカウントへ対象GA4プロパティの閲覧権限を付与し、`.dev.vars` を作成します。
 
@@ -64,15 +64,15 @@ GA4_CLIENT_EMAIL=analytics-reader@your-project.iam.gserviceaccount.com
 GA4_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
 ```
 
-本番Workerには、初回だけ次のコマンドでSecretを登録します。値はプロンプトから入力され、Gitには保存されません。
+本番の API Worker には、初回だけ次のコマンドで Secret を登録します。値はプロンプトから入力され、Git には保存されません。
 
 ```sh
-bunx wrangler secret put GA4_PROPERTY_ID
-bunx wrangler secret put GA4_CLIENT_EMAIL
-bunx wrangler secret put GA4_PRIVATE_KEY
+bunx wrangler secret put GA4_PROPERTY_ID -c workers/api/wrangler.jsonc
+bunx wrangler secret put GA4_CLIENT_EMAIL -c workers/api/wrangler.jsonc
+bunx wrangler secret put GA4_PRIVATE_KEY -c workers/api/wrangler.jsonc
 ```
 
-ホームは現在のGA4スナップショットをリクエスト時に表示するため、prerender対象から外しています。記事・一覧・配信物など、内容がビルド時に確定するページは引き続きprerenderされます。
+ホームを含むページは prerender した HTML のままです。人気記事の順位だけ、表示後に API から足します。
 
 ### 記事・サイト画像（R2）
 
@@ -191,8 +191,11 @@ Chrome Origin Trialを使う場合は、対象origin用のトークンを `.env.
 packages/
 └── content-pipeline/       MDXのビルド時変換と画像処理
 
+workers/
+└── api/                    @satotek/api。Elysia の /api Worker
+
 src/
-├── analytics/               GA4ビーコンと人気記事取得の境界
+├── analytics/               ブラウザの計測と人気記事の型
 ├── components/
 │   ├── article/             記事本文の構成部品（MDXのcomponentsマップ、目次）
 │   └── ui/                  React Ariaを使う操作部品
@@ -221,6 +224,6 @@ bun run generate-routes
 まずはGit管理のMDXを記事のsource of truthとして運用します。
 
 - Headless CMSは、複数人編集・Web上の執筆・承認フローなどが必要になった段階でRepositoryアダプターとして追加する
-- ElysiaなどのAPIフレームワークは、管理APIやWebhookなどの具体的な要件が出た段階で別Workerとして追加する
+- 公開の読み取り API は `workers/api`（Elysia、`@satotek/api`）が担当する。管理 API や Webhook は、要件が出た段階で同じ Worker に足す
 - 人気記事を Cloudflare Web Analytics の集計から作るか、定期生成した静的データとして配るか
 - 検索、隠しゲーム、記事本文の表示をどの順番で復元するか
