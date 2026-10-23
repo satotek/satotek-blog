@@ -64,6 +64,14 @@
   --accent-border: color-mix(in oklch, var(--accent) 55%, var(--border));
   --surface: light-dark(oklch(0.995 0.008 88 / 88%), oklch(from var(--fg) l c h / 6%));
   /* ダークでは影を透明にして実質 none にする（色なので light-dark() で表現できる）。 */
+  --nav-glass: light-dark(oklch(0.99 0.008 88 / 72%), oklch(0.27 0.008 80 / 72%));
+  --nav-glass-border: light-dark(oklch(1 0 0 / 70%), oklch(from var(--fg) l c h / 12%));
+  --nav-glass-highlight: light-dark(oklch(1 0 0 / 80%), oklch(1 0 0 / 6%));
+  --nav-active-from: light-dark(oklch(0.7 0.15 62), oklch(0.8 0.12 68));
+  --nav-active-to: light-dark(oklch(0.57 0.16 45), oklch(0.7 0.14 50));
+  --nav-active-fg: light-dark(oklch(0.99 0.01 88), oklch(0.2 0.02 60));
+  /* 画面下に固定したドックの上端まで。本文と目次ボタンをこの分だけ持ち上げる。 */
+  --dock-space: 0px;
   --surface-shadow:
     0 1px 2px light-dark(oklch(0.25 0.03 55 / 8%), transparent),
     0 14px 32px -22px light-dark(oklch(0.25 0.03 55 / 28%), transparent);
@@ -85,6 +93,14 @@
 :root[data-theme="light"] {
   color-scheme: light;
   --dark: 0;
+}
+
+/* トークンはレイヤ外なので、上書きもレイヤ外に置かないと負ける。
+   ドック本体 70px（項目 56px + 内側余白 + 枠）と下の余白 12px。 */
+@media (max-width: 640px) {
+  :root {
+    --dock-space: calc(82px + env(safe-area-inset-bottom));
+  }
 }
 
 @layer components {
@@ -933,72 +949,162 @@
     text-align: center;
   }
 
-  .drawer-overlay {
-    position: fixed;
-    z-index: 998;
-    inset: 0;
-    background: oklch(0 0 0 / 42%);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-  }
-
-  .drawer-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: min(80vw, 300px);
-    height: 100dvh;
-    overflow-y: auto;
-    border-left: 1px solid var(--border);
-    background: var(--bg);
-    box-shadow: -10px 0 30px oklch(0 0 0 / 22%);
-    overscroll-behavior: contain;
-  }
-
-  .drawer-dialog {
+  .site-nav__list {
     display: flex;
-    min-height: 100%;
-    flex-direction: column;
-    align-items: stretch;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background 180ms ease,
+      color 180ms ease,
+      transform 180ms ease;
+  }
+
+  @media (hover: hover) {
+    .site-nav__item:not([data-active]):hover {
+      background: var(--hover);
+      color: var(--fg);
+    }
+  }
+
+  .site-nav__item[data-pressed] {
+    transform: scale(0.94);
+  }
+
+  /* 選択中のタイル。バーは項目そのものを塗り、ドックは項目の下を滑る1枚の要素で描く。 */
+  .site-nav--bar .site-nav__item[data-active],
+  .site-nav__indicator {
+    background: linear-gradient(160deg, var(--nav-active-from), var(--nav-active-to));
+    box-shadow:
+      0 4px 10px -6px oklch(from var(--accent) l c h / 45%),
+      inset 0 1px 0 oklch(1 0 0 / 28%);
+  }
+
+  /* タイルの背後にだけアクセント色をにじませ、ガラス越しに光が漏れて見えるようにする。 */
+  .site-nav--bar .site-nav__item[data-active]::before,
+  .site-nav__indicator::before {
+    position: absolute;
+    z-index: -1;
+    inset: 4px 2px 0;
+    border-radius: inherit;
+    background: var(--accent);
+    content: "";
+    filter: blur(10px);
+    opacity: 0.2;
+  }
+
+  .site-nav__item[data-active],
+  .site-nav__item[data-active]:hover {
+    color: var(--nav-active-fg);
+  }
+
+  .site-nav__indicator {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 6px;
+    width: calc((100% - 12px) / var(--nav-count));
+    border-radius: 20px;
+    opacity: 0;
+    transform: translateX(calc(var(--nav-index) * 100%));
+    transition:
+      transform 460ms cubic-bezier(0.3, 1.25, 0.5, 1),
+      opacity 200ms ease;
+  }
+
+  .site-nav__indicator[data-visible] {
+    opacity: 1;
+  }
+
+  /* 項目の文字とアイコンは、滑ってくるタイルより手前に描く。 */
+  .site-nav--dock .site-nav__list {
+    position: relative;
+  }
+
+  .site-nav__icon {
+    flex: none;
+  }
+
+  .site-nav--bar {
+    display: inline-flex;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--surface-shadow);
+  }
+
+  .site-nav--bar .site-nav__list {
     gap: 2px;
-    padding: 14px 14px 24px;
-    outline: none;
   }
 
-  @keyframes drawer-fade {
-    from {
-      opacity: 0;
+  .site-nav--bar .site-nav__item {
+    gap: 7px;
+    padding: 7px 14px 7px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+  }
+
+  .site-nav--bar .site-nav__icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .site-nav--dock {
+    position: fixed;
+    z-index: 50;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 12px;
+    max-width: 440px;
+    margin-inline: auto;
+    padding: 6px;
+    border: 1px solid var(--nav-glass-border);
+    border-radius: 26px;
+    background: var(--nav-glass);
+    box-shadow:
+      0 18px 40px -18px light-dark(oklch(0.25 0.03 55 / 45%), oklch(0 0 0 / 70%)),
+      inset 0 1px 0 var(--nav-glass-highlight);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+  }
+
+  .site-nav--dock .site-nav__list > li {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .site-nav--dock .site-nav__item {
+    height: 56px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 20px;
+    font-size: 0.6875rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .site-nav--dock .site-nav__icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* ドックはモバイル専用。デスクトップでは同じ項目をヘッダー内のバーで出す。 */
+  @media (min-width: 641px) {
+    .site-nav--dock {
+      display: none;
     }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes drawer-slide {
-    from {
-      transform: translateX(100%);
-    }
-
-    to {
-      transform: none;
-    }
-  }
-
-  .drawer-overlay[data-entering] {
-    animation: drawer-fade 300ms ease;
-  }
-
-  .drawer-overlay[data-exiting] {
-    animation: drawer-fade 250ms ease reverse;
-  }
-
-  .drawer-overlay[data-entering] .drawer-panel {
-    animation: drawer-slide 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .drawer-overlay[data-exiting] .drawer-panel {
-    animation: drawer-slide 250ms cubic-bezier(0.4, 0, 0.2, 1) reverse;
   }
 
   .lightbox-overlay {
@@ -1180,6 +1286,14 @@
   }
 
   @media (max-width: 640px) {
+    body {
+      padding-bottom: var(--dock-space);
+    }
+
+    .toc-mobile-trigger {
+      bottom: calc(var(--dock-space) + 12px);
+    }
+
     .markdown-body {
       font-size: 1.0625rem;
       line-height: 1.75;
@@ -1209,10 +1323,6 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .drawer-overlay[data-entering],
-    .drawer-overlay[data-exiting],
-    .drawer-overlay[data-entering] .drawer-panel,
-    .drawer-overlay[data-exiting] .drawer-panel,
     .lightbox-overlay[data-entering],
     .lightbox-overlay[data-exiting],
     .lightbox-overlay[data-entering] .lightbox-figure,
@@ -1221,6 +1331,10 @@
     .toc-sheet-overlay[data-entering] .toc-sheet,
     .toc-sheet-overlay[data-exiting] .toc-sheet {
       animation: none;
+    }
+
+    .site-nav__indicator {
+      transition: none;
     }
 
     .lightbox-close,
