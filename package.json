@@ -2,7 +2,8 @@
   "name": "satotek-blog",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "workers/*"
   ],
   "type": "module",
   "imports": {
@@ -23,7 +24,8 @@
     "build": "bun run generate-summaries && vp build .",
     "preview": "vp preview .",
     "check": "bun run generate-summaries && vp check",
-    "deploy": "bun run check && bun run test && bun run build && wrangler deploy",
+    "deploy": "bun run check && bun run test && bun run build && wrangler deploy && wrangler deploy -c workers/api/wrangler.jsonc",
+    "deploy:api": "wrangler deploy -c workers/api/wrangler.jsonc",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {

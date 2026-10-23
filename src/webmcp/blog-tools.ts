@@ -1,115 +1,28 @@
 import type { PostSummary } from "#/lib/posts/types";
 import { postRepository } from "#/lib/posts/repository";
-import { categories } from "#/data/navigation";
+import {
+  DEFAULT_POST_LIMIT,
+  listPublishedPosts,
+  MAX_POST_LIMIT,
+  normalizeLimit,
+  searchPublishedPosts,
+  toPublicPost,
+  type ListPostsFilters,
+  type PostListResult,
+  type PublicPost,
+} from "#/lib/posts/query";
 import { SITE_URL } from "#/lib/site";
 
-export const DEFAULT_POST_LIMIT = 10;
-const MAX_POST_LIMIT = 10;
-
-export type PublicPost = {
-  slug: string;
-  title: string;
-  url: string;
-  date: string;
-  category: string;
-  categorySlug: string;
-  description: string;
-  tags: readonly string[];
-};
-
-export type PostListResult = {
-  total: number;
-  returned: number;
-  hasMore: boolean;
-  posts: readonly PublicPost[];
-};
-
-export type ListPostsFilters = {
-  category?: string;
-  tag?: string;
-};
+export { DEFAULT_POST_LIMIT };
+export type { ListPostsFilters, PostListResult, PublicPost };
 
 type BlogToolOptions = {
   getPosts?: () => Promise<readonly PostSummary[]>;
   openPost?: (post: PostSummary) => void | Promise<void>;
 };
 
-function normalize(value: string) {
-  return value.normalize("NFKC").toLocaleLowerCase("ja-JP");
-}
-
-function categoryForSlug(slug: string) {
-  return categories.find((category) => category.slug === slug);
-}
-
-function postUrl(slug: string) {
-  const origin = typeof window === "undefined" ? SITE_URL : window.location.origin;
-  return `${origin}/posts/${encodeURIComponent(slug)}`;
-}
-
-function publicPost(post: PostSummary): PublicPost {
-  const category = categoryForSlug(post.category);
-
-  return {
-    slug: post.slug,
-    title: post.title,
-    url: postUrl(post.slug),
-    date: post.date,
-    category: category?.name ?? post.category,
-    categorySlug: post.category,
-    description: post.description,
-    tags: [...post.tags],
-  };
-}
-
-function searchableFields(post: PostSummary) {
-  const category = categoryForSlug(post.category);
-  return {
-    title: normalize(post.title),
-    description: normalize(post.description),
-    category: normalize(category?.name ?? post.category),
-    categorySlug: normalize(post.category),
-    tags: post.tags.map(normalize),
-  };
-}
-
-function searchScore(post: PostSummary, terms: readonly string[]) {
-  const fields = searchableFields(post);
-  let score = 0;
-
-  for (const term of terms) {
-    const titleMatch = fields.title.includes(term);
-    const descriptionMatch = fields.description.includes(term);
-    const categoryMatch = fields.category.includes(term) || fields.categorySlug.includes(term);
-    const tagMatch = fields.tags.some((tag) => tag.includes(term));
-
-    if (!titleMatch && !descriptionMatch && !categoryMatch && !tagMatch) return 0;
-    if (titleMatch) score += 4;
-    if (tagMatch) score += 3;
-    if (categoryMatch) score += 2;
-    if (descriptionMatch) score += 1;
-  }
-
-  return score;
-}
-
-function normalizeLimit(limit: number) {
-  if (!Number.isInteger(limit) || limit < 1 || limit > MAX_POST_LIMIT) {
-    throw new Error(`limit must be an integer from 1 to ${MAX_POST_LIMIT}.`);
-  }
-  return limit;
-}
-
-function resultForPosts(posts: readonly PostSummary[], limit: number): PostListResult {
-  const normalizedLimit = normalizeLimit(limit);
-  const selected = posts.slice(0, normalizedLimit).map(publicPost);
-
-  return {
-    total: posts.length,
-    returned: selected.length,
-    hasMore: posts.length > selected.length,
-    posts: selected,
-  };
+function browserOrigin() {
+  return typeof window === "undefined" ? SITE_URL : window.location.origin;
 }
 
 export function searchPostSummaries(
@@ -117,34 +30,7 @@ export function searchPostSummaries(
   query: string,
   limit = DEFAULT_POST_LIMIT,
 ): PostListResult {
-  const terms = normalize(query.trim()).split(/\s+/).filter(Boolean);
-  if (terms.length === 0) throw new Error("query must be a non-empty keyword or phrase.");
-
-  const matched = posts
-    .map((post) => ({ post, score: searchScore(post, terms) }))
-    .filter(({ score }) => score > 0)
-    .sort(
-      (left, right) =>
-        right.score - left.score ||
-        right.post.date.localeCompare(left.post.date) ||
-        left.post.slug.localeCompare(right.post.slug),
-    )
-    .map(({ post }) => post);
-
-  return resultForPosts(matched, limit);
-}
-
-function matchesCategory(postCategory: string, requestedCategory: string) {
-  const normalizedRequested = normalize(requestedCategory);
-  const knownCategory = categories.find(
-    (category) =>
-      normalize(category.slug) === normalizedRequested ||
-      normalize(category.name) === normalizedRequested,
-  );
-
-  return knownCategory
-    ? postCategory === knownCategory.slug
-    : normalize(postCategory) === normalizedRequested;
+  return searchPublishedPosts(posts, query, limit, browserOrigin());
 }
 
 export function listPostSummaries(
@@ -152,19 +38,15 @@ export function listPostSummaries(
   filters: ListPostsFilters = {},
   limit = DEFAULT_POST_LIMIT,
 ): PostListResult {
-  const category = filters.category?.trim();
-  const tag = filters.tag?.trim();
-  const normalizedTag = tag ? normalize(tag) : undefined;
+  return listPublishedPosts(posts, filters, limit, browserOrigin());
+}
 
-  const matched = posts.filter((post) => {
-    if (category && !matchesCategory(post.category, category)) return false;
-    if (normalizedTag && !post.tags.some((postTag) => normalize(postTag) === normalizedTag)) {
-      return false;
-    }
-    return true;
-  });
+function publicPost(post: PostSummary): PublicPost {
+  return toPublicPost(post, browserOrigin());
+}
 
-  return resultForPosts(matched, limit);
+function postUrl(slug: string) {
+  return `${browserOrigin()}/posts/${encodeURIComponent(slug)}`;
 }
 
 function inputRecord(input: unknown) {

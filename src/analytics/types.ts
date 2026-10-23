@@ -4,7 +4,3 @@ export type PopularPost = {
   path: string;
   views: number;
 };
-
-export interface AnalyticsRepository {
-  getPopularPosts(): Promise<readonly PopularPost[]>;
-}
