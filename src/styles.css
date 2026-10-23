@@ -1395,6 +1395,23 @@
   }
 }
 
+/* ドックは本文の上に固定されているが、名前が無いと root のスナップショットに入り、
+   遷移中は上の層に描かれる page に覆われてちらつく。後から描かれる名前付きの層へ分け、
+   旧スナップショットは捨てて実物（new）だけ見せる。そうすると選択タイルのスライドも
+   遷移中そのまま見える。テーマ切り替え中は page と同じ理由で名前を外す。 */
+:root:not([data-theme-transition]) .site-nav--dock {
+  view-transition-name: site-dock;
+}
+
+::view-transition-group(site-dock),
+::view-transition-new(site-dock) {
+  animation: none;
+}
+
+::view-transition-old(site-dock) {
+  display: none;
+}
+
 /* テーマ切り替えの円形ワイプ。既定のクロスフェードを止め、
    新しいテーマ側だけを JS の clip-path アニメーションで見せる。 */
 ::view-transition-old(root),
