@@ -19,22 +19,21 @@ export function PostCard({
 
   if (variant === "panel") {
     return (
-      <li className="panel group grid min-w-0 grid-cols-[118px_minmax(0,1fr)] gap-3.5 p-4 sm:grid-cols-[176px_minmax(0,1fr)] sm:gap-5">
+      <li className="post-card post-index__row group grid min-h-[4.75rem] grid-cols-[7.125rem_minmax(0,1fr)] transition-colors hover:bg-hover sm:min-h-[6.25rem] sm:grid-cols-[9.375rem_minmax(0,1fr)]">
         <PostCover
           post={post}
-          className="h-[88px] rounded-xl border border-line sm:h-[118px]"
-          sizes="(max-width: 640px) 118px, 176px"
+          className="h-full min-h-[4.75rem] rounded-none sm:min-h-[6.25rem]"
+          sizes="150px"
         />
-        <div className="min-w-0 pr-1">
+        <div className="flex min-w-0 flex-col justify-center overflow-hidden px-3 py-2 sm:px-4">
           <PostMeta post={post} category={category?.name ?? post.category} />
           <PostTitle
             post={post}
-            className="mt-1.5 block text-[1.05rem] tracking-[-0.025em] sm:text-[1.22rem]"
+            className="mt-0.5 line-clamp-2 block text-[0.92rem] leading-[1.35] tracking-[-0.02em] sm:text-[1.02rem]"
           />
-          <p className="mb-0 mt-1.5 line-clamp-2 text-[0.88rem] leading-[1.75] text-muted">
+          <p className="mb-0 mt-1 hidden truncate text-[0.8rem] leading-snug text-muted sm:block">
             {post.description}
           </p>
-          <PostTags post={post} />
         </div>
       </li>
     );

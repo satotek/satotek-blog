@@ -7,7 +7,7 @@ import { RouterLink } from "#/components/ui";
 type NavItem = {
   to: "/" | "/posts" | "/categories" | "/tags" | "/profile";
   label: string;
-  /** ドックは1項目あたり約64px しかなく、長いラベルは2行に折れるので短い表記を使う。 */
+  /** ドックは1項目 64px。長いラベルはピルからはみ出すので短い表記を使う。 */
   dockLabel?: string;
   icon: LucideIcon;
 };

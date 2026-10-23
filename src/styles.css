@@ -96,10 +96,10 @@
 }
 
 /* トークンはレイヤ外なので、上書きもレイヤ外に置かないと負ける。
-   ドック本体 70px（項目 56px + 内側余白 + 枠）と下の余白 12px。 */
+   ドック本体 54px（項目 44px + 内側余白 8px + 枠 2px）と下の余白 10px。 */
 @media (max-width: 640px) {
   :root {
-    --dock-space: calc(82px + env(safe-area-inset-bottom));
+    --dock-space: calc(64px + env(safe-area-inset-bottom));
   }
 }
 
@@ -109,6 +109,19 @@
     border-radius: 16px;
     background: var(--surface);
     box-shadow: var(--surface-shadow);
+  }
+
+  /* 記事カードはライトでは枠を消して、地面と同じ暖色の影だけで浮かせる。
+     ダークは影が潰れるので、枠と一段明るい面を残す。
+     角丸と枠はここで完結させる。ホームの各行が単独のカードになる。 */
+  .post-card {
+    overflow: hidden;
+    border: 1px solid light-dark(transparent, var(--border));
+    border-radius: var(--radius-site);
+    background: light-dark(var(--card), var(--surface));
+    box-shadow:
+      0 1px 2px light-dark(oklch(0.25 0.03 55 / 6%), transparent),
+      0 10px 18px -12px light-dark(oklch(0.25 0.03 55 / 28%), transparent);
   }
 
   .post-cover__fallback {
@@ -1064,14 +1077,15 @@
   .site-nav--dock {
     position: fixed;
     z-index: 50;
-    right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom));
-    left: 12px;
-    max-width: 440px;
+    right: 0;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    left: 0;
+    width: max-content;
+    max-width: calc(100% - 24px);
     margin-inline: auto;
-    padding: 6px;
+    padding: 4px;
     border: 1px solid var(--nav-glass-border);
-    border-radius: 26px;
+    border-radius: 22px;
     background: var(--nav-glass);
     box-shadow:
       0 18px 40px -18px light-dark(oklch(0.25 0.03 55 / 45%), oklch(0 0 0 / 70%)),
@@ -1081,23 +1095,64 @@
   }
 
   .site-nav--dock .site-nav__list > li {
-    flex: 1 1 0;
-    min-width: 0;
+    flex: none;
+    width: 64px;
   }
 
   .site-nav--dock .site-nav__item {
-    height: 56px;
+    width: 100%;
+    height: 44px;
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
-    border-radius: 20px;
-    font-size: 0.6875rem;
+    gap: 1px;
+    border-radius: 16px;
+    font-size: 0.625rem;
+    line-height: 1.1;
     -webkit-tap-highlight-color: transparent;
   }
 
   .site-nav--dock .site-nav__icon {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 列幅いっぱいに塗らず、アイコンとラベルを囲む短いピルだけを滑らせる。
+     列幅そのものはスライド量の計算に使うので、見た目は ::after に分ける。 */
+  .site-nav--dock .site-nav__indicator {
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 8px) / var(--nav-count));
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  .site-nav--dock .site-nav__indicator::before {
+    display: none;
+  }
+
+  .site-nav--dock .site-nav__indicator::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 54px;
+    height: 40px;
+    border-radius: 16px;
+    background: linear-gradient(160deg, var(--nav-active-from), var(--nav-active-to));
+    box-shadow:
+      0 4px 10px -6px oklch(from var(--accent) l c h / 45%),
+      inset 0 1px 0 oklch(1 0 0 / 28%);
+    content: "";
+    transform: translate(-50%, -50%);
+  }
+
+  @media (hover: hover) {
+    .site-nav--dock .site-nav__item:not([data-active]):hover {
+      background: transparent;
+      color: var(--fg);
+    }
   }
 
   /* ドックはモバイル専用。デスクトップでは同じ項目をヘッダー内のバーで出す。 */
