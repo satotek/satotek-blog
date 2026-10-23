@@ -175,8 +175,7 @@ async function runPopularPostsReport(
 }
 
 /**
- * 直近7日の記事パスを GA4 から読む。資格情報が無い、または取得に失敗したときは
- * 空を返し、呼び出し側が Pick up へ戻せるようにする。
+ * 直近7日の記事パスを GA4 から読む。資格情報が無い、または取得に失敗したときは空を返す。
  */
 export async function getPopularPostsFromGa4(env: Ga4Env): Promise<readonly PopularPost[]> {
   try {

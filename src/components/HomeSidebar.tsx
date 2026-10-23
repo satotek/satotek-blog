@@ -12,12 +12,10 @@ type CategoryCount = {
 
 export function HomeSidebar({
   highlights,
-  hasPopularPosts,
   categories,
   tags,
 }: {
   highlights: readonly PostSummary[];
-  hasPopularPosts: boolean;
   categories: readonly CategoryCount[];
   tags: readonly TagCount[];
 }) {
@@ -27,29 +25,25 @@ export function HomeSidebar({
         <section className="panel p-5" aria-labelledby="highlights-title">
           <div className="flex items-baseline justify-between gap-3">
             <h2 className="m-0 text-[0.78rem] font-bold text-muted" id="highlights-title">
-              {hasPopularPosts ? "よく読まれている" : "Pick up"}
+              よく読まれている
             </h2>
-            {hasPopularPosts && (
-              <span className="font-mono text-[0.66rem] tracking-[0.06em] text-muted">直近7日</span>
-            )}
+            <span className="font-mono text-[0.66rem] tracking-[0.06em] text-muted">直近7日</span>
           </div>
           <ol className="m-0 mt-3 grid list-none gap-0.5 p-0">
             {highlights.slice(0, 4).map((post, index) => (
               <li
-                className={`grid items-baseline gap-2.5 rounded-[10px] px-2 py-2.5 ${
-                  hasPopularPosts ? "grid-cols-[26px_minmax(0,1fr)]" : "grid-cols-1"
-                } ${hasPopularPosts && index === 0 ? "bg-accent-soft" : ""}`}
+                className={`grid grid-cols-[26px_minmax(0,1fr)] items-baseline gap-2.5 rounded-[10px] px-2 py-2.5 ${
+                  index === 0 ? "bg-accent-soft" : ""
+                }`}
                 key={post.slug}
               >
-                {hasPopularPosts && (
-                  <span
-                    className={`font-mono text-[0.95rem] font-semibold ${
-                      index === 0 ? "text-accent" : "text-muted"
-                    }`}
-                  >
-                    {index + 1}
-                  </span>
-                )}
+                <span
+                  className={`font-mono text-[0.95rem] font-semibold ${
+                    index === 0 ? "text-accent" : "text-muted"
+                  }`}
+                >
+                  {index + 1}
+                </span>
                 <RouterLink
                   className="text-[0.88rem] font-bold leading-[1.55] tracking-[-0.01em] no-underline hover:text-accent"
                   to="/posts/$slug"
