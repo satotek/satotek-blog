@@ -24,3 +24,4 @@ src/content/.generated/
 __unconfig*
 todos.json
 src/routeTree.gen.ts
+.vitest/
