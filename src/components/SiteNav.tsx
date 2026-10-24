@@ -1,22 +1,30 @@
-import { House, Newspaper, Shapes, Tag, UserRound, type LucideIcon } from "lucide-react";
+import { House, Music, Newspaper, Shapes, Tag, UserRound, type LucideIcon } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
 import type { CSSProperties } from "react";
 
 import { RouterLink } from "#/components/ui";
 
 type NavItem = {
-  to: "/" | "/posts" | "/categories" | "/tags" | "/profile";
+  to: "/" | "/posts" | "/music" | "/categories" | "/tags" | "/profile";
   label: string;
   /** ドックは1項目 64px。長いラベルはピルからはみ出すので短い表記を使う。 */
   dockLabel?: string;
   icon: LucideIcon;
 };
 
-const items: NavItem[] = [
+const barItems: NavItem[] = [
   { to: "/", label: "Home", icon: House },
   { to: "/posts", label: "記事", icon: Newspaper },
+  { to: "/music", label: "音楽", icon: Music },
   { to: "/categories", label: "カテゴリ", icon: Shapes },
   { to: "/tags", label: "タグ", icon: Tag },
+  { to: "/profile", label: "プロフィール", icon: UserRound },
+];
+
+const dockItems: NavItem[] = [
+  { to: "/", label: "Home", icon: House },
+  { to: "/posts", label: "記事", icon: Newspaper },
+  { to: "/music", label: "音楽", icon: Music },
   { to: "/profile", label: "プロフィール", dockLabel: "自己紹介", icon: UserRound },
 ];
 
@@ -24,11 +32,12 @@ const isActive = (pathname: string, to: NavItem["to"]) =>
   to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(`${to}/`);
 
 /**
- * グローバルナビ。モバイルは親指が届く画面下のドック、デスクトップはヘッダー内のバーとして
- * 同じ項目を描く。どちらを見せるかは CSS のブレークポイントで切り替える。
+ * グローバルナビ。モバイルは親指が届く画面下のドック、デスクトップはヘッダー内のバー。
+ * ドックにはカテゴリとタグを置かず、ホームのサイドバーから辿る。
  */
 export function SiteNav({ variant }: { variant: "dock" | "bar" }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const items = variant === "dock" ? dockItems : barItems;
   const activeIndex = items.findIndex(({ to }) => isActive(pathname, to));
 
   return (

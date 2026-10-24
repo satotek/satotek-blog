@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import type { PopularPost } from "#/analytics/types";
+import type { MusicSnapshot } from "#/lib/music";
 import type { PostSummary } from "#/lib/posts/types";
 
 import { createApp } from "./app";
@@ -37,10 +38,30 @@ const popular: readonly PopularPost[] = [
   },
 ];
 
+const music: MusicSnapshot = {
+  source: "lastfm",
+  user: "nosuke",
+  profileUrl: "https://www.last.fm/user/nosuke",
+  range: "7d",
+  playcount: 12,
+  nowPlaying: {
+    name: "ナイトクルージング",
+    artist: "Fishmans",
+    album: "空中キャンプ",
+    url: "https://www.last.fm/music/Fishmans/_/Night",
+    image: null,
+    playedAt: null,
+  },
+  recent: [],
+  topArtists: [],
+  topTracks: [],
+};
+
 function app() {
   return createApp({
     posts,
     loadPopularPosts: async () => popular,
+    loadMusic: async () => music,
   });
 }
 
@@ -130,6 +151,32 @@ describe("blog API", () => {
     );
 
     expect(await response.json()).toMatchObject({ source: "unavailable", posts: [] });
+    expect(response.headers.get("cache-control")).toBe("public, max-age=60");
+  });
+
+  it("returns a listening snapshot without the Last.fm key", async () => {
+    const response = await request(app(), "/api/music");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(music);
+    expect(response.headers.get("cache-control")).toBe("public, max-age=60");
+  });
+
+  it("caches an unavailable listening snapshot briefly", async () => {
+    const response = await request(
+      createApp({
+        posts,
+        loadPopularPosts: async () => popular,
+        loadMusic: async () => {
+          throw new Error("LASTFM_API_KEY=secret-key");
+        },
+      }),
+      "/api/music",
+    );
+    const body = await response.json();
+
+    expect(body).toMatchObject({ source: "unavailable", recent: [], nowPlaying: null });
+    expect(JSON.stringify(body)).not.toContain("secret-key");
     expect(response.headers.get("cache-control")).toBe("public, max-age=60");
   });
 });

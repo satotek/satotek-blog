@@ -70,6 +70,7 @@ export async function sitemapResponse() {
     { loc: "/", lastmod: posts[0]?.date },
     { loc: "/categories" },
     { loc: "/tags" },
+    { loc: "/music" },
     { loc: "/profile" },
     ...categories
       .filter((category) => category.count > 0)
@@ -116,6 +117,7 @@ export async function llmsResponse() {
     `- [トップ](${SITE_URL}/): 最新記事の一覧`,
     `- [カテゴリ一覧](${SITE_URL}/categories)${categoryNames ? `: ${categoryNames}` : ""}`,
     `- [タグ一覧](${SITE_URL}/tags)`,
+    `- [音楽](${SITE_URL}/music): Last.fm の再生記録`,
     `- [プロフィール](${SITE_URL}/profile): 著者紹介・プライバシーポリシー・お問い合わせ`,
   ];
 

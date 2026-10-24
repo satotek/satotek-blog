@@ -1,9 +1,9 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import type { Ga4Env } from "./ga4";
+import type { ApiEnv } from "./env";
 
 type RequestState = {
-  env: Ga4Env;
+  env: ApiEnv;
   waitUntil?: (promise: Promise<unknown>) => void;
 };
 
