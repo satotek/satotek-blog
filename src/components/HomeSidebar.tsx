@@ -89,7 +89,7 @@ export function HomeSidebar({
           </h2>
           <RouterLink
             className="text-[0.78rem] font-semibold text-accent no-underline hover:underline"
-            to="/tags"
+            to="/posts"
           >
             すべて →
           </RouterLink>

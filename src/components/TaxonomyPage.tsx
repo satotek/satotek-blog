@@ -2,27 +2,31 @@ import type { ReactNode } from "react";
 
 import type { PostSummary } from "#/lib/posts/types";
 import { RouterLink } from "#/components/ui";
-import { categoryBySlug } from "#/data/navigation";
+import { categoryBySlug, type PostFilters as PostFiltersData } from "#/data/navigation";
 import { paginate } from "#/lib/pagination";
 
 import { NotFound } from "./NotFound";
 import { Pagination, type PageLinkProps } from "./Pagination";
+import { PostFilters } from "./PostFilters";
 import { PostList } from "./PostList";
+import { SectionHeading } from "./SectionHeading";
 
 export function CategoryPageContent({
   slug,
   page,
   posts,
+  filters,
 }: {
   slug: string;
   page: number;
   posts: readonly PostSummary[];
+  filters: PostFiltersData;
 }) {
   const category = categoryBySlug(slug);
   const { slice, current, total } = paginate(posts, page);
 
   if (!category || page > total) {
-    return <TaxonomyNotFound label="カテゴリ" to="/categories" />;
+    return <TaxonomyNotFound label="カテゴリ" />;
   }
 
   const CategoryPageLink = ({ page: target, className, children }: PageLinkProps) =>
@@ -41,11 +45,24 @@ export function CategoryPageContent({
     );
 
   return (
-    <TaxonomySection heading={category.slug} current={current} total={total}>
+    <TaxonomySection
+      eyebrow="Category"
+      title={category.name}
+      count={posts.length}
+      current={current}
+      total={total}
+      filters={filters}
+      active={{ category: category.slug }}
+    >
       {posts.length > 0 ? (
         <>
           <PostGrid posts={slice} />
-          <Pagination current={current} total={total} PageLink={CategoryPageLink} />
+          <Pagination
+            current={current}
+            total={total}
+            PageLink={CategoryPageLink}
+            className="mt-6"
+          />
         </>
       ) : (
         <p className="py-6 text-muted">このカテゴリの記事はまだありません。</p>
@@ -58,15 +75,17 @@ export function TagPageContent({
   tag,
   page,
   posts,
+  filters,
 }: {
   tag: string;
   page: number;
   posts: readonly PostSummary[];
+  filters: PostFiltersData;
 }) {
   const { slice, current, total } = paginate(posts, page);
 
   if (posts.length === 0 || page > total) {
-    return <TaxonomyNotFound label="タグ" to="/tags" />;
+    return <TaxonomyNotFound label="タグ" />;
   }
 
   const TagPageLink = ({ page: target, className, children }: PageLinkProps) =>
@@ -85,34 +104,50 @@ export function TagPageContent({
     );
 
   return (
-    <TaxonomySection heading={`#${tag}`} current={current} total={total}>
+    <TaxonomySection
+      eyebrow="Tag"
+      title={`#${tag}`}
+      count={posts.length}
+      current={current}
+      total={total}
+      filters={filters}
+      active={{ tag }}
+    >
       <PostGrid posts={slice} />
-      <Pagination current={current} total={total} PageLink={TagPageLink} />
+      <Pagination current={current} total={total} PageLink={TagPageLink} className="mt-6" />
     </TaxonomySection>
   );
 }
 
 function TaxonomySection({
-  heading,
+  eyebrow,
+  title,
+  count,
   current,
   total,
+  filters,
+  active,
   children,
 }: {
-  heading: string;
+  eyebrow: string;
+  title: string;
+  count: number;
   current: number;
   total: number;
+  filters: PostFiltersData;
+  active: { category: string } | { tag: string };
   children: ReactNode;
 }) {
+  const totalPosts = filters.categories.reduce((sum, category) => sum + category.count, 0);
+
   return (
     <section>
-      <h2 className="mb-5 text-[0.85rem] font-semibold uppercase tracking-[0.08em] text-muted">
-        {heading}
-        {total > 1 && (
-          <span className="ml-1.5 font-normal normal-case tracking-normal">
-            （{current} / {total}）
-          </span>
-        )}
-      </h2>
+      <SectionHeading
+        eyebrow={eyebrow}
+        title={title}
+        description={`${count}件の記事${total > 1 ? ` / ${current}ページ目` : ""}`}
+      />
+      <PostFilters filters={filters} totalPosts={totalPosts} active={active} />
       {children}
     </section>
   );
@@ -122,11 +157,11 @@ function PostGrid({ posts }: { posts: readonly PostSummary[] }) {
   return <PostList posts={posts} variant="grid" />;
 }
 
-function TaxonomyNotFound({ label, to }: { label: string; to: "/categories" | "/tags" }) {
+function TaxonomyNotFound({ label }: { label: string }) {
   return (
     <NotFound title={`${label}が見つかりません。`}>
-      <RouterLink className="text-accent underline underline-offset-2" to={to}>
-        ← {label}一覧へ戻る
+      <RouterLink className="text-accent underline underline-offset-2" to="/posts">
+        ← 記事一覧へ戻る
       </RouterLink>
     </NotFound>
   );

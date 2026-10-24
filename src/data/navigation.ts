@@ -33,3 +33,11 @@ export function categoryBySlug(slug: string) {
 export function tagPath(tag: string) {
   return `/tags/${encodeURIComponent(tag)}`;
 }
+
+/** 記事一覧の上に出す絞り込み（カテゴリとタグ）の中身。 */
+export async function getPostFilters() {
+  const [categoryCounts, tags] = await Promise.all([getCategories(), getTags()]);
+  return { categories: categoryCounts, tags };
+}
+
+export type PostFilters = Awaited<ReturnType<typeof getPostFilters>>;

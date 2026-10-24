@@ -41,12 +41,12 @@
   text-size-adjust: 100%;
   /* テーマ切り替えアニメーションの進行度。light-dark() は色専用なので数値はここで分岐する。 */
   --dark: 1;
-  --bg: light-dark(oklch(0.965 0.012 88), oklch(0.21 0.008 80));
-  --fg: light-dark(oklch(0.28 0.012 80), oklch(0.93 0.012 88));
-  --muted: light-dark(oklch(0.55 0.018 80), oklch(0.7 0.018 82));
-  --accent: light-dark(oklch(0.62 0.15 55), oklch(0.75 0.13 58));
+  --bg: light-dark(oklch(0.967 0.018 300), oklch(0.205 0.018 293));
+  --fg: light-dark(oklch(0.29 0.03 293), oklch(0.93 0.014 300));
+  --muted: light-dark(oklch(0.54 0.035 293), oklch(0.72 0.03 296));
+  --accent: light-dark(oklch(0.56 0.14 296), oklch(0.78 0.11 300));
   --border: light-dark(oklch(from var(--fg) l c h / 16%), oklch(from var(--fg) l c h / 18%));
-  --card: light-dark(oklch(0.985 0.01 88), oklch(0.255 0.008 80));
+  --card: light-dark(oklch(0.985 0.01 300), oklch(0.25 0.02 293));
   --code-surface: light-dark(
     color-mix(in oklch, var(--fg) 10%, var(--bg)),
     color-mix(in oklch, oklch(0 0 0) 26%, var(--bg))
@@ -62,19 +62,19 @@
   --accent-soft: oklch(from var(--accent) l c h / 13%);
   --accent-hover: oklch(from var(--accent) l c h / 18%);
   --accent-border: color-mix(in oklch, var(--accent) 55%, var(--border));
-  --surface: light-dark(oklch(0.995 0.008 88 / 88%), oklch(from var(--fg) l c h / 6%));
+  --surface: light-dark(oklch(0.995 0.008 300 / 88%), oklch(from var(--fg) l c h / 6%));
   /* ダークでは影を透明にして実質 none にする（色なので light-dark() で表現できる）。 */
-  --nav-glass: light-dark(oklch(0.99 0.008 88 / 72%), oklch(0.27 0.008 80 / 72%));
+  --nav-glass: light-dark(oklch(0.99 0.01 300 / 72%), oklch(0.27 0.02 293 / 72%));
   --nav-glass-border: light-dark(oklch(1 0 0 / 70%), oklch(from var(--fg) l c h / 12%));
   --nav-glass-highlight: light-dark(oklch(1 0 0 / 80%), oklch(1 0 0 / 6%));
-  --nav-active-from: light-dark(oklch(0.7 0.15 62), oklch(0.8 0.12 68));
-  --nav-active-to: light-dark(oklch(0.57 0.16 45), oklch(0.7 0.14 50));
-  --nav-active-fg: light-dark(oklch(0.99 0.01 88), oklch(0.2 0.02 60));
+  --nav-active-from: light-dark(oklch(0.7 0.13 310), oklch(0.82 0.1 310));
+  --nav-active-to: light-dark(oklch(0.55 0.15 288), oklch(0.7 0.13 290));
+  --nav-active-fg: light-dark(oklch(0.99 0.01 300), oklch(0.2 0.02 298));
   /* 画面下に固定したドックの上端まで。本文と目次ボタンをこの分だけ持ち上げる。 */
   --dock-space: 0px;
   --surface-shadow:
-    0 1px 2px light-dark(oklch(0.25 0.03 55 / 8%), transparent),
-    0 14px 32px -22px light-dark(oklch(0.25 0.03 55 / 28%), transparent);
+    0 1px 2px light-dark(oklch(0.25 0.03 298 / 8%), transparent),
+    0 14px 32px -22px light-dark(oklch(0.25 0.03 298 / 28%), transparent);
 }
 
 /* --dark はアイコンのモーフを動かす数値。light-dark() は色専用なのでここだけ
@@ -111,7 +111,7 @@
     box-shadow: var(--surface-shadow);
   }
 
-  /* 記事カードはライトでは枠を消して、地面と同じ暖色の影だけで浮かせる。
+  /* 記事カードはライトでは枠を消して、地面と同じ色味の影だけで浮かせる。
      ダークは影が潰れるので、枠と一段明るい面を残す。
      角丸と枠はここで完結させる。ホームの各行が単独のカードになる。 */
   .post-card {
@@ -120,8 +120,8 @@
     border-radius: var(--radius-site);
     background: light-dark(var(--card), var(--surface));
     box-shadow:
-      0 1px 2px light-dark(oklch(0.25 0.03 55 / 6%), transparent),
-      0 10px 18px -12px light-dark(oklch(0.25 0.03 55 / 28%), transparent);
+      0 1px 2px light-dark(oklch(0.25 0.03 298 / 6%), transparent),
+      0 10px 18px -12px light-dark(oklch(0.25 0.03 298 / 28%), transparent);
   }
 
   .post-cover__fallback {
@@ -358,7 +358,7 @@
     border: 1px solid var(--accent);
     border-radius: 999px;
     background: var(--accent);
-    box-shadow: 0 8px 24px oklch(0.25 0.03 55 / 20%);
+    box-shadow: 0 8px 24px oklch(0.25 0.03 298 / 20%);
     color: var(--bg);
     cursor: pointer;
     font-size: 0.875rem;
@@ -671,13 +671,13 @@
   }
 
   .code-block {
-    --code-surface: light-dark(oklch(0.16 0.005 80), oklch(0.255 0.008 80));
-    --code-bar: light-dark(oklch(0.21 0.008 80), oklch(0.29 0.008 80));
-    --code-border: oklch(0.75 0.012 88 / 22%);
-    --code-fg: oklch(0.93 0.012 88);
-    --code-muted: oklch(0.68 0.018 82);
-    --code-accent: oklch(0.78 0.13 58);
-    --code-scrollbar: oklch(0.8 0.015 88 / 28%);
+    --code-surface: light-dark(oklch(0.16 0.005 295), oklch(0.255 0.008 295));
+    --code-bar: light-dark(oklch(0.21 0.008 295), oklch(0.29 0.008 295));
+    --code-border: oklch(0.75 0.012 300 / 22%);
+    --code-fg: oklch(0.93 0.012 300);
+    --code-muted: oklch(0.68 0.018 296);
+    --code-accent: oklch(0.78 0.13 302);
+    --code-scrollbar: oklch(0.8 0.015 300 / 28%);
     --code-add: oklch(0.78 0.16 150);
     position: relative;
     overflow: hidden;
@@ -1088,7 +1088,7 @@
     border-radius: 22px;
     background: var(--nav-glass);
     box-shadow:
-      0 18px 40px -18px light-dark(oklch(0.25 0.03 55 / 45%), oklch(0 0 0 / 70%)),
+      0 18px 40px -18px light-dark(oklch(0.25 0.03 298 / 45%), oklch(0 0 0 / 70%)),
       inset 0 1px 0 var(--nav-glass-highlight);
     -webkit-backdrop-filter: blur(18px) saturate(180%);
     backdrop-filter: blur(18px) saturate(180%);
@@ -1171,7 +1171,7 @@
     justify-content: center;
     overflow: auto;
     padding: 72px 4vw 5vh;
-    background: oklch(0.21 0.008 80 / 88%);
+    background: oklch(0.21 0.008 295 / 88%);
     -webkit-backdrop-filter: blur(6px) saturate(120%);
     backdrop-filter: blur(6px) saturate(120%);
     overscroll-behavior: contain;
@@ -1235,7 +1235,7 @@
 
   .lightbox-figure figcaption {
     max-width: min(720px, 92vw);
-    color: oklch(0.963 0.012 80 / 82%);
+    color: oklch(0.963 0.012 295 / 82%);
     font-size: 0.875rem;
     line-height: 1.7;
     text-align: center;
@@ -1255,7 +1255,7 @@
     border: 1px solid oklch(1 0 0 / 18%);
     border-radius: 999px;
     background: oklch(1 0 0 / 8%);
-    color: oklch(0.963 0.012 80 / 88%);
+    color: oklch(0.963 0.012 295 / 88%);
     cursor: pointer;
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
@@ -1457,7 +1457,7 @@
   .music-cover__art {
     position: relative;
     z-index: 1;
-    box-shadow: 0 18px 30px -18px oklch(0.2 0.03 55 / 60%);
+    box-shadow: 0 18px 30px -18px oklch(0.2 0.03 298 / 60%);
   }
 
   /* ジャケットの後ろから覗くレコード。再生中だけ大きく出して回す。 */
@@ -1472,13 +1472,13 @@
       radial-gradient(
         circle,
         var(--accent) 0 14%,
-        oklch(0.18 0.005 80) 14.5% 16%,
+        oklch(0.18 0.005 295) 14.5% 16%,
         transparent 16.5%
       ),
-      repeating-radial-gradient(circle, oklch(0.2 0.005 80) 0 2px, oklch(0.26 0.005 80) 2px 3px);
+      repeating-radial-gradient(circle, oklch(0.2 0.005 295) 0 2px, oklch(0.26 0.005 295) 2px 3px);
     box-shadow:
       inset 0 0 0 1px oklch(1 0 0 / 8%),
-      0 10px 20px -12px oklch(0.15 0.02 55 / 60%);
+      0 10px 20px -12px oklch(0.15 0.02 298 / 60%);
     transition: left 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
@@ -1552,9 +1552,9 @@
 
   .music-stat--ink {
     border: 1px solid light-dark(transparent, var(--border));
-    background: light-dark(oklch(0.27 0.012 80), oklch(0.33 0.012 80));
-    color: oklch(0.96 0.01 88);
-    box-shadow: 0 16px 30px -22px oklch(0.2 0.02 60 / 70%);
+    background: light-dark(oklch(0.27 0.012 295), oklch(0.33 0.012 295));
+    color: oklch(0.96 0.01 300);
+    box-shadow: 0 16px 30px -22px oklch(0.2 0.02 298 / 70%);
   }
 
   /* 右上の同心円は飾り。 */
@@ -1578,8 +1578,8 @@
     border-radius: 14px;
     background: light-dark(var(--card), var(--surface));
     box-shadow:
-      0 1px 2px light-dark(oklch(0.25 0.03 55 / 6%), transparent),
-      0 8px 16px -14px light-dark(oklch(0.25 0.03 55 / 30%), transparent);
+      0 1px 2px light-dark(oklch(0.25 0.03 298 / 6%), transparent),
+      0 8px 16px -14px light-dark(oklch(0.25 0.03 298 / 30%), transparent);
     transition:
       transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
       border-color 0.25s ease;
@@ -1599,11 +1599,11 @@
   .music-art__fallback {
     background: linear-gradient(
       135deg,
-      oklch(0.78 0.12 var(--hue, 55)),
-      oklch(0.6 0.15 calc(var(--hue, 55) + 35))
+      oklch(0.78 0.12 var(--hue, 298)),
+      oklch(0.6 0.15 calc(var(--hue, 298) + 35))
     );
-    color: oklch(0.99 0.01 88);
-    text-shadow: 0 1px 2px oklch(0.2 0.03 var(--hue, 55) / 35%);
+    color: oklch(0.99 0.01 300);
+    text-shadow: 0 1px 2px oklch(0.2 0.03 var(--hue, 298) / 35%);
   }
 
   .music-row:hover .music-art {

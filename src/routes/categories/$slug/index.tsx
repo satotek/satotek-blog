@@ -2,14 +2,18 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { CategoryPageContent } from "#/components/TaxonomyPage";
 import { postRepository } from "#/lib/posts/repository";
-import { categoryBySlug } from "#/data/navigation";
+import { categoryBySlug, getPostFilters } from "#/data/navigation";
 import { createPageHead, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/categories/$slug/")({
   loader: async ({ params }) => {
     const category = categoryBySlug(params.slug);
     if (!category) throw notFound();
-    return { posts: await postRepository.list({ category: category.slug }) };
+    const [posts, filters] = await Promise.all([
+      postRepository.list({ category: category.slug }),
+      getPostFilters(),
+    ]);
+    return { posts, filters };
   },
   head: ({ params }) => {
     const name = categoryBySlug(params.slug)?.name ?? "カテゴリ";
@@ -25,6 +29,6 @@ export const Route = createFileRoute("/categories/$slug/")({
 
 function CategoryIndexPage() {
   const { slug } = Route.useParams();
-  const { posts } = Route.useLoaderData();
-  return <CategoryPageContent slug={slug} page={1} posts={posts} />;
+  const { posts, filters } = Route.useLoaderData();
+  return <CategoryPageContent slug={slug} page={1} posts={posts} filters={filters} />;
 }

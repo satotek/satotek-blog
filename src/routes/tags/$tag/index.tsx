@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { TagPageContent } from "#/components/TaxonomyPage";
+import { getPostFilters } from "#/data/navigation";
 import { postRepository } from "#/lib/posts/repository";
 import { createPageHead, withSiteName } from "#/lib/site";
 
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/tags/$tag/")({
     const tag = decodeURIComponent(params.tag);
     const posts = await postRepository.list({ tag });
     if (posts.length === 0) throw notFound();
-    return { posts };
+    return { posts, filters: await getPostFilters() };
   },
   head: ({ params }) => {
     const tag = decodeURIComponent(params.tag);
@@ -25,6 +26,8 @@ export const Route = createFileRoute("/tags/$tag/")({
 
 function TagIndexPage() {
   const { tag: encodedTag } = Route.useParams();
-  const { posts } = Route.useLoaderData();
-  return <TagPageContent tag={decodeURIComponent(encodedTag)} page={1} posts={posts} />;
+  const { posts, filters } = Route.useLoaderData();
+  return (
+    <TagPageContent tag={decodeURIComponent(encodedTag)} page={1} posts={posts} filters={filters} />
+  );
 }

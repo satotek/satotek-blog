@@ -68,8 +68,7 @@ export async function sitemapResponse() {
   ]);
   const urls: Array<{ loc: string; lastmod?: string; image?: string }> = [
     { loc: "/", lastmod: posts[0]?.date },
-    { loc: "/categories" },
-    { loc: "/tags" },
+    { loc: "/posts", lastmod: posts[0]?.date },
     { loc: "/music" },
     { loc: "/profile" },
     ...categories
@@ -115,8 +114,7 @@ export async function llmsResponse() {
 
   const pages = [
     `- [トップ](${SITE_URL}/): 最新記事の一覧`,
-    `- [カテゴリ一覧](${SITE_URL}/categories)${categoryNames ? `: ${categoryNames}` : ""}`,
-    `- [タグ一覧](${SITE_URL}/tags)`,
+    `- [記事一覧](${SITE_URL}/posts): カテゴリ・タグでの絞り込み${categoryNames ? `（${categoryNames}）` : ""}`,
     `- [音楽](${SITE_URL}/music): Last.fm の再生記録`,
     `- [プロフィール](${SITE_URL}/profile): 著者紹介・プライバシーポリシー・お問い合わせ`,
   ];
