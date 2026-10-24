@@ -241,6 +241,57 @@
 }
 
 @layer components {
+  /* プロフィールのヒーロー。右上と左下にアクセント色の光をにじませ、カードに奥行きを出す。 */
+  .profile-hero {
+    background:
+      radial-gradient(circle at 100% 0%, oklch(from var(--accent) l c h / 22%), transparent 55%),
+      radial-gradient(
+        circle at 0% 100%,
+        oklch(from var(--nav-active-from) l c h / 55%),
+        transparent 50%
+      ),
+      var(--surface);
+  }
+
+  /* 右上の同心円は飾り。 */
+  .profile-hero::before,
+  .profile-hero::after {
+    position: absolute;
+    border: 1px solid var(--accent-border);
+    border-radius: 999px;
+    content: "";
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .profile-hero::before {
+    top: -90px;
+    right: -60px;
+    width: 260px;
+    aspect-ratio: 1;
+  }
+
+  .profile-hero::after {
+    top: -40px;
+    right: -10px;
+    width: 160px;
+    aspect-ratio: 1;
+  }
+
+  .profile-avatar {
+    border: 3px solid var(--card);
+    box-shadow:
+      0 0 0 1px var(--accent-border),
+      0 18px 32px -20px oklch(from var(--accent) l c h / 70%);
+  }
+
+  .profile-formula {
+    background:
+      linear-gradient(135deg, oklch(from var(--accent) l c h / 8%), transparent 60%), var(--surface);
+  }
+}
+
+@layer components {
   /* 記事一覧の絞り込みのタグ。モバイルでは折り返すとパネルが縦に伸び続けるので、
      1行の横スクロールにして右端をフェードさせ、続きがあることを示す。 */
   @media (max-width: 640px) {
