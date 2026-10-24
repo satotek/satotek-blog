@@ -9,7 +9,7 @@ import {
   Tent,
   type LucideIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 import { siGithub, siInstagram, siX, type SimpleIcon } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
@@ -61,7 +61,10 @@ function Profile() {
 
   return (
     <article className="grid gap-12 pt-4 sm:gap-14">
-      <section className="profile-hero panel relative overflow-hidden p-6 sm:p-9">
+      <section
+        className="profile-hero panel rise-enter relative overflow-hidden p-6 sm:p-9"
+        style={{ "--i": 0 } as CSSProperties}
+      >
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
           <Button
             aria-label="プロフィール画像"
@@ -114,19 +117,19 @@ function Profile() {
       <section aria-labelledby="about-title">
         <SectionHeading title="About me" id="about-title" />
         <div className="grid gap-3 sm:grid-cols-2">
-          <FactCard icon={Briefcase} label="職業">
+          <FactCard enterIndex={1} icon={Briefcase} label="職業">
             ソフトウェア開発者
           </FactCard>
-          <FactCard icon={MapPin} label="拠点">
+          <FactCard enterIndex={2} icon={MapPin} label="拠点">
             福岡県
             <span className="block text-[0.8rem] font-normal text-muted sm:ml-2 sm:inline">
               （神奈川県出身）
             </span>
           </FactCard>
-          <FactCard icon={Tent} label="趣味">
+          <FactCard enterIndex={3} icon={Tent} label="趣味">
             <Chips items={hobbies} />
           </FactCard>
-          <FactCard icon={Sparkles} label="最近気になっていること">
+          <FactCard enterIndex={4} icon={Sparkles} label="最近気になっていること">
             <Chips items={interests} />
           </FactCard>
         </div>
@@ -139,10 +142,14 @@ function Profile() {
           description="手元のマシンと自宅サーバーです。"
         />
         <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
-          {machines.map(({ kind, role, name, os, note, specs, inactive }) => {
+          {machines.map(({ kind, role, name, os, note, specs, inactive }, index) => {
             const Icon = machineIcons[kind];
             return (
-              <li className={`panel flex flex-col p-5 ${inactive ? "opacity-70" : ""}`} key={name}>
+              <li
+                className={`panel rise-enter flex flex-col p-5 ${inactive ? "opacity-70" : ""}`}
+                key={name}
+                style={{ "--i": index + 5 } as CSSProperties}
+              >
                 <div className="flex items-center justify-between gap-3">
                   <span className="inline-flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
                     <Icon className="size-5" aria-hidden="true" />
@@ -183,7 +190,10 @@ function Profile() {
 
       <section aria-labelledby="site-title">
         <SectionHeading title="About this site" id="site-title" />
-        <div className={`panel p-6 sm:p-8 ${legalBodyClass}`}>
+        <div
+          className={`panel rise-enter p-6 sm:p-8 ${legalBodyClass}`}
+          style={{ "--i": machines.length + 5 } as CSSProperties}
+        >
           <h3 id="privacy">プライバシーポリシー</h3>
 
           <h4>アクセス解析について</h4>
@@ -288,15 +298,20 @@ function FactCard({
   icon: Icon,
   label,
   className = "",
+  enterIndex,
   children,
 }: {
   icon: LucideIcon;
   label: string;
   className?: string;
+  enterIndex?: number;
   children: ReactNode;
 }) {
   return (
-    <div className={`panel flex gap-3 p-4 sm:gap-4 sm:p-5 ${className}`}>
+    <div
+      className={`panel flex gap-3 p-4 sm:gap-4 sm:p-5 ${enterIndex === undefined ? "" : "rise-enter"} ${className}`}
+      style={enterIndex === undefined ? undefined : ({ "--i": enterIndex } as CSSProperties)}
+    >
       <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
         <Icon className="size-[18px]" aria-hidden="true" />
       </span>

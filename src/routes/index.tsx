@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
 
     return {
       allPosts: posts,
-      latest: posts.slice(0, 4),
+      latest: posts.slice(0, 5),
       total: posts.length,
       categories,
       tags,
@@ -84,7 +84,7 @@ function Home() {
             </RouterLink>
           </div>
           {latest.length > 0 ? (
-            <PostList posts={latest} variant="panel" />
+            <PostList posts={latest} variant="panel" enter mobileLimit={4} />
           ) : (
             <p className="text-muted">公開中の記事はありません。</p>
           )}

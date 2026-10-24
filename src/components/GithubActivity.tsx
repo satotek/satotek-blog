@@ -9,7 +9,7 @@ import {
   Upload,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { siGithub } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
@@ -82,7 +82,10 @@ export function GithubActivity() {
           ) : undefined
         }
       />
-      <ol className="panel m-0 grid list-none gap-0 p-0">
+      <ol
+        className="panel rise-enter m-0 grid list-none gap-0 p-0"
+        style={{ "--i": 0 } as CSSProperties}
+      >
         {snapshot.activity.map((activity, index) => (
           <ActivityRow activity={activity} key={`${activity.at}-${index}`} />
         ))}

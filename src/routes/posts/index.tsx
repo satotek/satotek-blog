@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { CSSProperties } from "react";
 
 import { PostFilters } from "#/components/PostFilters";
 import { PostList } from "#/components/PostList";
@@ -29,14 +30,18 @@ function PostsIndexPage() {
   return (
     <section>
       <SectionHeading eyebrow="Journal" title="記事一覧" description={`${posts.length}件の記事`} />
-      <PostSearchField query={search.query} onChange={search.setQuery} />
+      <div className="rise-enter" style={{ "--i": 0 } as CSSProperties}>
+        <PostSearchField query={search.query} onChange={search.setQuery} />
+      </div>
       {search.active ? (
         <PostSearchResults posts={posts} state={search.state} />
       ) : (
-        <PostFilters filters={filters} totalPosts={posts.length} />
+        <div className="rise-enter" style={{ "--i": 1 } as CSSProperties}>
+          <PostFilters filters={filters} totalPosts={posts.length} />
+        </div>
       )}
       {search.active ? null : posts.length > 0 ? (
-        <PostList posts={posts} variant="grid" />
+        <PostList posts={posts} variant="grid" enter enterFrom={2} />
       ) : (
         <p className="py-6 text-muted">公開中の記事はありません。</p>
       )}

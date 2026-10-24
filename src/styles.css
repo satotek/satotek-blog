@@ -120,6 +120,38 @@
     box-shadow: var(--surface-shadow);
   }
 
+  /* ホームの記事、記事一覧、プロフィールの塊を上から順に出す。
+     退場用のコピーでは再生しない。ドックの退場中は止め、新しいページが入る瞬間から始める。
+     backwards だけにして、終わったあとのホバー変形を残す。 */
+  @media (prefers-reduced-motion: no-preference) {
+    .post-enter,
+    .rise-enter {
+      animation: rise-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+      animation-delay: calc(var(--i, 0) * 55ms);
+    }
+
+    html[data-dock-transition="forward"] .post-enter,
+    html[data-dock-transition="back"] .post-enter,
+    html[data-dock-transition="fade"] .post-enter,
+    html[data-dock-transition="forward"] .rise-enter,
+    html[data-dock-transition="back"] .rise-enter,
+    html[data-dock-transition="fade"] .rise-enter {
+      animation-play-state: paused;
+    }
+  }
+
+  @keyframes rise-enter {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  [data-dock-hold],
+  [data-dock-hold] * {
+    animation: none !important;
+  }
+
   /* 記事カードはライトでは枠を消して、地面と同じ色味の影だけで浮かせる。
      ダークは影が潰れるので、枠と一段明るい面を残す。
      角丸と枠はここで完結させる。ホームの各行が単独のカードになる。 */
@@ -1896,8 +1928,16 @@
   }
 }
 
+/* ドックとバーの切替中。本文を横にずらすので、その間だけ横スクロールを出さない。 */
+html[data-dock-transition],
+html[data-dock-transition] body {
+  overflow-x: clip;
+}
+
 /* ページ遷移。本文だけを名前付きスナップショットにして、ヘッダー・フッターは
    動かさない（同じ要素なので動かすとちらつく）。
+   ドックとバーのクリックはここを使わない。スナップショットにドックが入り、
+   選択タイルのスライドが止まって見えるため。
    index.tsx が <main> を入れ子にしているため、ルート直下の1つだけを指す。
    テーマ切り替え中は名前を外す。名前付き要素は root のスナップショットから
    抜けてしまい、円形ワイプが本文を覆えなくなるため。 */
