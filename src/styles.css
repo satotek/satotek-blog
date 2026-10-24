@@ -140,9 +140,10 @@
     }
   }
 
+  /* 透明度はページ側のフェードに任せる。ここでも 0 にすると、
+     見出しだけ先に出て本文が点いたようにちらつく。 */
   @keyframes rise-enter {
     from {
-      opacity: 0;
       transform: translateY(12px);
     }
   }
@@ -1944,6 +1945,11 @@ html[data-dock-transition] body {
 @media (prefers-reduced-motion: no-preference) {
   :root:not([data-theme-transition]) body > main {
     view-transition-name: page;
+  }
+
+  /* 後から書いて、ドックの切替中は名前を消す。縦のフェードが横スライドに重ならない。 */
+  :root[data-dock-transition] body > main {
+    view-transition-name: none;
   }
 }
 

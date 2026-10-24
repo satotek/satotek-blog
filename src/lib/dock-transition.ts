@@ -6,6 +6,12 @@ const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 let running = false;
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 export function isDockTransitionRunning(): boolean {
   return running;
 }
@@ -102,9 +108,11 @@ export async function transitionDockPage(
           ],
       { duration, easing: EASE, fill: "forwards" },
     );
-    await Promise.all([leave.finished.catch(() => undefined), navigation]);
-    leaving.remove();
-    leaving = null;
+    const hold = leaving;
+    void leave.finished.catch(() => undefined).finally(() => hold.remove());
+    // 退場の終わりはもう透明なので、そこで待たずに次のページを重ねる。
+    // 待ち切ると、空白が一度挟まってちらつく。
+    await Promise.all([navigation, delay(duration - Math.round(duration * 0.35))]);
 
     // forward / back / fade の間は記事の出現を止めている。入る瞬間に再開する。
     root.dataset.dockTransition = "enter";
@@ -118,6 +126,7 @@ export async function transitionDockPage(
       { duration, easing: EASE, fill: "forwards" },
     );
     main.style.opacity = "";
+    leaving = null;
     try {
       await enter.finished;
     } catch {
