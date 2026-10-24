@@ -13,6 +13,7 @@ import type { ReactNode } from "react";
 import { siGithub, siInstagram, siX, type SimpleIcon } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
+import { GithubActivity } from "#/components/GithubActivity";
 import { SecretGames, useSecretUnlock } from "#/components/SecretGames";
 import { ResponsiveImage } from "#/components/ResponsiveImage";
 import { SectionHeading } from "#/components/SectionHeading";
@@ -177,6 +178,8 @@ function Profile() {
           })}
         </ul>
       </section>
+
+      <GithubActivity />
 
       <section aria-labelledby="site-title">
         <SectionHeading title="About this site" id="site-title" />

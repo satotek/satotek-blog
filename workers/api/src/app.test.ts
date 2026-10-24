@@ -62,6 +62,7 @@ function app() {
   return createApp({
     posts,
     loadPopularPosts: async () => popular,
+    loadPostViews: async () => new Map([["first-post", 128]]),
     loadMusic: async () => music,
   });
 }
@@ -93,6 +94,53 @@ describe("blog API", () => {
     expect(found.status).toBe(200);
     expect(await found.json()).toMatchObject({ slug: "first-post", category: "日常" });
     expect(missing.status).toBe(404);
+  });
+
+  it("returns a post's all-time views", async () => {
+    const counted = await request(app(), "/api/posts/first-post/views");
+    const uncounted = await request(app(), "/api/posts/nix-flakes-dotfiles/views");
+    const missing = await request(app(), "/api/posts/missing/views");
+
+    expect(await counted.json()).toEqual({
+      slug: "first-post",
+      range: "all",
+      source: "ga4",
+      views: 128,
+    });
+    expect(await uncounted.json()).toMatchObject({ source: "ga4", views: 0 });
+    expect(missing.status).toBe(404);
+  });
+
+  it("reports views as unavailable when GA4 cannot answer", async () => {
+    const response = await request(
+      createApp({ posts, loadPostViews: async () => undefined }),
+      "/api/posts/first-post/views",
+    );
+
+    expect(await response.json()).toMatchObject({ source: "unavailable", views: null });
+  });
+
+  it("returns GitHub activity and survives a failed request", async () => {
+    const snapshot = {
+      source: "github" as const,
+      user: "satotek",
+      profileUrl: "https://github.com/satotek",
+      activity: [],
+    };
+    const ok = await request(createApp({ posts, loadGithub: async () => snapshot }), "/api/github");
+    const failed = await request(
+      createApp({
+        posts,
+        loadGithub: async () => {
+          throw new Error("rate limited");
+        },
+      }),
+      "/api/github",
+    );
+
+    expect(await ok.json()).toEqual(snapshot);
+    expect(failed.status).toBe(200);
+    expect(await failed.json()).toMatchObject({ source: "unavailable", activity: [] });
   });
 
   it("searches metadata", async () => {

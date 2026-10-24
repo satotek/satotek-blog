@@ -53,6 +53,10 @@ cp .env.example .env.local
 
 ホームページの人気記事は、表示後に `GET /api/posts/popular` を取ります。API Worker が GA4 Data API の `screenPageViews` で、直近7日間の `/posts/<slug>` を PV 降順で最大10件並べ、順位だけを返します。閲覧数はレスポンスに含めません。GA4 の認証情報は API Worker `satotek-api` の Secret からのみ読み、ブラウザへは渡しません。認証情報が未設定、取得失敗、該当記事が無いときは、人気記事の欄は出ません。ビルド済みの HTML にも載せていません。
 
+記事一覧 `/posts` の検索窓は `GET /api/search?q=` を呼び、タイトル・タグ・カテゴリ・説明から探します。検索語は `?q=` に残るので、そのまま共有できます。
+
+記事ページの見出しの下には、`GET /api/posts/<slug>/views` で公開以来の累計閲覧数を出します。同じく GA4 の `screenPageViews` を API Worker が読み、1時間キャッシュします。取得できないとき、または 0 回のときは表示しません。
+
 ローカルでGA4連携まで確認する場合は、サービスアカウントへ対象GA4プロパティの閲覧権限を付与し、`.dev.vars` を作成します。
 
 ```sh
@@ -89,6 +93,16 @@ LASTFM_API_KEY=
 
 ```sh
 bunx wrangler secret put LASTFM_API_KEY -c workers/api/wrangler.jsonc
+```
+
+### GitHub の最近の活動
+
+`/profile` の GitHub 欄は `GET /api/github` を取ります。API Worker が `satotek` の公開イベントを読み、push・PR・Issue・リリース・Star などを最大8件の一行にまとめて10分キャッシュします。同じリポジトリへの続けての push は1行にまとめます。取得に失敗したとき、活動が無いときは欄を出しません。
+
+トークンは無くても動きますが、未認証だと GitHub API は IP ごとに 60 回/時です。上限に当たるようなら、権限なしの fine-grained token を登録します。
+
+```sh
+bunx wrangler secret put GITHUB_TOKEN -c workers/api/wrangler.jsonc
 ```
 
 読み取りはユーザー認証不要です。共有シークレットは使いません。別のユーザーを見るときは `LASTFM_USERNAME` で上書きできます。応答は Worker で約60秒キャッシュします。

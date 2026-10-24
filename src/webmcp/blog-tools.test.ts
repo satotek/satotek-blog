@@ -2,7 +2,8 @@ import { describe, expect, it } from "vite-plus/test";
 
 import type { PostSummary } from "#/lib/posts/types";
 
-import { createBlogWebMcpTools, listPostSummaries, searchPostSummaries } from "./blog-tools";
+import { createApp } from "../../workers/api/src/app";
+import { createBlogWebMcpTools } from "./blog-tools";
 
 const posts: readonly PostSummary[] = [
   {
@@ -34,8 +35,18 @@ const posts: readonly PostSummary[] = [
   },
 ];
 
-function toolNamed(name: string, options?: Parameters<typeof createBlogWebMcpTools>[0]) {
-  const tool = createBlogWebMcpTools(options).find((candidate) => candidate.name === name);
+const api = createApp({ posts });
+const requested: string[] = [];
+
+function fetchApi(path: string) {
+  requested.push(path);
+  return api.handle(new Request(`http://localhost${path}`));
+}
+
+function toolNamed(name: string, options: Parameters<typeof createBlogWebMcpTools>[0] = {}) {
+  const tool = createBlogWebMcpTools({ fetchApi, ...options }).find(
+    (candidate) => candidate.name === name,
+  );
   if (!tool) throw new Error(`Missing tool: ${name}`);
   return tool;
 }
@@ -44,29 +55,42 @@ function toolNamed(name: string, options?: Parameters<typeof createBlogWebMcpToo
 const executeOptions = { signal: new AbortController().signal };
 
 describe("blog WebMCP tools", () => {
-  it("searches title, description, and tags with ranked results", () => {
-    const result = searchPostSummaries(posts, "cloudflare");
+  it("searches through the API", async () => {
+    const result = await toolNamed("search_posts").execute(
+      { query: "cloudflare", limit: 5 },
+      executeOptions,
+    );
 
-    expect(result.total).toBe(1);
-    expect(result.posts[0]?.slug).toBe("cloudflare-workers-site");
+    expect(requested.at(-1)).toBe("/api/search?q=cloudflare&limit=5");
+    expect(result).toMatchObject({
+      query: "cloudflare",
+      total: 1,
+      posts: [{ slug: "cloudflare-workers-site" }],
+    });
   });
 
-  it("accepts Japanese category labels and case-insensitive tags", () => {
-    const categoryResult = listPostSummaries(posts, { category: "技術" });
-    const tagResult = listPostSummaries(posts, { tag: "nIx" });
+  it("lists by Japanese category labels and case-insensitive tags", async () => {
+    const list = toolNamed("list_posts");
+    const categoryResult = (await list.execute({ category: "技術" }, executeOptions)) as {
+      posts: { slug: string }[];
+    };
+    const tagResult = (await list.execute({ tag: "nIx" }, executeOptions)) as {
+      filters: unknown;
+      posts: { slug: string }[];
+    };
 
     expect(categoryResult.posts.map((post) => post.slug)).toEqual([
       "nix-flakes-dotfiles",
       "cloudflare-workers-site",
     ]);
+    expect(tagResult.filters).toEqual({ category: null, tag: "nIx" });
     expect(tagResult.posts.map((post) => post.slug)).toEqual(["nix-flakes-dotfiles"]);
   });
 
   it("returns concise metadata and opens only published slugs", async () => {
     const opened: string[] = [];
-    const search = toolNamed("search_posts", { getPosts: async () => posts });
+    const search = toolNamed("search_posts");
     const open = toolNamed("open_post", {
-      getPosts: async () => posts,
       openPost: (post) => {
         opened.push(post.slug);
       },
@@ -85,5 +109,11 @@ describe("blog WebMCP tools", () => {
     await expect(open.execute({ slug: "missing-post" }, executeOptions)).rejects.toThrow(
       "Search for an article first",
     );
+  });
+
+  it("passes the API's validation message through", async () => {
+    await expect(
+      toolNamed("search_posts").execute({ query: "   " }, executeOptions),
+    ).rejects.toThrow("query must be a non-empty string.");
   });
 });

@@ -11,6 +11,10 @@ const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_ANALYTICS_DATA_URL = "https://analyticsdata.googleapis.com/v1beta";
 const GOOGLE_ANALYTICS_SCOPE = "https://www.googleapis.com/auth/analytics.readonly";
 const POPULAR_POST_LIMIT = 10;
+// 記事数よりずっと大きければよい。パスの揺れ（末尾スラッシュなど）も行を食う。
+const POST_VIEWS_LIMIT = 1_000;
+// GA4 が受け付ける最も古い日付。サイト開設以来の累計を取るのに使う。
+const GA4_EARLIEST_DATE = "2015-08-14";
 const GOOGLE_REQUEST_TIMEOUT_MS = 5_000;
 
 type Ga4Configuration = {
@@ -123,9 +127,16 @@ async function getAccessToken(configuration: Ga4Configuration) {
   return response.access_token;
 }
 
-async function runPopularPostsReport(
+type PostViewsReport = {
+  /** GA4 の startDate。"7daysAgo" のような相対指定か YYYY-MM-DD。 */
+  startDate: string;
+  limit: number;
+};
+
+async function runPostViewsReport(
   configuration: Ga4Configuration,
   accessToken: string,
+  { startDate, limit }: PostViewsReport,
 ): Promise<readonly PopularPost[]> {
   const response = await fetchJson<Ga4ReportResponse>(
     `${GOOGLE_ANALYTICS_DATA_URL}/properties/${encodeURIComponent(configuration.propertyId)}:runReport`,
@@ -136,7 +147,7 @@ async function runPopularPostsReport(
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+        dateRanges: [{ startDate, endDate: "today" }],
         dimensions: [{ name: "pagePath" }, { name: "pageTitle" }],
         metrics: [{ name: "screenPageViews" }],
         dimensionFilter: {
@@ -149,7 +160,7 @@ async function runPopularPostsReport(
           },
         },
         orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
-        limit: String(POPULAR_POST_LIMIT),
+        limit: String(limit),
       }),
     },
   );
@@ -183,12 +194,41 @@ export async function getPopularPostsFromGa4(env: Ga4Env): Promise<readonly Popu
     if (!configuration) return [];
 
     const accessToken = await getAccessToken(configuration);
-    return await runPopularPostsReport(configuration, accessToken);
+    return await runPostViewsReport(configuration, accessToken, {
+      startDate: "7daysAgo",
+      limit: POPULAR_POST_LIMIT,
+    });
   } catch (error) {
     console.warn(
       "[analytics] Unable to load popular posts from GA4",
       error instanceof Error ? error.message : error,
     );
     return [];
+  }
+}
+
+/**
+ * 公開以来の記事ごとの閲覧数を GA4 から読む。資格情報が無い、または取得に
+ * 失敗したときは undefined を返し、「0 回」と区別できるようにする。
+ */
+export async function getPostViewsFromGa4(
+  env: Ga4Env,
+): Promise<ReadonlyMap<string, number> | undefined> {
+  try {
+    const configuration = getConfiguration(env);
+    if (!configuration) return undefined;
+
+    const accessToken = await getAccessToken(configuration);
+    const posts = await runPostViewsReport(configuration, accessToken, {
+      startDate: GA4_EARLIEST_DATE,
+      limit: POST_VIEWS_LIMIT,
+    });
+    return new Map(posts.map((post) => [post.slug, post.views]));
+  } catch (error) {
+    console.warn(
+      "[analytics] Unable to load post views from GA4",
+      error instanceof Error ? error.message : error,
+    );
+    return undefined;
   }
 }

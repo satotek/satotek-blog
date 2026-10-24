@@ -4,6 +4,7 @@ import { siLastdotfm } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
 import { Link as AriaLink, RouterLink } from "#/components/ui";
+import { formatRelativeTime } from "#/lib/date";
 import {
   isMusicSnapshot,
   type MusicArtist,
@@ -278,7 +279,7 @@ function FeaturedTrack({ track, live }: { track: MusicTrack; live: boolean }) {
           {live ? "Now playing" : "Last played"}
           {!live && track.playedAt ? (
             <time className="normal-case tracking-normal text-muted" dateTime={track.playedAt}>
-              · {formatPlayedAt(track.playedAt)}
+              · {formatRelativeTime(track.playedAt)}
             </time>
           ) : null}
         </p>
@@ -396,7 +397,7 @@ function RecentTrack({ track }: { track: MusicTrack }) {
       <TrackText track={track} />
       {track.playedAt ? (
         <time className="font-mono text-[0.72rem] text-muted" dateTime={track.playedAt}>
-          {formatPlayedAt(track.playedAt)}
+          {formatRelativeTime(track.playedAt)}
         </time>
       ) : null}
     </MaybeLink>
@@ -556,23 +557,4 @@ function useCountUp(target: number) {
   }, [target]);
 
   return value;
-}
-
-function formatPlayedAt(iso: string) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  const minutes = Math.round((Date.now() - date.getTime()) / 60_000);
-  if (minutes < 1) return "たった今";
-  if (minutes < 60) return `${minutes}分前`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}時間前`;
-  const days = Math.round(hours / 24);
-  if (days < 7) return `${days}日前`;
-  return new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo",
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
 }
