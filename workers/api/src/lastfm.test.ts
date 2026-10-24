@@ -82,6 +82,7 @@ describe("Last.fm payloads", () => {
       profileUrl: "https://www.last.fm/user/nosuke",
       range: "7d",
       playcount: 42,
+      scrobbles: 900,
       nowPlaying: {
         name: "ナイトクルージング",
         artist: "Fishmans",
@@ -105,6 +106,35 @@ describe("Last.fm payloads", () => {
     });
   });
 
+  it("borrows recent artwork for chart entries Last.fm leaves without images", () => {
+    const snapshot = musicFromLastfmPayloads({
+      user: "nosuke",
+      recent,
+      week,
+      artists: {
+        topartists: {
+          artist: [
+            { name: "Fishmans", playcount: "11", image: [{ "#text": placeholder, size: "large" }] },
+            { name: "Lamp", playcount: "3", image: [] },
+          ],
+        },
+      },
+      tracks: {
+        toptracks: {
+          track: {
+            name: "ナイトクルージング",
+            playcount: "4",
+            artist: { name: "Fishmans" },
+            image: [{ "#text": placeholder, size: "large" }],
+          },
+        },
+      },
+    });
+
+    expect(snapshot.topArtists.map((artist) => artist.image)).toEqual([artwork, null]);
+    expect(snapshot.topTracks[0]?.image).toBe(artwork);
+  });
+
   it("stays available when only the chart calls fail", () => {
     const snapshot = musicFromLastfmPayloads({
       user: "nosuke",
@@ -116,6 +146,7 @@ describe("Last.fm payloads", () => {
 
     expect(snapshot.source).toBe("lastfm");
     expect(snapshot.playcount).toBeNull();
+    expect(snapshot.scrobbles).toBe(900);
     expect(snapshot.topArtists).toEqual([]);
     expect(snapshot.topTracks).toEqual([]);
     expect(snapshot.nowPlaying?.name).toBe("ナイトクルージング");

@@ -1596,6 +1596,16 @@
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  .music-art__fallback {
+    background: linear-gradient(
+      135deg,
+      oklch(0.78 0.12 var(--hue, 55)),
+      oklch(0.6 0.15 calc(var(--hue, 55) + 35))
+    );
+    color: oklch(0.99 0.01 88);
+    text-shadow: 0 1px 2px oklch(0.2 0.03 var(--hue, 55) / 35%);
+  }
+
   .music-row:hover .music-art {
     transform: scale(1.06) rotate(-3deg);
   }

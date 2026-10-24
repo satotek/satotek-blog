@@ -25,6 +25,8 @@ export type MusicSnapshot = {
   profileUrl: string | null;
   range: "7d";
   playcount: number | null;
+  /** 記録を始めてからの総再生回数（Last.fm の scrobble 数）。 */
+  scrobbles: number | null;
   nowPlaying: MusicTrack | null;
   recent: MusicTrack[];
   topArtists: MusicArtist[];
@@ -38,6 +40,7 @@ export function unavailableMusic(): MusicSnapshot {
     profileUrl: null,
     range: "7d",
     playcount: null,
+    scrobbles: null,
     nowPlaying: null,
     recent: [],
     topArtists: [],

@@ -94,6 +94,7 @@ export function musicFromLastfmPayloads({
 }): MusicSnapshot {
   const recentTracks = tracksFromPayload(recent);
   const nowPlaying = recentTracks.find((track) => track.nowPlaying)?.track ?? null;
+  const artwork = artworkFromRecent(recentTracks.map((entry) => entry.track));
 
   return {
     source: "lastfm",
@@ -101,14 +102,45 @@ export function musicFromLastfmPayloads({
     profileUrl: `https://www.last.fm/user/${encodeURIComponent(user)}`,
     range: "7d",
     playcount: totalFromPayload(week),
+    // 期間を絞らない最新曲の取得でも total は全期間の件数になる。別途 user.getinfo は呼ばない。
+    scrobbles: totalFromPayload(recent),
     nowPlaying,
     recent: recentTracks
       .filter((track) => !track.nowPlaying)
       .map((track) => track.track)
       .slice(0, RECENT_LIMIT),
-    topArtists: artistsFromPayload(artists).slice(0, ARTIST_LIMIT),
-    topTracks: chartTracksFromPayload(tracks).slice(0, TRACK_LIMIT),
+    topArtists: artistsFromPayload(artists)
+      .slice(0, ARTIST_LIMIT)
+      .map((artist) => ({
+        ...artist,
+        image: artist.image ?? artwork.byArtist.get(artist.name) ?? null,
+      })),
+    topTracks: chartTracksFromPayload(tracks)
+      .slice(0, TRACK_LIMIT)
+      .map((track) => ({
+        ...track,
+        image: track.image ?? artwork.byTrack.get(trackKey(track)) ?? null,
+      })),
   };
+}
+
+/**
+ * Last.fm はチャート（top artists / top tracks）に画像を返さない。
+ * 最近の再生にはジャケットが付くので、同じ曲・同じアーティストならそれを借りる。
+ */
+function artworkFromRecent(tracks: MusicTrack[]) {
+  const byTrack = new Map<string, string>();
+  const byArtist = new Map<string, string>();
+  for (const track of tracks) {
+    if (!track.image) continue;
+    if (!byTrack.has(trackKey(track))) byTrack.set(trackKey(track), track.image);
+    if (!byArtist.has(track.artist)) byArtist.set(track.artist, track.image);
+  }
+  return { byTrack, byArtist };
+}
+
+function trackKey(track: Pick<MusicTrack, "artist" | "name">) {
+  return `${track.artist}\u0000${track.name}`;
 }
 
 function lastfmUrl(apiKey: string, params: Record<string, string>) {

@@ -110,7 +110,7 @@ export function ListeningAside({ snapshot }: { snapshot: MusicSnapshot | null })
         </RouterLink>
       </div>
       <div className="mt-2 grid grid-cols-[40px_minmax(0,1fr)] items-center gap-3 px-2 py-2">
-        <Artwork image={track.image} className="size-10 rounded-xl" />
+        <Artwork image={track.image} label={track.name} className="size-10 rounded-xl" />
         <TrackText track={track} />
       </div>
     </section>
@@ -120,8 +120,7 @@ export function ListeningAside({ snapshot }: { snapshot: MusicSnapshot | null })
 function ListeningBody({ snapshot }: { snapshot: MusicSnapshot }) {
   const featured = snapshot.nowPlaying ?? snapshot.recent[0] ?? null;
   const recent = snapshot.nowPlaying ? snapshot.recent : snapshot.recent.slice(1);
-  const topArtist = snapshot.topArtists[0] ?? null;
-  const hasStats = snapshot.playcount !== null || topArtist !== null;
+  const hasStats = snapshot.playcount !== null || snapshot.scrobbles !== null;
 
   if (!featured && !hasStats && snapshot.topTracks.length === 0) {
     return (
@@ -137,10 +136,24 @@ function ListeningBody({ snapshot }: { snapshot: MusicSnapshot }) {
           {hasStats ? (
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
               {snapshot.playcount !== null ? (
-                <PlaycountStat count={snapshot.playcount} wide={!topArtist} />
+                <CountStat
+                  count={snapshot.playcount}
+                  label="回再生 / 直近7日"
+                  tone="accent"
+                  icon={<Music />}
+                  index={1}
+                  wide={snapshot.scrobbles === null}
+                />
               ) : null}
-              {topArtist ? (
-                <TopArtistStat artist={topArtist} wide={snapshot.playcount === null} />
+              {snapshot.scrobbles !== null ? (
+                <CountStat
+                  count={snapshot.scrobbles}
+                  label="総 scrobbles"
+                  tone="ink"
+                  icon={<Disc3 />}
+                  index={2}
+                  wide={snapshot.playcount === null}
+                />
               ) : null}
             </div>
           ) : null}
@@ -253,9 +266,10 @@ function FeaturedTrack({ track, live }: { track: MusicTrack; live: boolean }) {
         <span className="music-vinyl" aria-hidden="true" />
         <Artwork
           image={track.image}
+          label={track.name}
           className="music-cover__art size-full rounded-2xl"
           eager
-          iconClassName="size-8"
+          textClassName="text-[2.6rem] sm:text-[3.2rem]"
         />
       </div>
       <div className="min-w-0">
@@ -285,49 +299,38 @@ function FeaturedTrack({ track, live }: { track: MusicTrack; live: boolean }) {
   );
 }
 
-function PlaycountStat({ count, wide }: { count: number; wide: boolean }) {
+function CountStat({
+  count,
+  label,
+  tone,
+  icon,
+  index,
+  wide,
+}: {
+  count: number;
+  label: string;
+  tone: "accent" | "ink";
+  icon: ReactNode;
+  index: number;
+  wide: boolean;
+}) {
   const shown = useCountUp(count);
   return (
     <section
-      className={`music-stat music-stat--accent music-enter flex flex-col justify-between gap-6 p-5 ${wide ? "col-span-2 lg:col-span-1" : ""}`}
-      aria-label="直近7日の再生回数"
-      style={motionStyle(1)}
+      className={`music-stat music-stat--${tone} music-enter flex flex-col justify-between gap-6 p-5 ${wide ? "col-span-2 lg:col-span-1" : ""}`}
+      aria-label={label}
+      style={motionStyle(index)}
     >
-      <Music className="size-5 opacity-80" aria-hidden="true" />
+      <span className="opacity-80 [&>svg]:size-5" aria-hidden="true">
+        {icon}
+      </span>
       <div>
         <p className="m-0 font-mono text-[2.1rem] font-semibold leading-none tracking-[-0.04em] tabular-nums">
           <span aria-hidden="true">{shown.toLocaleString("ja-JP")}</span>
           <span className="sr-only">{count.toLocaleString("ja-JP")}回</span>
         </p>
-        <p className="m-0 mt-1.5 text-[0.78rem] font-bold opacity-85">回再生 / 直近7日</p>
-      </div>
-    </section>
-  );
-}
-
-function TopArtistStat({ artist, wide }: { artist: MusicArtist; wide: boolean }) {
-  return (
-    <section
-      className={`music-stat music-stat--ink music-enter flex flex-col justify-between gap-6 p-5 ${wide ? "col-span-2 lg:col-span-1" : ""}`}
-      aria-label="直近7日でいちばん聴いたアーティスト"
-      style={motionStyle(2)}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <Mic2 className="size-5 opacity-80" aria-hidden="true" />
-        <Artwork
-          image={artist.image}
-          className="size-9 rounded-full border-2 border-white/20"
-          round
-        />
-      </div>
-      <div className="min-w-0">
-        <p className="m-0 truncate text-[1.3rem] font-bold leading-tight tracking-[-0.02em]">
-          <MaybeLink className="no-underline hover:text-inherit" href={artist.url}>
-            {artist.name}
-          </MaybeLink>
-        </p>
-        <p className="m-0 mt-1.5 text-[0.78rem] font-bold opacity-70">
-          いちばん聴いた · {artist.playcount.toLocaleString("ja-JP")}回
+        <p className="m-0 mt-1.5 text-[0.78rem] font-bold opacity-80" aria-hidden="true">
+          {label}
         </p>
       </div>
     </section>
@@ -343,6 +346,7 @@ function ArtistTile({ artist, rank }: { artist: MusicArtist; rank: number }) {
       <span className="music-artist__ring relative rounded-full p-[3px]">
         <Artwork
           image={artist.image}
+          label={artist.name}
           className="size-14 rounded-full border-[3px] border-card sm:size-[72px]"
           round
         />
@@ -372,7 +376,7 @@ function ChartTrack({ track, rank }: { track: MusicChartTrack; rank: number }) {
         >
           {rank}
         </span>
-        <Artwork image={track.image} className="size-11 rounded-[10px]" />
+        <Artwork image={track.image} label={track.name} className="size-11 rounded-[10px]" />
         <TrackText track={track} />
         <span className="font-mono text-[0.74rem] font-semibold tabular-nums text-accent">
           {track.playcount.toLocaleString("ja-JP")} plays
@@ -388,7 +392,7 @@ function RecentTrack({ track }: { track: MusicTrack }) {
       className="music-row grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 no-underline hover:text-inherit"
       href={track.url}
     >
-      <Artwork image={track.image} className="size-11 rounded-[10px]" />
+      <Artwork image={track.image} label={track.name} className="size-11 rounded-[10px]" />
       <TrackText track={track} />
       {track.playedAt ? (
         <time className="font-mono text-[0.72rem] text-muted" dateTime={track.playedAt}>
@@ -410,16 +414,18 @@ function TrackText({ track }: { track: MusicTrack }) {
 
 function Artwork({
   image,
+  label,
   className,
   round = false,
   eager = false,
-  iconClassName = "size-4",
+  textClassName = "text-[0.95rem]",
 }: {
   image: string | null;
+  label: string;
   className: string;
   round?: boolean;
   eager?: boolean;
-  iconClassName?: string;
+  textClassName?: string;
 }) {
   const [failed, setFailed] = useState(false);
   const showImage = image && !failed;
@@ -439,13 +445,30 @@ function Artwork({
           onError={() => setFailed(true)}
         />
       ) : (
-        <Music
-          className={`absolute inset-0 m-auto text-accent ${iconClassName}`}
+        <span
+          className={`music-art__fallback grid size-full place-items-center font-bold ${textClassName}`}
+          style={{ "--hue": hueFor(label) } as CSSProperties}
           aria-hidden="true"
-        />
+        >
+          {initialOf(label)}
+        </span>
       )}
     </span>
   );
+}
+
+/** 画像が無いときの頭文字。絵文字や結合文字を割らないよう書記素単位で取る。 */
+function initialOf(label: string) {
+  const segment = new Intl.Segmenter("ja", { granularity: "grapheme" }).segment(label.trim());
+  const first = segment[Symbol.iterator]().next().value?.segment ?? "";
+  return first.toUpperCase() || "♪";
+}
+
+/** 名前から色相を決める。同じ名前はいつも同じ色になる。 */
+function hueFor(label: string) {
+  let hash = 0;
+  for (const char of label) hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
+  return hash % 360;
 }
 
 function MaybeLink({

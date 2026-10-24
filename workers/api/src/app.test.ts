@@ -44,6 +44,7 @@ const music: MusicSnapshot = {
   profileUrl: "https://www.last.fm/user/nosuke",
   range: "7d",
   playcount: 12,
+  scrobbles: 900,
   nowPlaying: {
     name: "ナイトクルージング",
     artist: "Fishmans",
