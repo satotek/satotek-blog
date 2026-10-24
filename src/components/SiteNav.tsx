@@ -49,7 +49,7 @@ export function SiteNav({ variant }: { variant: "dock" | "bar" }) {
 
   return (
     <nav
-      className={`site-nav site-nav--${variant}`}
+      className={`site-nav site-nav--${variant} glass`}
       aria-label="グローバルナビ"
       style={
         {
