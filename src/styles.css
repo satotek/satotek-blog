@@ -1897,7 +1897,8 @@
 }
 
 /* ドックとバーの切替中。本文を横にずらすので、その間だけ横スクロールを出さない。 */
-html[data-dock-transition] {
+html[data-dock-transition],
+html[data-dock-transition] body {
   overflow-x: clip;
 }
 

@@ -30,16 +30,45 @@ function pageMain(): HTMLElement | null {
   return main instanceof HTMLElement ? main : null;
 }
 
-function nextFrame(): Promise<void> {
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-  });
+/**
+ * 遷移で本文が差し替わっても、退場中はクリック時点の画面を見せる。
+ * ヘッダーとドックより下に置き、選択タイルは実物のまま滑らせる。
+ */
+function holdLeavingPage(main: HTMLElement): HTMLElement {
+  const rect = main.getBoundingClientRect();
+  const layer = main.cloneNode(true);
+  if (!(layer instanceof HTMLElement)) {
+    throw new Error("page clone failed");
+  }
+
+  const top = Math.max(rect.top, 0);
+  const bottom = Math.min(rect.bottom, window.innerHeight);
+  layer.setAttribute("aria-hidden", "true");
+  layer.inert = true;
+  layer.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+  layer.style.position = "fixed";
+  layer.style.left = `${rect.left}px`;
+  layer.style.width = `${rect.width}px`;
+  layer.style.top = `${top}px`;
+  layer.style.height = `${Math.max(bottom - top, 0)}px`;
+  layer.style.margin = "0";
+  layer.style.maxWidth = "none";
+  layer.style.overflow = "hidden";
+  layer.style.pointerEvents = "none";
+  layer.style.zIndex = "30";
+  layer.style.opacity = "1";
+  layer.style.transform = "none";
+  layer.style.viewTransitionName = "none";
+  document.body.append(layer);
+  layer.scrollTop = Math.max(0, -rect.top);
+  return layer;
 }
 
 /**
  * 旧ページを出してから新しいページを入れる。View Transition に載せるとドックが
  * スナップショットに取り込まれ、選択タイルのスライドが止まって見えるため、
  * ドックとバーのクリックでは本文だけをその場で動かす。
+ * 読み込みは退場と同時に始め、画面が消えてから待ちが残らないようにする。
  */
 export async function transitionDockPage(
   direction: -1 | 0 | 1,
@@ -57,9 +86,13 @@ export async function transitionDockPage(
   root.dataset.dockTransition = direction === 0 ? "fade" : direction > 0 ? "forward" : "back";
   const distance = direction * SHIFT_PX;
   const duration = direction === 0 ? FADE_MS : SLIDE_MS;
+  let leaving: HTMLElement | null = null;
 
   try {
-    const leave = main.animate(
+    leaving = holdLeavingPage(main);
+    main.style.opacity = "0";
+    const navigation = navigate();
+    const leave = leaving.animate(
       direction === 0
         ? [{ opacity: 1 }, { opacity: 0 }]
         : [
@@ -68,17 +101,9 @@ export async function transitionDockPage(
           ],
       { duration, easing: EASE, fill: "forwards" },
     );
-    try {
-      await leave.finished;
-    } catch {
-      // 連打でキャンセルされても、ページの入れ替えは続ける。
-    }
-    // アニメーションを消すと透明度が戻り、入れ替えの瞬間に旧ページが点く。
-    main.style.opacity = "0";
-    leave.cancel();
-
-    await navigate();
-    await nextFrame();
+    await Promise.all([leave.finished.catch(() => undefined), navigation]);
+    leaving.remove();
+    leaving = null;
 
     const enter = main.animate(
       direction === 0
@@ -97,6 +122,7 @@ export async function transitionDockPage(
     }
     enter.cancel();
   } finally {
+    leaving?.remove();
     main.style.opacity = "";
     delete root.dataset.dockTransition;
     running = false;
