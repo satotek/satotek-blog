@@ -67,9 +67,9 @@
   --nav-glass: light-dark(oklch(0.99 0.01 300 / 72%), oklch(0.27 0.02 293 / 72%));
   --nav-glass-border: light-dark(oklch(1 0 0 / 70%), oklch(from var(--fg) l c h / 12%));
   --nav-glass-highlight: light-dark(oklch(1 0 0 / 80%), oklch(1 0 0 / 6%));
-  --nav-active-from: light-dark(oklch(0.7 0.13 310), oklch(0.82 0.1 310));
-  --nav-active-to: light-dark(oklch(0.55 0.15 288), oklch(0.7 0.13 290));
-  --nav-active-fg: light-dark(oklch(0.99 0.01 300), oklch(0.2 0.02 298));
+  --nav-active-from: light-dark(oklch(0.93 0.04 308), oklch(0.44 0.07 308));
+  --nav-active-to: light-dark(oklch(0.87 0.06 292), oklch(0.38 0.08 290));
+  --nav-active-fg: light-dark(oklch(0.38 0.11 293), oklch(0.95 0.03 300));
   /* 画面下に固定したドックの上端まで。本文と目次ボタンをこの分だけ持ち上げる。 */
   --dock-space: 0px;
   --surface-shadow:
@@ -1000,7 +1000,7 @@
   .site-nav__indicator {
     background: linear-gradient(160deg, var(--nav-active-from), var(--nav-active-to));
     box-shadow:
-      0 4px 10px -6px oklch(from var(--accent) l c h / 45%),
+      0 4px 10px -6px oklch(from var(--accent) l c h / 25%),
       inset 0 1px 0 oklch(1 0 0 / 28%);
   }
 
@@ -1142,7 +1142,7 @@
     border-radius: 16px;
     background: linear-gradient(160deg, var(--nav-active-from), var(--nav-active-to));
     box-shadow:
-      0 4px 10px -6px oklch(from var(--accent) l c h / 45%),
+      0 4px 10px -6px oklch(from var(--accent) l c h / 25%),
       inset 0 1px 0 oklch(1 0 0 / 28%);
     content: "";
     transform: translate(-50%, -50%);

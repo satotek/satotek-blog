@@ -6,7 +6,7 @@ type Active = { category: string } | { tag: string } | null;
 const pillClass =
   "inline-flex items-baseline gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.86rem] font-semibold no-underline transition-[background,border-color,color] duration-150";
 const pillIdle = "border-line text-ink hover:border-accent-border hover:bg-hover hover:text-accent";
-const pillActive = "border-transparent bg-accent text-page";
+const pillActive = "border-transparent bg-accent-soft text-accent ring-1 ring-accent-border";
 
 const tagClass =
   "inline-flex items-baseline gap-1 rounded-full px-2.5 py-1 text-[0.8rem] no-underline transition-colors duration-150";

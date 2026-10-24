@@ -202,10 +202,10 @@ function OGPCard({ source }: { source: PostSource }) {
   return (
     <div
       style={{
-        backgroundColor: "#f3ece0",
-        border: "4px solid #37322b",
+        backgroundColor: "#f6f2ff",
+        border: "4px solid #2c2939",
         borderRadius: 32,
-        color: "#37322b",
+        color: "#2c2939",
         display: "flex",
         flexDirection: "column",
         height: imageHeight,
@@ -217,7 +217,7 @@ function OGPCard({ source }: { source: PostSource }) {
     >
       <div
         style={{
-          backgroundColor: "#e3d0bb",
+          backgroundColor: "#e4d7fa",
           borderRadius: 280,
           height: 560,
           position: "absolute",
@@ -238,9 +238,9 @@ function OGPCard({ source }: { source: PostSource }) {
           <div
             style={{
               alignItems: "center",
-              backgroundColor: "#ae543e",
+              backgroundColor: "#7d60bc",
               borderRadius: 20,
-              color: "#fffaf4",
+              color: "#fdfaff",
               display: "flex",
               fontSize: 42,
               fontWeight: 700,
@@ -255,7 +255,7 @@ function OGPCard({ source }: { source: PostSource }) {
         </div>
         <div
           style={{
-            color: "#8c6658",
+            color: "#665a8c",
             fontSize: 24,
             fontWeight: 700,
             letterSpacing: 1,
@@ -276,7 +276,7 @@ function OGPCard({ source }: { source: PostSource }) {
       >
         <div
           style={{
-            color: "#ae543e",
+            color: "#7d60bc",
             fontSize: 20,
             fontWeight: 700,
             letterSpacing: 2,
@@ -302,10 +302,10 @@ function OGPCard({ source }: { source: PostSource }) {
           <div
             key={tag}
             style={{
-              backgroundColor: "#fbf7f1",
-              border: "2px solid #d8c6b5",
+              backgroundColor: "#fcfbff",
+              border: "2px solid #d4cce8",
               borderRadius: 24,
-              color: "#7b4c3d",
+              color: "#52407d",
               fontSize: 22,
               padding: "8px 18px",
             }}
