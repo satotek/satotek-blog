@@ -1,5 +1,5 @@
 /**
- * プロフィールの「作業環境」に出す内容。マシンやツールが変わったらここだけ直す。
+ * プロフィールの「作業環境」に出す内容。マシンが変わったらここだけ直す。
  * specs は分かっている項目だけ書けばよく、空ならカードに表示しない。
  */
 
@@ -13,13 +13,8 @@ export type Machine = {
   os?: string;
   note?: string;
   specs?: readonly { label: string; value: string }[];
-};
-
-export type Tool = {
-  label: string;
-  value: string;
-  /** 関連する記事があればリンクする。 */
-  postSlug?: string;
+  /** 今は使っていないマシン。カードを薄くして「休止中」を添える。 */
+  inactive?: boolean;
 };
 
 export const machines: readonly Machine[] = [
@@ -39,6 +34,8 @@ export const machines: readonly Machine[] = [
     kind: "desktop",
     role: "Desktop",
     name: "デスクトップ PC",
+    os: "Windows 11",
+    note: "趣味用と、Windows 環境での開発用。",
     specs: [
       { label: "CPU", value: "AMD Ryzen 9 5950X" },
       { label: "GPU", value: "AMD Radeon RX 7900 XTX" },
@@ -51,6 +48,7 @@ export const machines: readonly Machine[] = [
     role: "Server #1",
     name: "Proxmox Server #1",
     os: "Proxmox VE",
+    note: "メインの自宅サーバー。",
     specs: [
       { label: "CPU", value: "Intel N100" },
       { label: "RAM", value: "16GB" },
@@ -62,6 +60,8 @@ export const machines: readonly Machine[] = [
     role: "Server #2",
     name: "Proxmox Server #2",
     os: "Proxmox VE",
+    note: "電気代が高くなりすぎたので、今は止めています。",
+    inactive: true,
     specs: [
       { label: "CPU", value: "Intel Xeon E5-2687W ×2" },
       { label: "GPU", value: "NVIDIA Quadro K2200" },
@@ -69,11 +69,4 @@ export const machines: readonly Machine[] = [
       { label: "Storage", value: "SSD 512GB / HDD 2TB" },
     ],
   },
-];
-
-export const tools: readonly Tool[] = [
-  { label: "Editor", value: "Neovim" },
-  { label: "Terminal", value: "Ghostty / WezTerm" },
-  { label: "Shell", value: "zsh + Starship" },
-  { label: "dotfiles", value: "Nix Flakes + Home Manager", postSlug: "nix-flakes-dotfiles" },
 ];

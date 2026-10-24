@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  ArrowUpRight,
   Briefcase,
   Cake,
   Laptop,
@@ -18,8 +17,8 @@ import { BrandIcon } from "#/components/BrandIcon";
 import { SecretGames, useSecretUnlock } from "#/components/SecretGames";
 import { ResponsiveImage } from "#/components/ResponsiveImage";
 import { SectionHeading } from "#/components/SectionHeading";
-import { Button, Link as AriaLink, RouterLink } from "#/components/ui";
-import { machines, tools, type MachineKind } from "#/data/setup";
+import { Button, Link as AriaLink } from "#/components/ui";
+import { machines, type MachineKind } from "#/data/setup";
 import { createPageHead, mediaUrl, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/profile")({
@@ -113,7 +112,7 @@ function Profile() {
       {unlocked ? <SecretGames /> : null}
 
       <section aria-labelledby="about-title">
-        <SectionHeading eyebrow="About" title="プロフィール" id="about-title" />
+        <SectionHeading title="About me" id="about-title" />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
           <FactCard icon={Briefcase} label="職業" className="col-span-2 sm:col-span-1">
             ソフトウェア開発者
@@ -142,22 +141,28 @@ function Profile() {
 
       <section aria-labelledby="setup-title">
         <SectionHeading
-          eyebrow="Setup"
-          title="作業環境"
+          title="Setup"
           id="setup-title"
-          description="手元のマシンと自宅サーバー、普段使っている道具です。"
+          description="手元のマシンと自宅サーバーです。"
         />
         <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
-          {machines.map(({ kind, role, name, os, note, specs }) => {
+          {machines.map(({ kind, role, name, os, note, specs, inactive }) => {
             const Icon = machineIcons[kind];
             return (
-              <li className="panel flex flex-col p-5" key={name}>
+              <li className={`panel flex flex-col p-5 ${inactive ? "opacity-70" : ""}`} key={name}>
                 <div className="flex items-center justify-between gap-3">
                   <span className="inline-flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent">
                     <Icon className="size-5" aria-hidden="true" />
                   </span>
-                  <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-muted">
-                    {role}
+                  <span className="flex items-center gap-1.5">
+                    {inactive && (
+                      <span className="rounded-full bg-hover px-2.5 py-0.5 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-muted">
+                        Inactive
+                      </span>
+                    )}
+                    <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.68rem] uppercase tracking-[0.1em] text-muted">
+                      {role}
+                    </span>
                   </span>
                 </div>
                 <h3 className="m-0 mt-4 text-[1.1rem] font-bold tracking-[-0.01em]">{name}</h3>
@@ -179,33 +184,10 @@ function Profile() {
             );
           })}
         </ul>
-        <dl className="panel m-0 mt-3 grid gap-px overflow-hidden bg-line p-0 sm:grid-cols-2 lg:grid-cols-4">
-          {tools.map(({ label, value, postSlug }) => (
-            <div className="bg-card px-5 py-4" key={label}>
-              <dt className="font-mono text-[0.68rem] uppercase tracking-[0.12em] text-muted">
-                {label}
-              </dt>
-              <dd className="m-0 mt-1 text-[0.95rem] font-semibold">
-                {postSlug ? (
-                  <RouterLink
-                    className="inline-flex items-center gap-1 text-ink no-underline hover:text-accent"
-                    to="/posts/$slug"
-                    params={{ slug: postSlug }}
-                  >
-                    {value}
-                    <ArrowUpRight className="size-3.5 text-accent" aria-hidden="true" />
-                  </RouterLink>
-                ) : (
-                  value
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
       <section aria-labelledby="site-title">
-        <SectionHeading eyebrow="Site" title="このサイトについて" id="site-title" />
+        <SectionHeading title="About this site" id="site-title" />
         <div className={`panel p-6 sm:p-8 ${legalBodyClass}`}>
           <h3 id="privacy">プライバシーポリシー</h3>
 
