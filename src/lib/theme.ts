@@ -35,8 +35,8 @@ export function nextTheme(current: Theme): Theme {
  * 色は styles.css の --bg と揃える必要がある。meta は CSS 変数を読めない。
  */
 export const THEME_COLOR: Record<"dark" | "light", string> = {
-  dark: "#17161f",
-  light: "#f6f2ff",
+  dark: "#16161e",
+  light: "#f2f3ff",
 };
 
 export function syncThemeColor(theme: Theme) {
