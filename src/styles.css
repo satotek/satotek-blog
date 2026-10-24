@@ -1228,6 +1228,48 @@
     }
   }
 
+  /* ヘッダー右上の RSS・llms.txt・テーマ切り替え。ドックと同じガラスの素材で1枚にまとめる。 */
+  .site-tools {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--nav-glass-border);
+    border-radius: 18px;
+    background: var(--nav-glass);
+    box-shadow:
+      0 10px 24px -16px light-dark(oklch(0.25 0.03 284 / 40%), oklch(0 0 0 / 60%)),
+      inset 0 1px 0 var(--nav-glass-highlight);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+  }
+
+  /* ホームの自己紹介から Profile へのリンク。ドックの選択中タイルと同じ塗りのピルにする。 */
+  .hero-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px 6px 14px;
+    border: 1px solid var(--nav-glass-border);
+    border-radius: 999px;
+    background: linear-gradient(160deg, var(--nav-active-from), var(--nav-active-to));
+    box-shadow:
+      0 4px 10px -6px oklch(from var(--accent) l c h / 25%),
+      inset 0 1px 0 oklch(1 0 0 / 28%);
+    color: var(--nav-active-fg);
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: transform 180ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .hero-chip[data-pressed],
+  .hero-chip:active {
+    transform: scale(0.96);
+  }
+
   /* ドックはモバイル専用。デスクトップでは同じ項目をヘッダー内のバーで出す。 */
   @media (min-width: 641px) {
     .site-nav--dock {

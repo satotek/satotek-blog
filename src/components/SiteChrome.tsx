@@ -22,7 +22,8 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-[1120px] flex-col gap-3.5 px-4 pb-3 pt-4 sm:px-6">
           <div className="flex items-center justify-between gap-3">
             <SiteLogo />
-            <div className="flex items-center gap-2">
+            {/* ドックと同じガラスの入れ物にまとめ、下のドックと並んだときに同じ素材に見せる。 */}
+            <div className="site-tools">
               <UtilityLinks />
               <ThemeToggle className="inline-flex" />
             </div>
