@@ -64,17 +64,17 @@
   --accent-border: color-mix(in oklch, var(--accent) 55%, var(--border));
   --surface: light-dark(oklch(0.995 0.007 282 / 88%), oklch(from var(--fg) l c h / 6%));
   /* ダークでは影を透明にして実質 none にする（色なので light-dark() で表現できる）。 */
-  /* ドックなどのガラス。面はほぼ透明にして、縁の光と背後のぼかしで素材感を出す。 */
-  --glass-top: light-dark(oklch(1 0 0 / 38%), oklch(1 0 0 / 10%));
-  --glass-bottom: light-dark(oklch(0.985 0.012 282 / 14%), oklch(1 0 0 / 2%));
-  --glass-rim: light-dark(oklch(1 0 0 / 95%), oklch(1 0 0 / 38%));
-  --glass-rim-low: light-dark(oklch(1 0 0 / 60%), oklch(1 0 0 / 12%));
-  --glass-edge: light-dark(oklch(1 0 0 / 100%), oklch(1 0 0 / 45%));
-  --glass-edge-dim: light-dark(oklch(1 0 0 / 25%), oklch(1 0 0 / 6%));
-  --glass-depth: light-dark(oklch(0.29 0.03 282 / 10%), oklch(0 0 0 / 35%));
-  --glass-glow: light-dark(oklch(1 0 0 / 45%), oklch(1 0 0 / 5%));
-  --glass-hairline: light-dark(oklch(0.29 0.026 282 / 6%), oklch(0 0 0 / 45%));
-  --glass-sheen: light-dark(oklch(1 0 0 / 70%), oklch(1 0 0 / 14%));
+  /* ドックなどのガラス。面はしっかり白く残し、縁の光と背後のぼかしは控えめに添える。 */
+  --glass-top: light-dark(oklch(1 0 0 / 74%), oklch(0.28 0.018 282 / 76%));
+  --glass-bottom: light-dark(oklch(0.99 0.008 282 / 62%), oklch(0.26 0.018 282 / 70%));
+  --glass-rim: light-dark(oklch(1 0 0 / 85%), oklch(1 0 0 / 16%));
+  --glass-rim-low: light-dark(oklch(1 0 0 / 30%), oklch(1 0 0 / 5%));
+  --glass-edge: light-dark(oklch(1 0 0 / 80%), oklch(1 0 0 / 16%));
+  --glass-edge-dim: light-dark(oklch(1 0 0 / 45%), oklch(1 0 0 / 8%));
+  --glass-depth: light-dark(oklch(0.29 0.03 282 / 4%), oklch(0 0 0 / 20%));
+  --glass-glow: light-dark(oklch(1 0 0 / 20%), oklch(1 0 0 / 2%));
+  --glass-hairline: light-dark(oklch(0.29 0.026 282 / 6%), oklch(0 0 0 / 40%));
+  --glass-sheen: light-dark(oklch(1 0 0 / 30%), oklch(1 0 0 / 5%));
   --nav-glass-border: light-dark(oklch(1 0 0 / 70%), oklch(from var(--fg) l c h / 12%));
   --nav-active-from: light-dark(oklch(0.93 0.045 292), oklch(0.44 0.075 292));
   --nav-active-to: light-dark(oklch(0.87 0.068 270), oklch(0.38 0.083 270));
@@ -1176,8 +1176,8 @@
       inset 0 -1px 0.5px var(--glass-rim-low),
       inset 0 -8px 14px -10px var(--glass-depth),
       inset 0 0 16px var(--glass-glow);
-    -webkit-backdrop-filter: blur(10px) saturate(220%) brightness(1.06);
-    backdrop-filter: blur(10px) saturate(220%) brightness(1.06);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
   }
 
   /* 縁の面取り。光が当たる左上と右下だけ明るい 1px のリングを、mask で枠の形に抜く。 */
