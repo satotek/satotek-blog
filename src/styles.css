@@ -120,6 +120,26 @@
     box-shadow: var(--surface-shadow);
   }
 
+  /* ホームの記事を上から順に出す。退場用のコピーでは再生しない。 */
+  @media (prefers-reduced-motion: no-preference) {
+    .post-enter {
+      animation: post-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: calc(var(--i, 0) * 55ms);
+    }
+  }
+
+  @keyframes post-enter {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  [data-dock-hold],
+  [data-dock-hold] * {
+    animation: none !important;
+  }
+
   /* 記事カードはライトでは枠を消して、地面と同じ色味の影だけで浮かせる。
      ダークは影が潰れるので、枠と一段明るい面を残す。
      角丸と枠はここで完結させる。ホームの各行が単独のカードになる。 */

@@ -5,9 +5,15 @@ import { PostCard, type PostCardVariant } from "./PostCard";
 export function PostList({
   posts,
   variant = "list",
+  enter = false,
+  mobileLimit,
 }: {
   posts: readonly PostSummary[];
   variant?: PostCardVariant;
+  /** 上から順に、少し遅らせて出す。 */
+  enter?: boolean;
+  /** この件数より後ろは、サイドバーが出ない幅では隠す。 */
+  mobileLimit?: number;
 }) {
   return (
     <ul
@@ -19,8 +25,16 @@ export function PostList({
             : "m-0 grid list-none gap-0 border-t border-line p-0"
       }
     >
-      {posts.map((post) => (
-        <PostCard key={post.slug} post={post} variant={variant} />
+      {posts.map((post, index) => (
+        <PostCard
+          key={post.slug}
+          post={post}
+          variant={variant}
+          enterIndex={enter ? index : undefined}
+          className={
+            mobileLimit !== undefined && index >= mobileLimit ? "max-sm:hidden" : undefined
+          }
+        />
       ))}
     </ul>
   );

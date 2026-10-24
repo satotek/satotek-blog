@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
 import type { PostSummary } from "#/lib/posts/types";
 import { ResponsiveImage } from "#/components/ResponsiveImage";
@@ -8,18 +8,38 @@ import { formatDate } from "#/lib/date";
 
 export type PostCardVariant = "grid" | "list" | "panel";
 
+function itemProps(base: string, className?: string, enterIndex?: number) {
+  return {
+    className: [base, className, enterIndex === undefined ? "" : "post-enter"]
+      .filter(Boolean)
+      .join(" "),
+    style: enterIndex === undefined ? undefined : ({ "--i": enterIndex } as CSSProperties),
+  };
+}
+
 export function PostCard({
   post,
   variant = "grid",
+  className,
+  enterIndex,
 }: {
   post: PostSummary;
   variant?: PostCardVariant;
+  className?: string;
+  /** 並びの何枚目か。渡すと上から順に現れる。 */
+  enterIndex?: number;
 }) {
   const category = categoryBySlug(post.category);
 
   if (variant === "panel") {
     return (
-      <li className="post-card post-index__row group grid min-h-[4.75rem] grid-cols-[7.125rem_minmax(0,1fr)] transition-colors hover:bg-hover sm:min-h-[6.25rem] sm:grid-cols-[9.375rem_minmax(0,1fr)]">
+      <li
+        {...itemProps(
+          "post-card post-index__row group grid min-h-[4.75rem] grid-cols-[7.125rem_minmax(0,1fr)] transition-colors hover:bg-hover sm:min-h-[6.25rem] sm:grid-cols-[9.375rem_minmax(0,1fr)]",
+          className,
+          enterIndex,
+        )}
+      >
         <PostCover
           post={post}
           className="h-full min-h-[4.75rem] rounded-none sm:min-h-[6.25rem]"
@@ -41,7 +61,13 @@ export function PostCard({
 
   if (variant === "list") {
     return (
-      <li className="group flex min-w-0 items-center gap-[clamp(1rem,3vw,2rem)] border-b border-line py-7">
+      <li
+        {...itemProps(
+          "group flex min-w-0 items-center gap-[clamp(1rem,3vw,2rem)] border-b border-line py-7",
+          className,
+          enterIndex,
+        )}
+      >
         <div className="min-w-0 flex-1">
           <PostMeta post={post} category={category?.name ?? post.category} />
           <PostTitle post={post} className="mt-2 block text-[1.15rem]" />
@@ -60,7 +86,13 @@ export function PostCard({
   }
 
   return (
-    <li className="group min-w-0 transition-transform duration-[180ms] hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    <li
+      {...itemProps(
+        "group min-w-0 transition-transform duration-[180ms] hover:-translate-y-[2px] motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+        className,
+        enterIndex,
+      )}
+    >
       <PostCover
         post={post}
         className="aspect-[1.45] rounded-site border border-line"

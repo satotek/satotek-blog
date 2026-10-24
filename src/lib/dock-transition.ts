@@ -59,6 +59,7 @@ function holdLeavingPage(main: HTMLElement): HTMLElement {
   layer.style.opacity = "1";
   layer.style.transform = "none";
   layer.style.viewTransitionName = "none";
+  layer.setAttribute("data-dock-hold", "");
   document.body.append(layer);
   layer.scrollTop = Math.max(0, -rect.top);
   return layer;
