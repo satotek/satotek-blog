@@ -23,7 +23,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between gap-3">
             <SiteLogo />
             {/* ドックと同じガラスの入れ物にまとめ、下のドックと並んだときに同じ素材に見せる。 */}
-            <div className="site-tools">
+            <div className="site-tools glass">
               <UtilityLinks />
               <ThemeToggle className="inline-flex" />
             </div>
