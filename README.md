@@ -95,6 +95,16 @@ LASTFM_API_KEY=
 bunx wrangler secret put LASTFM_API_KEY -c workers/api/wrangler.jsonc
 ```
 
+### GitHub の最近の活動
+
+`/profile` の GitHub 欄は `GET /api/github` を取ります。API Worker が `satotek` の公開イベントを読み、push・PR・Issue・リリース・Star などを最大8件の一行にまとめて10分キャッシュします。同じリポジトリへの続けての push は1行にまとめます。取得に失敗したとき、活動が無いときは欄を出しません。
+
+トークンは無くても動きますが、未認証だと GitHub API は IP ごとに 60 回/時です。上限に当たるようなら、権限なしの fine-grained token を登録します。
+
+```sh
+bunx wrangler secret put GITHUB_TOKEN -c workers/api/wrangler.jsonc
+```
+
 読み取りはユーザー認証不要です。共有シークレットは使いません。別のユーザーを見るときは `LASTFM_USERNAME` で上書きできます。応答は Worker で約60秒キャッシュします。
 
 ### 記事・サイト画像（R2）

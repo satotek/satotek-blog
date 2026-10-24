@@ -14,7 +14,9 @@ import {
 import type { PostSummary } from "../../../src/lib/posts/types";
 import type { ApiEnv } from "./env";
 import { getPopularPostsFromGa4, getPostViewsFromGa4 } from "./ga4";
+import { getGithubActivity } from "./github";
 import { getMusicFromLastfm } from "./lastfm";
+import { unavailableGithub, type GithubSnapshot } from "../../../src/lib/github";
 import { unavailableMusic, type MusicSnapshot } from "../../../src/lib/music";
 import { currentRequestState } from "./request-context";
 
@@ -24,6 +26,8 @@ const POST_VIEWS_CACHE_SECONDS = 60 * 60;
 const POST_VIEWS_FAILURE_CACHE_SECONDS = 60;
 const MUSIC_CACHE_SECONDS = 60;
 const MUSIC_FAILURE_CACHE_SECONDS = 60;
+const GITHUB_CACHE_SECONDS = 10 * 60;
+const GITHUB_FAILURE_CACHE_SECONDS = 60;
 
 const publishedSummaries = summaries as readonly PostSummary[];
 
@@ -32,6 +36,7 @@ type ApiOptions = {
   loadPopularPosts?: (env: ApiEnv) => Promise<readonly PopularPost[]>;
   loadPostViews?: (env: ApiEnv) => Promise<ReadonlyMap<string, number> | undefined>;
   loadMusic?: (env: ApiEnv) => Promise<MusicSnapshot>;
+  loadGithub?: (env: ApiEnv) => Promise<GithubSnapshot>;
   adapter?: ElysiaAdapter;
 };
 
@@ -68,6 +73,7 @@ export function createApp(options: ApiOptions = {}) {
   const loadPopularPosts = options.loadPopularPosts ?? getPopularPostsFromGa4;
   const loadPostViews = options.loadPostViews ?? getPostViewsFromGa4;
   const loadMusic = options.loadMusic ?? getMusicFromLastfm;
+  const loadGithub = options.loadGithub ?? getGithubActivity;
 
   return new Elysia({ adapter: options.adapter })
     .onError(({ error, set }) => {
@@ -125,6 +131,27 @@ export function createApp(options: ApiOptions = {}) {
       return cachedResponse(
         request,
         available ? MUSIC_CACHE_SECONDS : MUSIC_FAILURE_CACHE_SECONDS,
+        Response.json(snapshot),
+      );
+    })
+    .get("/api/github", async ({ request }) => {
+      const cache = workerCache();
+      if (cache) {
+        const hit = await cache.match(new Request(request.url, { method: "GET" }));
+        if (hit) return hit;
+      }
+
+      let snapshot: GithubSnapshot;
+      try {
+        snapshot = await loadGithub(currentRequestState().env);
+      } catch {
+        console.error("[api] github request failed");
+        snapshot = unavailableGithub();
+      }
+      const available = snapshot.source === "github";
+      return cachedResponse(
+        request,
+        available ? GITHUB_CACHE_SECONDS : GITHUB_FAILURE_CACHE_SECONDS,
         Response.json(snapshot),
       );
     })

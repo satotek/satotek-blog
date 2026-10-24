@@ -120,6 +120,29 @@ describe("blog API", () => {
     expect(await response.json()).toMatchObject({ source: "unavailable", views: null });
   });
 
+  it("returns GitHub activity and survives a failed request", async () => {
+    const snapshot = {
+      source: "github" as const,
+      user: "satotek",
+      profileUrl: "https://github.com/satotek",
+      activity: [],
+    };
+    const ok = await request(createApp({ posts, loadGithub: async () => snapshot }), "/api/github");
+    const failed = await request(
+      createApp({
+        posts,
+        loadGithub: async () => {
+          throw new Error("rate limited");
+        },
+      }),
+      "/api/github",
+    );
+
+    expect(await ok.json()).toEqual(snapshot);
+    expect(failed.status).toBe(200);
+    expect(await failed.json()).toMatchObject({ source: "unavailable", activity: [] });
+  });
+
   it("searches metadata", async () => {
     const response = await request(app(), "/api/search?q=Nix");
     const body = await response.json();
