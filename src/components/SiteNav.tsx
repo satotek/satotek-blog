@@ -1,51 +1,75 @@
 import { House, Music, Newspaper, UserRound, type LucideIcon } from "lucide-react";
-import { useRouterState } from "@tanstack/react-router";
-import type { CSSProperties } from "react";
+import { useRouter, useRouterState } from "@tanstack/react-router";
+import { useState, type CSSProperties } from "react";
 
 import { RouterLink } from "#/components/ui";
+import {
+  isDockTransitionRunning,
+  isPlainLeftClick,
+  prefersReducedMotion,
+  transitionDockPage,
+} from "#/lib/dock-transition";
+import { dockDirection, dockIndex, dockSections, type DockPath } from "#/lib/nav";
 
 type NavItem = {
-  to: "/" | "/posts" | "/music" | "/profile";
+  to: DockPath;
   label: string;
-  /** ドックは1項目 64px。長いラベルはピルからはみ出すので短い表記を使う。 */
-  dockLabel?: string;
   icon: LucideIcon;
 };
 
-const barItems: NavItem[] = [
-  { to: "/", label: "Home", icon: House },
-  { to: "/posts", label: "Articles", icon: Newspaper },
-  { to: "/music", label: "Music", icon: Music },
-  { to: "/profile", label: "Profile", icon: UserRound },
-];
-
-const dockItems: NavItem[] = [
-  { to: "/", label: "Home", icon: House },
-  { to: "/posts", label: "Articles", icon: Newspaper },
-  { to: "/music", label: "Music", icon: Music },
-  { to: "/profile", label: "Profile", icon: UserRound },
-];
-
-/** カテゴリとタグは記事一覧の絞り込みなので「記事」の配下として扱う。 */
-const sectionPrefixes: Partial<Record<NavItem["to"], readonly string[]>> = {
-  "/posts": ["/posts", "/categories", "/tags"],
+const icons: Record<DockPath, LucideIcon> = {
+  "/": House,
+  "/posts": Newspaper,
+  "/music": Music,
+  "/profile": UserRound,
 };
 
-const isActive = (pathname: string, to: NavItem["to"]) =>
-  to === "/"
-    ? pathname === "/"
-    : (sectionPrefixes[to] ?? [to]).some(
-        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-      );
+const labels: Record<DockPath, string> = {
+  "/": "Home",
+  "/posts": "Articles",
+  "/music": "Music",
+  "/profile": "Profile",
+};
+
+const items: NavItem[] = dockSections.map(({ to }) => ({
+  to,
+  label: labels[to],
+  icon: icons[to],
+}));
 
 /**
  * グローバルナビ。モバイルは親指が届く画面下のドック、デスクトップはヘッダー内のバー。
  * カテゴリとタグは独立したメニューにせず、記事一覧の絞り込みから辿る。
  */
 export function SiteNav({ variant }: { variant: "dock" | "bar" }) {
+  const router = useRouter();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const items = variant === "dock" ? dockItems : barItems;
-  const activeIndex = items.findIndex(({ to }) => isActive(pathname, to));
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const activeIndex = dockIndex(pathname);
+  // ページを出している間にタイルを滑らせる。遷移が終われば URL 側の位置に戻す。
+  const shownIndex = pendingIndex ?? activeIndex;
+
+  const moveTo =
+    (to: DockPath) =>
+    (event: {
+      button: number;
+      metaKey: boolean;
+      altKey: boolean;
+      ctrlKey: boolean;
+      shiftKey: boolean;
+      preventDefault: () => void;
+    }) => {
+      if (!isPlainLeftClick(event) || prefersReducedMotion()) return;
+      const direction = dockDirection(pathname, to);
+      if (direction === null || pathname === to) return;
+      event.preventDefault();
+      if (isDockTransitionRunning()) return;
+
+      setPendingIndex(dockIndex(to));
+      void transitionDockPage(direction, () =>
+        router.navigate({ to, viewTransition: false }),
+      ).finally(() => setPendingIndex(null));
+    };
 
   return (
     <nav
@@ -54,7 +78,7 @@ export function SiteNav({ variant }: { variant: "dock" | "bar" }) {
       style={
         {
           "--nav-count": items.length,
-          "--nav-index": Math.max(activeIndex, 0),
+          "--nav-index": Math.max(shownIndex, 0),
         } as CSSProperties
       }
     >
@@ -63,20 +87,21 @@ export function SiteNav({ variant }: { variant: "dock" | "bar" }) {
       {variant === "dock" ? (
         <span
           className="site-nav__indicator"
-          data-visible={activeIndex >= 0 || undefined}
+          data-visible={shownIndex >= 0 || undefined}
           aria-hidden="true"
         />
       ) : null}
       <ul className="site-nav__list">
-        {items.map(({ to, label, dockLabel, icon: Icon }) => (
+        {items.map(({ to, label, icon: Icon }, index) => (
           <li key={to}>
             <RouterLink
               to={to}
               className="site-nav__item"
-              data-active={isActive(pathname, to) || undefined}
+              data-active={index === shownIndex || undefined}
+              onClick={moveTo(to)}
             >
               <Icon className="site-nav__icon" aria-hidden="true" />
-              <span>{variant === "dock" ? (dockLabel ?? label) : label}</span>
+              <span>{label}</span>
             </RouterLink>
           </li>
         ))}
