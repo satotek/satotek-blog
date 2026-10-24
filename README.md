@@ -17,11 +17,12 @@
 
 ## 技術スタック
 
-- Vite+ 0.2 — `vp build` / `vp check`（開発サーバーはCloudflare公式構成に合わせて `vite dev`）
+- Vite+ 1.4 — `vp dev` / `vp build` / `vp check` / `vp test` / `vp staged` で開発サーバー・ビルド・フォーマット・Lint・型検査・テスト・コミットフックをまとめて扱う
 - TanStack Start — SSRとルーティングのアプリケーション基盤
 - TanStack Router — ファイルベースルーティング
 - React 19 / TypeScript 7.0
 - Bun 1.3 — パッケージ管理とスクリプト実行
+- Elysia — `/api/*` を受ける API Worker（Cloudflare Workers アダプター）
 - Tailwind CSS 4 — ViteプラグインでユーティリティCSSを生成
 - React Aria Components — キーボード操作・フォーカス管理を考慮した操作部品
 - lucide-react — RSS、メニュー、テーマ切替などのUIアイコン
@@ -94,29 +95,30 @@ bunx wrangler secret put LASTFM_API_KEY -c workers/api/wrangler.jsonc
 
 ### 記事・サイト画像（R2）
 
-記事画像とサイト内のコンテンツ画像はGitに置かず、Cloudflare R2の `satotek-media` バケットから配信します。公開用カスタムドメインは `https://img.satotek.dev` です。faviconやPWA用アイコンなど、アプリの静的アセットだけは `public/` に残します。
+記事画像の原本は、記事の隣の `src/content/posts/<slug>/assets/` に置いてGitで管理します。配信はCloudflare R2の `satotek-media` バケットから行い、公開用カスタムドメインは `https://img.satotek.dev` です。faviconやPWA用アイコンなど、アプリの静的アセットだけは `public/` に残します。
 
-ローカルで作業中の画像は `.r2-media/` または `src/content/posts/<slug>/assets/` に置けます。どちらもGit管理対象外です。WranglerでCloudflareにログインした状態で、次のコマンドでアップロードします。
-
-```sh
-# 1枚アップロード。keyはR2上の公開パス
-bun run upload-media -- \
-  --file src/content/posts/first-post/assets/photo.webp \
-  --key first-post/photo.webp
-
-# .r2-media/ 以下を相対パスのまままとめてアップロード
-bun run upload-media -- --directory .r2-media
-```
-
-アップロード後、記事では出力された `https://img.satotek.dev/...` のURLを使います。
+MDXでは原本を相対パスで参照します。ビルド時に原本から実寸を読み取り、`https://img.satotek.dev/<slug>/<file>` のURLとレスポンシブ用の `srcset` へ置き換えます。記事自身の `assets/` 以外を指す相対パスや、存在しないファイルはビルドエラーになります。
 
 ```md
-![写真](https://img.satotek.dev/first-post/photo.webp)
+![写真](./assets/photo.webp)
+```
+
+R2へのアップロードは、WranglerでCloudflareにログインした状態で次のように実行します。
+
+```sh
+# 全記事の assets/ を <slug>/<file> のキーでまとめてアップロード
+bun run upload-media -- --posts
+
+# 1枚アップロード。keyはR2上の公開パス
+bun run upload-media -- --file path/to/photo.webp --key site/photo.webp
+
+# Git管理外の .r2-media/ 以下を相対パスのまままとめてアップロード
+bun run upload-media -- --directory .r2-media
 ```
 
 `bun run deploy` はWorkerのデプロイだけを行い、画像を自動アップロードしません。画像を追加・差し替えたときは先に `bun run upload-media` を実行します。`upload-media` はS3 APIキーを直接扱わず、WranglerのCloudflare OAuth（CIでは `CLOUDFLARE_API_TOKEN`）を利用します。バケットを変更する場合は `R2_BUCKET_NAME` で上書きできます。
 
-`upload-media` は元画像に加えて、幅320 / 480 / 768 / 1200pxのAVIFとWebP派生画像も同時にアップロードします。サイト側は `src/content/media-manifest.json` に実在する形式だけを `picture` と `srcset` で利用します。既存画像へAVIFを追加した場合は、アップロード後に `bun run generate-media-manifest` を実行して形式情報を更新してください。OGP画像など派生画像が不要なファイルは `--no-variants` を付けてください。通常のビルドやデプロイでは、R2から画像を取得したり派生画像を生成したりしません。
+`upload-media` は元画像に加えて、幅320 / 480 / 768 / 1200pxのAVIFとWebP派生画像も同時にアップロードします。サイト側はR2上の画像に両形式の派生画像がそろっている前提で `picture` と `srcset` を出すため、記事画像は必ず派生画像付きでアップロードしてください。`--no-variants` は、ページから画像として表示しないファイルにだけ使います。通常のビルドやデプロイでは、R2から画像を取得したり派生画像を生成したりしません。
 
 `public/_headers` では、Viteが生成するハッシュ付きアセットと、ファイル名を固定して運用するフォントへ `Cache-Control: public, max-age=31536000, immutable` を付けています。Cloudflare Workersの静的アセットはCloudflare側でキャッシュされ、テキスト系のレスポンスは対応クライアントへ圧縮して配信されます。
 
@@ -189,7 +191,9 @@ bun run build
 bun run preview
 ```
 
-`bun run check` は記事サマリの生成と、Vite+によるリポジトリ全体のフォーマット・Lint・TypeScriptの型検査を実行します。フォント定義などの静的アセットはベンダー生成物として検査対象から外しています。`bun run test` は一度だけテストを実行し、`bun run test:watch` は監視モードで実行します。`bun run dev` は起動時に記事サマリを生成してから開発サーバーを起動し、起動後も `src/content/posts/*/index.mdx` の変更を検知して再生成・ブラウザ更新を行います。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
+`bun run check` は記事サマリの生成と、Vite+によるリポジトリ全体のフォーマット・Lint・TypeScriptの型検査を実行します。`bun run test` は Vite+ のテストランナー（`vite-plus/test`）で一度だけテストを実行し、`bun run test:watch` は監視モードで実行します。`bun run dev` は起動時に記事サマリを生成してから開発サーバーを起動し、起動後も `src/content/posts/*/index.mdx` の変更を検知して再生成・ブラウザ更新を行います。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
+
+`bun install` 時の `prepare`（`vp config`）で `.vite-hooks/` の Git フックが設定されます。コミット時には pre-commit フックが `vp staged` を実行し、ステージした JS/TS ファイルへ `vp check --fix` をかけます。
 
 ### WebMCP PoC
 
@@ -206,6 +210,8 @@ Chrome Origin Trialを使う場合は、対象origin用のトークンを `.env.
 ## ディレクトリ構成
 
 ```text
+scripts/                    記事サマリ・OGP画像の生成、R2へのアップロード
+
 packages/
 └── content-pipeline/       MDXのビルド時変換と画像処理
 
@@ -218,18 +224,18 @@ src/
 │   ├── article/             記事本文の構成部品（MDXのcomponentsマップ、目次）
 │   └── ui/                  React Ariaを使う操作部品
 ├── content/                 散文のみ
-│   ├── posts/               Git管理するMDX記事とローカル画像
-│   ├── media-manifest.json  画像の実寸と配信形式
+│   ├── posts/               Git管理するMDX記事と、記事ごとの assets/ 画像原本
 │   └── .generated/          ビルド時に生成する一覧用サマリ
 ├── data/                    カテゴリ・タグなどのサイト分類データ
 ├── lib/
 │   └── posts/               PostRepositoryとMDXソースの読み込み
 ├── routes/                  画面ルートと配信メタデータのサーバールート
 ├── server/                  RSS、サイトマップ、robotsなどのレスポンス生成
+├── webmcp/                  WebMCPツールの定義と登録
 └── styles.css               Tailwind CSSのエントリーポイントとデザイントークン
 ```
 
-`scripts/generate-post-summaries.ts` は公開記事のfrontmatterを検証し、一覧用のサマリを `src/content/.generated/` に生成します。本文と目次はMDXモジュール自身が持つため、ここでは書き出しません。変換系の依存関係は `packages/content-pipeline` に閉じているため、ルートアプリの本番依存関係には含まれません。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` はGit管理外の画像をR2へアップロードします。これらのディレクトリは生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
+`scripts/generate-post-summaries.ts` は公開記事のfrontmatterを検証し、一覧用のサマリを `src/content/.generated/` に生成します。本文と目次はMDXモジュール自身が持つため、ここでは書き出しません。変換系の依存関係は `packages/content-pipeline` に閉じているため、ルートアプリの本番依存関係には含まれません。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` は記事の画像原本や `.r2-media/` の画像を派生画像と一緒にR2へアップロードします。生成先の `src/content/.generated/`、`.ogp/`、`.r2-media/` は生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
 
 `src/routeTree.gen.ts` はTanStack Routerが生成するファイルです。ルートファイルを追加したときは、必要に応じて次を実行します。
 
@@ -243,5 +249,4 @@ bun run generate-routes
 
 - Headless CMSは、複数人編集・Web上の執筆・承認フローなどが必要になった段階でRepositoryアダプターとして追加する
 - 公開の読み取り API は `workers/api`（Elysia、`@satotek/api`）が担当する。管理 API や Webhook は、要件が出た段階で同じ Worker に足す
-- 人気記事を Cloudflare Web Analytics の集計から作るか、定期生成した静的データとして配るか
-- 検索、隠しゲーム、記事本文の表示をどの順番で復元するか
+- サイト内検索の画面（現在は API とWebMCPツールのみ）と隠しゲームを、どの順番で復元するか
