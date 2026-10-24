@@ -1,12 +1,7 @@
-import type { PostSummary } from "#/lib/posts/types";
-import { postRepository } from "#/lib/posts/repository";
 import {
   DEFAULT_POST_LIMIT,
-  listPublishedPosts,
   MAX_POST_LIMIT,
   normalizeLimit,
-  searchPublishedPosts,
-  toPublicPost,
   type ListPostsFilters,
   type PostListResult,
   type PublicPost,
@@ -16,37 +11,44 @@ import { SITE_URL } from "#/lib/site";
 export { DEFAULT_POST_LIMIT };
 export type { ListPostsFilters, PostListResult, PublicPost };
 
+/** /api の JSON を読む。テストでは Worker を立てずに差し替える。 */
+export type ApiFetch = (path: string) => Promise<Response>;
+
 type BlogToolOptions = {
-  getPosts?: () => Promise<readonly PostSummary[]>;
-  openPost?: (post: PostSummary) => void | Promise<void>;
+  fetchApi?: ApiFetch;
+  openPost?: (post: PublicPost) => void | Promise<void>;
 };
 
 function browserOrigin() {
   return typeof window === "undefined" ? SITE_URL : window.location.origin;
 }
 
-export function searchPostSummaries(
-  posts: readonly PostSummary[],
-  query: string,
-  limit = DEFAULT_POST_LIMIT,
-): PostListResult {
-  return searchPublishedPosts(posts, query, limit, browserOrigin());
-}
-
-export function listPostSummaries(
-  posts: readonly PostSummary[],
-  filters: ListPostsFilters = {},
-  limit = DEFAULT_POST_LIMIT,
-): PostListResult {
-  return listPublishedPosts(posts, filters, limit, browserOrigin());
-}
-
-function publicPost(post: PostSummary): PublicPost {
-  return toPublicPost(post, browserOrigin());
-}
-
 function postUrl(slug: string) {
   return `${browserOrigin()}/posts/${encodeURIComponent(slug)}`;
+}
+
+/** 記事データはブラウザに持たず、検索も一覧も API Worker に任せる。 */
+async function readApi<T>(fetchApi: ApiFetch, path: string): Promise<T | undefined> {
+  const response = await fetchApi(path);
+  if (response.status === 404) return undefined;
+
+  const body = (await response.json().catch(() => undefined)) as
+    | (T & { error?: string })
+    | undefined;
+  if (!response.ok) {
+    throw new Error(body?.error ?? `The blog API returned ${response.status}.`);
+  }
+  if (body === undefined) throw new Error("The blog API returned an unreadable response.");
+  return body;
+}
+
+function apiPath(pathname: string, params: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) search.set(key, String(value));
+  }
+  const query = search.toString();
+  return query ? `${pathname}?${query}` : pathname;
 }
 
 function inputRecord(input: unknown) {
@@ -78,7 +80,7 @@ function optionalLimit(input: Record<string, unknown>) {
   return normalizeLimit(value);
 }
 
-async function openPostInCurrentTab(post: PostSummary) {
+async function openPostInCurrentTab(post: PublicPost) {
   if (typeof window === "undefined")
     throw new Error("open_post is only available in a browser tab.");
   window.location.assign(postUrl(post.slug));
@@ -87,7 +89,7 @@ async function openPostInCurrentTab(post: PostSummary) {
 export function createBlogWebMcpTools(
   options: BlogToolOptions = {},
 ): readonly WebMCP.ModelContextTool[] {
-  const getPosts = options.getPosts ?? (() => postRepository.list());
+  const fetchApi = options.fetchApi ?? ((path: string) => fetch(path));
   const openPost = options.openPost ?? openPostInCurrentTab;
 
   return [
@@ -120,8 +122,13 @@ export function createBlogWebMcpTools(
       execute: async (input) => {
         const record = inputRecord(input);
         const query = requiredString(record, "query");
-        const posts = await getPosts();
-        return { query, ...searchPostSummaries(posts, query, optionalLimit(record)) };
+        const limit = optionalLimit(record);
+        const result = await readApi<{ query: string } & PostListResult>(
+          fetchApi,
+          apiPath("/api/search", { q: query, limit }),
+        );
+        if (!result) throw new Error("The blog search API is unavailable.");
+        return { ...result, query };
       },
     },
     {
@@ -157,11 +164,13 @@ export function createBlogWebMcpTools(
         const record = inputRecord(input);
         const category = optionalString(record, "category");
         const tag = optionalString(record, "tag");
-        const posts = await getPosts();
-        return {
-          filters: { category: category ?? null, tag: tag ?? null },
-          ...listPostSummaries(posts, { category, tag }, optionalLimit(record)),
-        };
+        const limit = optionalLimit(record);
+        const result = await readApi<PostListResult>(
+          fetchApi,
+          apiPath("/api/posts", { category, tag, limit }),
+        );
+        if (!result) throw new Error("The blog list API is unavailable.");
+        return { filters: { category: category ?? null, tag: tag ?? null }, ...result };
       },
     },
     {
@@ -186,8 +195,7 @@ export function createBlogWebMcpTools(
       },
       execute: async (input) => {
         const slug = requiredString(inputRecord(input), "slug");
-        const posts = await getPosts();
-        const post = posts.find((candidate) => candidate.slug === slug);
+        const post = await readApi<PublicPost>(fetchApi, `/api/posts/${encodeURIComponent(slug)}`);
         if (!post) {
           throw new Error(
             `No published article was found for slug "${slug}". Search for an article first.`,
@@ -195,7 +203,7 @@ export function createBlogWebMcpTools(
         }
 
         await openPost(post);
-        return { status: "opening", post: publicPost(post) };
+        return { status: "opening", post: { ...post, url: postUrl(post.slug) } };
       },
     },
   ];
