@@ -6,7 +6,7 @@ import { Button, type ButtonProps } from "./Button";
 /** ヘッダーのガラスの入れ物（.site-tools）に並べるアイコンボタンの共通クラス。
     枠は入れ物が持つので、ボタン自体は枠なしのタイルにする。 */
 export const iconButtonClass =
-  "h-9 w-9 items-center justify-center rounded-[14px] border-0 bg-transparent text-muted no-underline transition-[background,color,transform] duration-200 [-webkit-tap-highlight-color:transparent] hover:bg-hover hover:text-ink active:scale-[0.92] motion-reduce:transition-none";
+  "h-9 w-9 items-center justify-center rounded-full border-0 bg-transparent text-muted no-underline transition-[background,color,transform] duration-200 [-webkit-tap-highlight-color:transparent] hover:bg-hover hover:text-ink active:scale-[0.92] motion-reduce:transition-none";
 
 export type IconButtonProps = Omit<ButtonProps, "aria-label" | "children" | "size" | "variant"> & {
   "aria-label": string;
