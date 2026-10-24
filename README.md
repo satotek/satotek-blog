@@ -53,6 +53,8 @@ cp .env.example .env.local
 
 ホームページの人気記事は、表示後に `GET /api/posts/popular` を取ります。API Worker が GA4 Data API の `screenPageViews` で、直近7日間の `/posts/<slug>` を PV 降順で最大10件並べ、順位だけを返します。閲覧数はレスポンスに含めません。GA4 の認証情報は API Worker `satotek-api` の Secret からのみ読み、ブラウザへは渡しません。認証情報が未設定、取得失敗、該当記事が無いときは、人気記事の欄は出ません。ビルド済みの HTML にも載せていません。
 
+記事一覧 `/posts` の検索窓は `GET /api/search?q=` を呼び、タイトル・タグ・カテゴリ・説明から探します。検索語は `?q=` に残るので、そのまま共有できます。
+
 記事ページの見出しの下には、`GET /api/posts/<slug>/views` で公開以来の累計閲覧数を出します。同じく GA4 の `screenPageViews` を API Worker が読み、1時間キャッシュします。取得できないとき、または 0 回のときは表示しません。
 
 ローカルでGA4連携まで確認する場合は、サービスアカウントへ対象GA4プロパティの閲覧権限を付与し、`.dev.vars` を作成します。
