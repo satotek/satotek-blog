@@ -6,12 +6,15 @@ export function PostList({
   posts,
   variant = "list",
   enter = false,
+  enterFrom = 0,
   mobileLimit,
 }: {
   posts: readonly PostSummary[];
   variant?: PostCardVariant;
   /** 上から順に、少し遅らせて出す。 */
   enter?: boolean;
+  /** 先頭カードの遅れ。上に別の塊があるとき、その続きから始める。 */
+  enterFrom?: number;
   /** この件数より後ろは、サイドバーが出ない幅では隠す。 */
   mobileLimit?: number;
 }) {
@@ -30,7 +33,7 @@ export function PostList({
           key={post.slug}
           post={post}
           variant={variant}
-          enterIndex={enter ? index : undefined}
+          enterIndex={enter ? index + enterFrom : undefined}
           className={
             mobileLimit !== undefined && index >= mobileLimit ? "max-sm:hidden" : undefined
           }
