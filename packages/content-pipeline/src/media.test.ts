@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import sharp from "sharp";
 import { describe, expect, it } from "vite-plus/test";
 
-import { generateMediaVariants } from "./media.ts";
+import { generateMediaVariants, mediaVariantKeys } from "./media.ts";
 
 describe("generateMediaVariants", () => {
   it("generates AVIF and WebP variants", async () => {
@@ -46,5 +46,17 @@ describe("generateMediaVariants", () => {
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
+  });
+});
+
+describe("mediaVariantKeys", () => {
+  it("lists variant keys without generating files", () => {
+    expect(mediaVariantKeys("posts/photo.png", ["webp"], [320, 768]).map(({ key }) => key)).toEqual(
+      ["posts/photo-320.webp", "posts/photo-768.webp"],
+    );
+  });
+
+  it("returns nothing for non-raster files", () => {
+    expect(mediaVariantKeys("posts/diagram.svg")).toEqual([]);
   });
 });
