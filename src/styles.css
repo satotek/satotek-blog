@@ -390,7 +390,8 @@
     padding: 5px 12px;
     border-left: 2px solid transparent;
     border-radius: 0 6px 6px 0;
-    color: var(--muted);
+    /* 0.85rem の細字だと --muted のままでは背景に沈むので、本文色へ少し寄せる。 */
+    color: color-mix(in oklch, var(--muted) 60%, var(--fg));
     font-size: 0.85rem;
     line-height: 1.6;
     text-decoration: none;
@@ -591,11 +592,18 @@
     display: none;
   }
 
+  /* Zen Kaku Gothic New の 400 は線が細く、長い本文だと和文がかすれて見える。
+     本文だけ 500 にする。Geist は 400 / 700 しか無いので欧文は 400 のまま描かれる。 */
   .markdown-body {
     --mono: var(--font-mono);
     overflow-wrap: anywhere;
     font-size: 1.125rem;
+    font-weight: 500;
     line-height: 1.85;
+  }
+
+  .markdown-body code {
+    font-weight: 400;
   }
 
   .markdown-content {
