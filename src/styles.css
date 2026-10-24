@@ -718,6 +718,7 @@
   }
 
   .markdown-body a {
+    padding-block: 2px;
     color: var(--accent);
     text-decoration-color: oklch(from var(--accent) l c h / 48%);
     text-underline-offset: 2px;

@@ -54,7 +54,7 @@ const machineIcons: Record<MachineKind, LucideIcon> = {
 
 // 規約類はプロフィール本体より一段小さく、読み物として静かに置く。
 const legalBodyClass =
-  "text-[0.95rem] leading-[1.85] text-ink/90 [&_a]:text-accent [&_a]:decoration-accent/40 [&_a]:underline [&_a]:underline-offset-2 [&_h3]:mt-[2.2em] [&_h3]:scroll-mt-[120px] [&_h3]:text-[1.05rem] [&_h3]:font-bold [&_h3:first-child]:mt-0 [&_h4]:mt-[1.4em] [&_h4]:text-[0.95rem] [&_h4]:font-bold [&_h4]:text-muted [&_li]:my-[0.35em] [&_p]:my-[0.9em] [&_ul]:my-[0.9em] [&_ul]:list-disc [&_ul]:pl-6";
+  "text-[0.95rem] leading-[1.85] text-ink/90 [&_a]:py-[3px] [&_a]:text-accent [&_a]:decoration-accent/40 [&_a]:underline [&_a]:underline-offset-2 [&_h3]:mt-[2.2em] [&_h3]:scroll-mt-[120px] [&_h3]:text-[1.05rem] [&_h3]:font-bold [&_h3:first-child]:mt-0 [&_h4]:mt-[1.4em] [&_h4]:text-[0.95rem] [&_h4]:font-bold [&_h4]:text-muted [&_li]:my-[0.35em] [&_p]:my-[0.9em] [&_ul]:my-[0.9em] [&_ul]:list-disc [&_ul]:pl-6";
 
 function Profile() {
   const { onAvatarPress, unlocked } = useSecretUnlock();

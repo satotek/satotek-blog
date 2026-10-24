@@ -104,7 +104,7 @@ export function ListeningAside({ snapshot }: { snapshot: MusicSnapshot | null })
           {snapshot.nowPlaying ? "いま聴いている" : "最近聴いた"}
         </h2>
         <RouterLink
-          className="text-[0.78rem] font-semibold text-accent no-underline hover:underline"
+          className="inline-flex min-h-6 items-center text-[0.78rem] font-semibold text-accent no-underline hover:underline"
           to="/music"
         >
           音楽 →

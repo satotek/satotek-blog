@@ -77,7 +77,7 @@ function Home() {
               最新の記事
             </h2>
             <RouterLink
-              className="text-[0.85rem] font-semibold text-accent no-underline hover:underline"
+              className="inline-flex min-h-6 items-center text-[0.85rem] font-semibold text-accent no-underline hover:underline"
               to="/posts"
             >
               記事一覧 →
