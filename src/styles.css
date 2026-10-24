@@ -1210,7 +1210,11 @@
     border-radius: inherit;
     background:
       radial-gradient(120% 90% at 18% -10%, var(--glass-sheen), transparent 55%),
-      radial-gradient(80% 60% at 90% 120%, oklch(from var(--glass-sheen) l c h / calc(alpha * 0.5)), transparent 60%);
+      radial-gradient(
+        80% 60% at 90% 120%,
+        oklch(from var(--glass-sheen) l c h / calc(alpha * 0.5)),
+        transparent 60%
+      );
     content: "";
     pointer-events: none;
   }
