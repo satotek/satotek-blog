@@ -3,13 +3,11 @@ import {
   ArrowUpRight,
   Briefcase,
   Cake,
-  Cloud,
   Laptop,
   MapPin,
   Monitor,
-  Sigma,
+  Server,
   Sparkles,
-  SquareTerminal,
   Tent,
   type LucideIcon,
 } from "lucide-react";
@@ -52,8 +50,7 @@ const interests = ["サイバーセキュリティ", "分割キーボード"] as
 const machineIcons: Record<MachineKind, LucideIcon> = {
   laptop: Laptop,
   desktop: Monitor,
-  wsl: SquareTerminal,
-  cloud: Cloud,
+  server: Server,
 };
 
 // 規約類はプロフィール本体より一段小さく、読み物として静かに置く。
@@ -136,21 +133,9 @@ function Profile() {
           <FactCard
             icon={Sparkles}
             label="最近気になっていること"
-            className="col-span-2 sm:col-span-1"
+            className="col-span-2 sm:col-span-1 lg:col-span-2"
           >
             <Chips items={interests} />
-          </FactCard>
-          <FactCard
-            icon={Sigma}
-            label="好きな式"
-            className="profile-formula col-span-2 sm:col-span-1"
-          >
-            <span className="block font-mono text-[1.5rem] font-semibold tracking-[-0.02em] text-accent">
-              e<sup className="text-[0.6em]">iπ</sup> + 1 = 0
-            </span>
-            <span className="mt-1.5 block text-[0.8rem] font-normal leading-[1.7] text-muted">
-              ベタですが中学時代に「オイラーの贈物」を読んで気に入りました。中身はだいぶ忘れましたが…
-            </span>
           </FactCard>
         </div>
       </section>
@@ -160,9 +145,9 @@ function Profile() {
           eyebrow="Setup"
           title="作業環境"
           id="setup-title"
-          description="どのマシンでも同じシェル・エディタで作業できるようにしています。"
+          description="手元のマシンと自宅サーバー、普段使っている道具です。"
         />
-        <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-3">
+        <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
           {machines.map(({ kind, role, name, os, note, specs }) => {
             const Icon = machineIcons[kind];
             return (
@@ -176,7 +161,7 @@ function Profile() {
                   </span>
                 </div>
                 <h3 className="m-0 mt-4 text-[1.1rem] font-bold tracking-[-0.01em]">{name}</h3>
-                <p className="m-0 mt-0.5 font-mono text-[0.78rem] text-muted">{os}</p>
+                {os && <p className="m-0 mt-0.5 font-mono text-[0.78rem] text-muted">{os}</p>}
                 {note && (
                   <p className="m-0 mt-3 text-[0.88rem] leading-[1.75] text-ink/85">{note}</p>
                 )}

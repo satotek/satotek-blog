@@ -14,16 +14,16 @@ type NavItem = {
 
 const barItems: NavItem[] = [
   { to: "/", label: "Home", icon: House },
-  { to: "/posts", label: "記事", icon: Newspaper },
-  { to: "/music", label: "音楽", icon: Music },
-  { to: "/profile", label: "プロフィール", icon: UserRound },
+  { to: "/posts", label: "Articles", icon: Newspaper },
+  { to: "/music", label: "Music", icon: Music },
+  { to: "/profile", label: "Profile", icon: UserRound },
 ];
 
 const dockItems: NavItem[] = [
   { to: "/", label: "Home", icon: House },
-  { to: "/posts", label: "記事", icon: Newspaper },
-  { to: "/music", label: "音楽", icon: Music },
-  { to: "/profile", label: "プロフィール", dockLabel: "自己紹介", icon: UserRound },
+  { to: "/posts", label: "Articles", icon: Newspaper },
+  { to: "/music", label: "Music", icon: Music },
+  { to: "/profile", label: "Profile", icon: UserRound },
 ];
 
 /** カテゴリとタグは記事一覧の絞り込みなので「記事」の配下として扱う。 */
