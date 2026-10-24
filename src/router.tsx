@@ -1,6 +1,7 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import type { ParsedLocation } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { isDockTransitionRunning } from "#/lib/dock-transition";
 
 /**
  * 履歴の移動（戻る・進む）で、次のナビゲーションを1回ぶん「履歴移動」と見なす。
@@ -44,8 +45,10 @@ export function getRouter() {
       // 戻る・進むでは何もしない。ブラウザ自身が履歴移動の演出（iOS Safari の
       // スワイプバックなど）を持っており、そこへ重ねると前のページが一瞬
       // 差し込まれたように見えるため。types が false を返すと遷移ごと省かれる。
+      // ドックの切替は viewTransition: false を渡しても、ルーターが遷移を
+      // もう一度確定するときに既定の縦フェードが重なる。その間は省く。
       types: ({ fromLocation, toLocation }) =>
-        isHistoryTraversal(fromLocation, toLocation) ? false : [],
+        isHistoryTraversal(fromLocation, toLocation) || isDockTransitionRunning() ? false : [],
     },
   });
 

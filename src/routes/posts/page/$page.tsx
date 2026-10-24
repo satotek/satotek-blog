@@ -1,4 +1,5 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import type { CSSProperties } from "react";
 
 import { PostFilters } from "#/components/PostFilters";
 import { PostList } from "#/components/PostList";
@@ -54,8 +55,10 @@ function PostsNumberedPage() {
         title="記事一覧"
         description={`${totalPosts}件の記事 / ${current}ページ目`}
       />
-      <PostFilters filters={filters} totalPosts={totalPosts} />
-      <PostList posts={slice} variant="grid" />
+      <div className="rise-enter" style={{ "--i": 0 } as CSSProperties}>
+        <PostFilters filters={filters} totalPosts={totalPosts} />
+      </div>
+      <PostList posts={slice} variant="grid" enter enterFrom={1} />
       <Pagination current={current} total={total} PageLink={PostsPageLink} className="mt-6" />
     </section>
   );
