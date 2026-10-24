@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 
-import { generateMediaVariants } from "@satotek/content-pipeline";
+import { generateMediaVariants, mediaVariantKeys } from "@satotek/content-pipeline";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const defaultBucket = "satotek-media";
@@ -26,8 +26,10 @@ type Options = {
   bucket: string;
   directory?: string;
   file?: string;
+  force: boolean;
   help: boolean;
   key?: string;
+  post?: string;
   posts: boolean;
   prefix: string;
   variants: boolean;
@@ -41,21 +43,28 @@ type Upload = {
 function printUsage() {
   console.log(`Usage:
   bun run upload-media -- --posts
+  bun run upload-media -- --post <slug>
   bun run upload-media -- --file <path> --key <r2-key>
   bun run upload-media -- --directory <path> [--prefix <r2-prefix>]
 
 Options:
   --posts             Upload every src/content/posts/*/assets/ file, keyed by slug.
+  --post <slug>       Upload only src/content/posts/<slug>/assets/.
   --file <path>       Upload one local image file.
   --key <r2-key>      Destination key, for example first-post/photo.webp.
   --directory <path>  Upload every file under a local directory.
   --prefix <prefix>   Prefix for directory uploads.
   --no-variants       Upload only the original files.
+  --force             Upload even if the key already exists on the public URL.
   --bucket <name>     R2 bucket (default: R2_BUCKET_NAME or ${defaultBucket}).
   --help              Show this help.
 
 The upload uses the authenticated Wrangler CLI, so local uploads use
 Cloudflare OAuth (or CLOUDFLARE_API_TOKEN in CI) instead of R2 S3 secrets.
+
+Keys that already return 200 from the public URL are skipped, because media is
+served as immutable and an overwrite would not reach cached readers anyway.
+Give a changed image a new file name instead of overwriting it.
 `);
 }
 
@@ -70,6 +79,7 @@ function requiredValue(args: readonly string[], index: number, option: string) {
 function parseArgs(args: readonly string[]): Options {
   const options: Options = {
     bucket: process.env.R2_BUCKET_NAME?.trim() || defaultBucket,
+    force: false,
     help: false,
     posts: false,
     prefix: "",
@@ -88,12 +98,18 @@ function parseArgs(args: readonly string[]): Options {
       case "--file":
         options.file = requiredValue(args, ++index, "--file");
         break;
+      case "--force":
+        options.force = true;
+        break;
       case "--help":
       case "-h":
         options.help = true;
         break;
       case "--key":
         options.key = requiredValue(args, ++index, "--key");
+        break;
+      case "--post":
+        options.post = requiredValue(args, ++index, "--post");
         break;
       case "--posts":
         options.posts = true;
@@ -109,12 +125,13 @@ function parseArgs(args: readonly string[]): Options {
     }
   }
 
-  if ([options.file, options.directory, options.posts || undefined].filter(Boolean).length > 1) {
-    throw new Error("--posts, --file and --directory cannot be combined");
+  const sources = [options.file, options.directory, options.post, options.posts || undefined];
+  if (sources.filter(Boolean).length > 1) {
+    throw new Error("--posts, --post, --file and --directory cannot be combined");
   }
 
-  if (!options.help && !options.file && !options.directory && !options.posts) {
-    throw new Error("Specify --posts, --file or --directory");
+  if (!options.help && sources.every((source) => !source)) {
+    throw new Error("Specify --posts, --post, --file or --directory");
   }
 
   if (options.file && !options.key) {
@@ -159,12 +176,20 @@ async function collectFiles(directory: string): Promise<string[]> {
  * 記事の原本は index.mdx の隣の assets/ にある。R2 のキーは記事の slug から
  * 導けるので、記事を書く側がキーを打ち込む必要はない。
  */
-async function createPostUploads(): Promise<Upload[]> {
+async function createPostUploads(slug?: string): Promise<Upload[]> {
   const postsDirectory = join(projectRoot, "src/content/posts");
   const uploads: Upload[] = [];
 
+  if (slug) {
+    const assetsDirectory = join(postsDirectory, normalizeKey(slug), "assets");
+    if (!(await stat(assetsDirectory).catch(() => undefined))?.isDirectory()) {
+      throw new Error(`No assets directory for post: ${slug}`);
+    }
+  }
+
   for (const entry of await readdir(postsDirectory, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
+    if (slug && entry.name !== slug) continue;
 
     const assetsDirectory = join(postsDirectory, entry.name, "assets");
     let files: string[];
@@ -186,7 +211,7 @@ async function createPostUploads(): Promise<Upload[]> {
 }
 
 async function createUploads(options: Options): Promise<Upload[]> {
-  if (options.posts) return createPostUploads();
+  if (options.posts || options.post) return createPostUploads(options.post);
 
   if (options.file) {
     const file = resolve(projectRoot, options.file);
@@ -210,19 +235,48 @@ function contentType(file: string) {
   return contentTypes[extname(file).toLowerCase()] ?? "application/octet-stream";
 }
 
-async function expandUploads(uploads: Upload[], outputDirectory: string, variants: boolean) {
-  if (!variants) return uploads;
-
-  const expanded = [...uploads];
-  for (const upload of uploads) {
-    const generated = await generateMediaVariants({
-      sourcePath: upload.file,
-      key: upload.key,
-      outputDirectory,
-    });
-    expanded.push(...generated.map(({ file, key }) => ({ file, key })));
+async function existsOnPublicUrl(key: string) {
+  try {
+    const response = await fetch(publicUrl(key), { method: "HEAD" });
+    return response.ok;
+  } catch {
+    return false;
   }
-  return expanded;
+}
+
+/**
+ * 元画像と派生画像がすべて公開 URL にあるものは、派生画像の生成ごと飛ばす。
+ * 一部でも欠けていれば、欠けているキーだけを上げる。
+ */
+async function expandUploads(
+  uploads: Upload[],
+  outputDirectory: string,
+  { force, variants }: Pick<Options, "force" | "variants">,
+) {
+  const expanded: Upload[] = [];
+  let skipped = 0;
+
+  for (const upload of uploads) {
+    const variantKeys = variants ? mediaVariantKeys(upload.key).map(({ key }) => key) : [];
+    const keys = [upload.key, ...variantKeys];
+    const exists = force ? keys.map(() => false) : await Promise.all(keys.map(existsOnPublicUrl));
+    const missing = new Set(keys.filter((_, index) => !exists[index]));
+    skipped += keys.length - missing.size;
+
+    if (missing.has(upload.key)) expanded.push(upload);
+    if (variantKeys.some((key) => missing.has(key))) {
+      const generated = await generateMediaVariants({
+        sourcePath: upload.file,
+        key: upload.key,
+        outputDirectory,
+      });
+      for (const { file, key } of generated) {
+        if (missing.has(key)) expanded.push({ file, key });
+      }
+    }
+  }
+
+  return { skipped, uploads: expanded };
 }
 
 function publicUrl(key: string) {
@@ -282,9 +336,18 @@ async function main() {
 
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "satotek-media-"));
   try {
-    const expandedUploads = await expandUploads(uploads, temporaryDirectory, options.variants);
-    const variantCount = expandedUploads.length - uploads.length;
-    if (variantCount > 0) console.log(`Generated ${variantCount} responsive image variants.`);
+    const { skipped, uploads: expandedUploads } = await expandUploads(
+      uploads,
+      temporaryDirectory,
+      options,
+    );
+    if (skipped > 0)
+      console.log(`Skipped ${skipped} files that already exist (use --force to upload them).`);
+    if (expandedUploads.length === 0) {
+      console.log("Nothing to upload.");
+      return;
+    }
+    console.log(`Uploading ${expandedUploads.length} files.`);
 
     for (const upload of expandedUploads) {
       console.log(`${upload.file} -> ${options.bucket}/${upload.key}`);

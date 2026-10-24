@@ -38,13 +38,18 @@ function normalizeKey(key: string) {
   return normalized;
 }
 
-export async function generateMediaVariants({
-  sourcePath,
-  key,
-  outputDirectory,
-  formats = MEDIA_VARIANT_FORMATS,
-  widths = MEDIA_VARIANT_WIDTHS,
-}: GenerateMediaVariantsOptions): Promise<GeneratedMediaVariant[]> {
+export type MediaVariantKey = {
+  format: MediaVariantFormat;
+  key: string;
+  width: number;
+};
+
+/** 派生画像を生成せずに、R2 上のキーだけを求める。 */
+export function mediaVariantKeys(
+  key: string,
+  formats: readonly MediaVariantFormat[] = MEDIA_VARIANT_FORMATS,
+  widths: readonly number[] = MEDIA_VARIANT_WIDTHS,
+): MediaVariantKey[] {
   const normalizedKey = normalizeKey(key);
   if (!isRasterImage(normalizedKey)) return [];
 
@@ -56,23 +61,33 @@ export async function generateMediaVariants({
   const uniqueFormats = [...new Set(formats)].filter((format): format is MediaVariantFormat =>
     MEDIA_VARIANT_FORMATS.includes(format),
   );
+
+  return uniqueFormats.flatMap((format) =>
+    uniqueWidths.map((width) => ({ format, key: `${baseKey}-${width}.${format}`, width })),
+  );
+}
+
+export async function generateMediaVariants({
+  sourcePath,
+  key,
+  outputDirectory,
+  formats = MEDIA_VARIANT_FORMATS,
+  widths = MEDIA_VARIANT_WIDTHS,
+}: GenerateMediaVariantsOptions): Promise<GeneratedMediaVariant[]> {
   const variants: GeneratedMediaVariant[] = [];
 
-  for (const format of uniqueFormats) {
-    for (const width of uniqueWidths) {
-      const variantKey = `${baseKey}-${width}.${format}`;
-      const variantFile = join(outputDirectory, variantKey);
+  for (const { format, key: variantKey, width } of mediaVariantKeys(key, formats, widths)) {
+    const variantFile = join(outputDirectory, variantKey);
 
-      await mkdir(dirname(variantFile), { recursive: true });
-      const image = sharp(sourcePath).resize({ width, withoutEnlargement: true });
-      if (format === "avif") {
-        await image.avif({ quality: 55, effort: 4 }).toFile(variantFile);
-      } else {
-        await image.webp({ quality: 82, effort: 4 }).toFile(variantFile);
-      }
-
-      variants.push({ file: variantFile, format, key: variantKey, width });
+    await mkdir(dirname(variantFile), { recursive: true });
+    const image = sharp(sourcePath).resize({ width, withoutEnlargement: true });
+    if (format === "avif") {
+      await image.avif({ quality: 55, effort: 4 }).toFile(variantFile);
+    } else {
+      await image.webp({ quality: 82, effort: 4 }).toFile(variantFile);
     }
+
+    variants.push({ file: variantFile, format, key: variantKey, width });
   }
 
   return variants;

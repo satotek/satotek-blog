@@ -7,6 +7,7 @@ export {
   MEDIA_VARIANT_FORMATS,
   MEDIA_VARIANT_WIDTHS,
   generateMediaVariants,
+  mediaVariantKeys,
   readImageDimensions,
 } from "./media.ts";
 export type {
@@ -14,5 +15,6 @@ export type {
   GenerateMediaVariantsOptions,
   MediaDimensions,
   MediaVariantFormat,
+  MediaVariantKey,
 } from "./media.ts";
 export type { TocItem } from "./remark-toc.ts";
