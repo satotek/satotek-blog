@@ -3,6 +3,7 @@ import { Suspense, use, useRef } from "react";
 
 import { Article, articleComponents } from "#/components/article/Article";
 import { ArticleFooter } from "#/components/ArticleFooter";
+import { PostViews } from "#/components/PostViews";
 import { MobileTableOfContents, TableOfContents } from "#/components/article/TableOfContents";
 import { useToc } from "#/components/article/useToc";
 import { RouterLink } from "#/components/ui";
@@ -103,6 +104,7 @@ function PostPage() {
           <span className="text-[0.9rem] tabular-nums text-muted">
             約{readingMinutes}分で読めます
           </span>
+          <PostViews slug={post.slug} />
         </div>
         <ul className="m-0 mt-4 flex list-none flex-wrap gap-2 p-0" aria-label="タグ">
           {post.tags.map((tag) => (

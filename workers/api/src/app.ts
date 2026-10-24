@@ -13,13 +13,15 @@ import {
 } from "../../../src/lib/posts/query";
 import type { PostSummary } from "../../../src/lib/posts/types";
 import type { ApiEnv } from "./env";
-import { getPopularPostsFromGa4 } from "./ga4";
+import { getPopularPostsFromGa4, getPostViewsFromGa4 } from "./ga4";
 import { getMusicFromLastfm } from "./lastfm";
 import { unavailableMusic, type MusicSnapshot } from "../../../src/lib/music";
 import { currentRequestState } from "./request-context";
 
 const POPULAR_CACHE_SECONDS = 60 * 60;
 const POPULAR_FAILURE_CACHE_SECONDS = 60;
+const POST_VIEWS_CACHE_SECONDS = 60 * 60;
+const POST_VIEWS_FAILURE_CACHE_SECONDS = 60;
 const MUSIC_CACHE_SECONDS = 60;
 const MUSIC_FAILURE_CACHE_SECONDS = 60;
 
@@ -28,6 +30,7 @@ const publishedSummaries = summaries as readonly PostSummary[];
 type ApiOptions = {
   posts?: readonly PostSummary[];
   loadPopularPosts?: (env: ApiEnv) => Promise<readonly PopularPost[]>;
+  loadPostViews?: (env: ApiEnv) => Promise<ReadonlyMap<string, number> | undefined>;
   loadMusic?: (env: ApiEnv) => Promise<MusicSnapshot>;
   adapter?: ElysiaAdapter;
 };
@@ -63,6 +66,7 @@ async function cachedResponse(request: Request, seconds: number, response: Respo
 export function createApp(options: ApiOptions = {}) {
   const posts = options.posts ?? publishedSummaries;
   const loadPopularPosts = options.loadPopularPosts ?? getPopularPostsFromGa4;
+  const loadPostViews = options.loadPostViews ?? getPostViewsFromGa4;
   const loadMusic = options.loadMusic ?? getMusicFromLastfm;
 
   return new Elysia({ adapter: options.adapter })
@@ -122,6 +126,32 @@ export function createApp(options: ApiOptions = {}) {
         request,
         available ? MUSIC_CACHE_SECONDS : MUSIC_FAILURE_CACHE_SECONDS,
         Response.json(snapshot),
+      );
+    })
+    .get("/api/posts/:slug/views", async ({ params, request, set }) => {
+      const slug = typeof params.slug === "string" ? params.slug : "";
+      if (!findPublishedPost(posts, slug)) {
+        set.status = 404;
+        return { error: "not found" };
+      }
+
+      const cache = workerCache();
+      if (cache) {
+        const hit = await cache.match(new Request(request.url, { method: "GET" }));
+        if (hit) return hit;
+      }
+
+      const views = await loadPostViews(currentRequestState().env);
+      const available = views !== undefined;
+      return cachedResponse(
+        request,
+        available ? POST_VIEWS_CACHE_SECONDS : POST_VIEWS_FAILURE_CACHE_SECONDS,
+        Response.json({
+          slug,
+          range: "all",
+          source: available ? "ga4" : "unavailable",
+          views: available ? (views.get(slug) ?? 0) : null,
+        }),
       );
     })
     .get("/api/posts/:slug", ({ params, set }) => {
