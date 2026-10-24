@@ -235,7 +235,7 @@ src/
 └── styles.css               Tailwind CSSのエントリーポイントとデザイントークン
 ```
 
-`scripts/generate-post-summaries.ts` は公開記事のfrontmatterを検証し、一覧用のサマリを `src/content/.generated/` に生成します。本文と目次はMDXモジュール自身が持つため、ここでは書き出しません。変換系の依存関係は `packages/content-pipeline` に閉じているため、ルートアプリの本番依存関係には含まれません。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` はGit管理外の画像をR2へアップロードします。生成先の `src/content/.generated/`、`.ogp/`、`.r2-media/` は生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
+`scripts/generate-post-summaries.ts` は公開記事のfrontmatterを検証し、一覧用のサマリを `src/content/.generated/` に生成します。本文と目次はMDXモジュール自身が持つため、ここでは書き出しません。変換系の依存関係は `packages/content-pipeline` に閉じているため、ルートアプリの本番依存関係には含まれません。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` は記事の画像原本や `.r2-media/` の画像を派生画像と一緒にR2へアップロードします。生成先の `src/content/.generated/`、`.ogp/`、`.r2-media/` は生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
 
 `src/routeTree.gen.ts` はTanStack Routerが生成するファイルです。ルートファイルを追加したときは、必要に応じて次を実行します。
 
