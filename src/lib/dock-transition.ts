@@ -106,6 +106,8 @@ export async function transitionDockPage(
     leaving.remove();
     leaving = null;
 
+    // forward / back / fade の間は記事の出現を止めている。入る瞬間に再開する。
+    root.dataset.dockTransition = "enter";
     const enter = main.animate(
       direction === 0
         ? [{ opacity: 0 }, { opacity: 1 }]

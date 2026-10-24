@@ -120,11 +120,18 @@
     box-shadow: var(--surface-shadow);
   }
 
-  /* ホームの記事を上から順に出す。退場用のコピーでは再生しない。 */
+  /* ホームの記事を上から順に出す。退場用のコピーでは再生しない。
+     ドックの退場中は止め、新しいページが入る瞬間から始める。 */
   @media (prefers-reduced-motion: no-preference) {
     .post-enter {
       animation: post-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
       animation-delay: calc(var(--i, 0) * 55ms);
+    }
+
+    html[data-dock-transition="forward"] .post-enter,
+    html[data-dock-transition="back"] .post-enter,
+    html[data-dock-transition="fade"] .post-enter {
+      animation-play-state: paused;
     }
   }
 
