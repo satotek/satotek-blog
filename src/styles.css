@@ -917,7 +917,7 @@
     background: var(--surface);
     box-shadow: var(--surface-shadow);
     font-size: 0.9rem;
-    line-height: 1.65;
+    line-height: 1.6;
     overscroll-behavior-x: contain;
     scrollbar-color: var(--border) transparent;
     scrollbar-width: thin;
@@ -927,12 +927,20 @@
      本文の中で表だけが浮くので、行の区切りに絞る。 */
   .markdown-body th,
   .markdown-body td {
-    padding: 10px 16px;
+    padding: 9px 14px;
     border: 0;
     border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
     font-variant-numeric: tabular-nums;
     text-align: left;
+    text-wrap: pretty;
     vertical-align: top;
+  }
+
+  /* 和文はどこでも折り返せるので、狭い画面では列が数文字幅まで潰れて
+     1 語が縦に割れる。本文列に最低幅を持たせ、足りなければ表ごと横スクロールさせる。 */
+  .markdown-body td {
+    min-width: 7em;
+    max-width: 28em;
   }
 
   .markdown-body tbody tr:last-child > * {
@@ -941,15 +949,15 @@
 
   .markdown-body thead th {
     position: relative;
-    border-bottom: 2px solid var(--accent-border);
+    border-bottom: 1px solid var(--accent-border);
     background: light-dark(
       color-mix(in oklch, var(--accent) 7%, var(--card)),
       color-mix(in oklch, var(--accent) 11%, var(--card))
     );
-    color: var(--fg);
+    color: color-mix(in oklch, var(--fg) 82%, var(--accent));
     font-size: 0.8125rem;
     font-weight: 700;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     white-space: nowrap;
   }
 
@@ -964,8 +972,23 @@
   /* 1 列目が見出し扱いの表（先頭セルが空のヘッダ）でも読み筋が追えるよう、
      行ラベルになりやすい先頭列だけ少し強くする。 */
   .markdown-body tbody td:first-child {
+    background: color-mix(in oklch, var(--accent) 3%, transparent);
     color: var(--fg);
-    font-weight: 500;
+    font-weight: 600;
+  }
+
+  /* 行ラベルは途中で割れると読みにくいので、幅に余裕のある画面では折り返さない。
+     スマホでは長いラベルが本文列を押し出すので、最低幅だけ確保して折り返す。 */
+  @media (min-width: 641px) {
+    .markdown-body tbody td:first-child {
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .markdown-body tbody td:first-child {
+      min-width: 6.5em;
+    }
   }
 
   .markdown-body table code {
