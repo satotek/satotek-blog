@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { HomeHero } from "#/components/HomeHero";
 import { HomeSidebar } from "#/components/HomeSidebar";
+import { useMusicSnapshot } from "#/components/ListeningView";
 import { PostList } from "#/components/PostList";
 import { RouterLink } from "#/components/ui";
 import { getCategories, getTags } from "#/data/navigation";
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { allPosts, latest, total, categories, tags } = Route.useLoaderData();
+  const listening = useMusicSnapshot();
   const [popularSlugs, setPopularSlugs] = useState<readonly string[]>([]);
 
   useEffect(() => {
@@ -88,7 +90,12 @@ function Home() {
           )}
         </main>
 
-        <HomeSidebar highlights={popularPosts} categories={categories} tags={tags} />
+        <HomeSidebar
+          highlights={popularPosts}
+          listening={listening.snapshot}
+          categories={categories}
+          tags={tags}
+        />
       </div>
     </div>
   );

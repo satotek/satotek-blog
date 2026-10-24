@@ -2,12 +2,20 @@ import { existsSync, readFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { createApp } from "./app";
-import type { Ga4Env } from "./ga4";
+import type { ApiEnv } from "./env";
 import { runWithRequestState } from "./request-context";
+
+const ENV_KEYS = [
+  "GA4_PROPERTY_ID",
+  "GA4_CLIENT_EMAIL",
+  "GA4_PRIVATE_KEY",
+  "LASTFM_API_KEY",
+  "LASTFM_USERNAME",
+] as const satisfies readonly (keyof ApiEnv)[];
 
 const app = createApp();
 
-function readEnvFile(path: string, env: Ga4Env) {
+function readEnvFile(path: string, env: ApiEnv) {
   if (!existsSync(path)) return;
   for (const line of readFileSync(path, "utf8").split("\n")) {
     const trimmed = line.trim();
@@ -15,9 +23,7 @@ function readEnvFile(path: string, env: Ga4Env) {
     const separator = trimmed.indexOf("=");
     if (separator === -1) continue;
     const key = trimmed.slice(0, separator).trim();
-    if (key !== "GA4_PROPERTY_ID" && key !== "GA4_CLIENT_EMAIL" && key !== "GA4_PRIVATE_KEY") {
-      continue;
-    }
+    if (!ENV_KEYS.includes(key as (typeof ENV_KEYS)[number])) continue;
     let value = trimmed.slice(separator + 1).trim();
     if (
       (value.startsWith('"') && value.endsWith('"')) ||
@@ -25,22 +31,20 @@ function readEnvFile(path: string, env: Ga4Env) {
     ) {
       value = value.slice(1, -1);
     }
-    if (!env[key]) env[key] = value;
+    const envKey = key as (typeof ENV_KEYS)[number];
+    if (!env[envKey]) env[envKey] = value;
   }
 }
 
-function ga4Env(): Ga4Env {
-  const env: Ga4Env = {
-    GA4_PROPERTY_ID: process.env.GA4_PROPERTY_ID,
-    GA4_CLIENT_EMAIL: process.env.GA4_CLIENT_EMAIL,
-    GA4_PRIVATE_KEY: process.env.GA4_PRIVATE_KEY,
-  };
+function apiEnv(): ApiEnv {
+  const env: ApiEnv = {};
+  for (const key of ENV_KEYS) env[key] = process.env[key];
   readEnvFile(".env.local", env);
   readEnvFile(".dev.vars", env);
   return env;
 }
 
-const env = ga4Env();
+const env = apiEnv();
 
 export async function handleApiDevRequest(
   req: IncomingMessage,

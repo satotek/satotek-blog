@@ -12,17 +12,23 @@ import {
   taxonomyForPosts,
 } from "../../../src/lib/posts/query";
 import type { PostSummary } from "../../../src/lib/posts/types";
-import { getPopularPostsFromGa4, type Ga4Env } from "./ga4";
+import type { ApiEnv } from "./env";
+import { getPopularPostsFromGa4 } from "./ga4";
+import { getMusicFromLastfm } from "./lastfm";
+import { unavailableMusic, type MusicSnapshot } from "../../../src/lib/music";
 import { currentRequestState } from "./request-context";
 
 const POPULAR_CACHE_SECONDS = 60 * 60;
 const POPULAR_FAILURE_CACHE_SECONDS = 60;
+const MUSIC_CACHE_SECONDS = 60;
+const MUSIC_FAILURE_CACHE_SECONDS = 60;
 
 const publishedSummaries = summaries as readonly PostSummary[];
 
 type ApiOptions = {
   posts?: readonly PostSummary[];
-  loadPopularPosts?: (env: Ga4Env) => Promise<readonly PopularPost[]>;
+  loadPopularPosts?: (env: ApiEnv) => Promise<readonly PopularPost[]>;
+  loadMusic?: (env: ApiEnv) => Promise<MusicSnapshot>;
   adapter?: ElysiaAdapter;
 };
 
@@ -57,6 +63,7 @@ async function cachedResponse(request: Request, seconds: number, response: Respo
 export function createApp(options: ApiOptions = {}) {
   const posts = options.posts ?? publishedSummaries;
   const loadPopularPosts = options.loadPopularPosts ?? getPopularPostsFromGa4;
+  const loadMusic = options.loadMusic ?? getMusicFromLastfm;
 
   return new Elysia({ adapter: options.adapter })
     .onError(({ error, set }) => {
@@ -94,6 +101,27 @@ export function createApp(options: ApiOptions = {}) {
           source: available ? "ga4" : "unavailable",
           posts: ranked,
         }),
+      );
+    })
+    .get("/api/music", async ({ request }) => {
+      const cache = workerCache();
+      if (cache) {
+        const hit = await cache.match(new Request(request.url, { method: "GET" }));
+        if (hit) return hit;
+      }
+
+      let snapshot: MusicSnapshot;
+      try {
+        snapshot = await loadMusic(currentRequestState().env);
+      } catch {
+        console.error("[api] music request failed");
+        snapshot = unavailableMusic();
+      }
+      const available = snapshot.source === "lastfm";
+      return cachedResponse(
+        request,
+        available ? MUSIC_CACHE_SECONDS : MUSIC_FAILURE_CACHE_SECONDS,
+        Response.json(snapshot),
       );
     })
     .get("/api/posts/:slug", ({ params, set }) => {

@@ -1,6 +1,8 @@
 import { Bot, Rss } from "lucide-react";
 
+import { ListeningAside } from "#/components/ListeningView";
 import { Link as AriaLink, RouterLink } from "#/components/ui";
+import type { MusicSnapshot } from "#/lib/music";
 import type { PostSummary } from "#/lib/posts/types";
 import type { TagCount } from "./TagList";
 
@@ -12,15 +14,18 @@ type CategoryCount = {
 
 export function HomeSidebar({
   highlights,
+  listening,
   categories,
   tags,
 }: {
   highlights: readonly PostSummary[];
+  listening: MusicSnapshot | null;
   categories: readonly CategoryCount[];
   tags: readonly TagCount[];
 }) {
   return (
     <aside className="grid gap-3" aria-label="サイドバー">
+      <ListeningAside snapshot={listening} />
       {highlights.length > 0 && (
         <section className="panel p-5" aria-labelledby="highlights-title">
           <div className="flex items-baseline justify-between gap-3">
