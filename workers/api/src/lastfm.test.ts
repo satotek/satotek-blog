@@ -129,15 +129,25 @@ function requestUrl(input: RequestInfo | URL) {
 }
 
 describe("Last.fm client", () => {
-  it("does not call Last.fm without an API key and username", async () => {
+  it("does not call Last.fm without an API key", async () => {
     let called = false;
-    const snapshot = await getMusicFromLastfm({ LASTFM_API_KEY: "secret-key" }, async () => {
+    const snapshot = await getMusicFromLastfm({}, async () => {
       called = true;
       return new Response("{}");
     });
 
     expect(called).toBe(false);
     expect(snapshot.source).toBe("unavailable");
+  });
+
+  it("reads nosuke912 when no username is configured", async () => {
+    let user = "";
+    await getMusicFromLastfm({ LASTFM_API_KEY: "secret-key" }, async (input) => {
+      user = new URL(requestUrl(input)).searchParams.get("user") ?? "";
+      return Response.json({ error: 10, message: "stop" });
+    });
+
+    expect(user).toBe("nosuke912");
   });
 
   it("requests the four read methods and leaves the API key out of the snapshot", async () => {

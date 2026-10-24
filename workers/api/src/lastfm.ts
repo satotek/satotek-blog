@@ -12,6 +12,7 @@ export type LastfmEnv = {
 };
 
 const LASTFM_API = "https://ws.audioscrobbler.com/2.0/";
+const DEFAULT_LASTFM_USERNAME = "nosuke912";
 const USER_AGENT = "satotek.dev (https://satotek.dev)";
 const REQUEST_TIMEOUT_MS = 5_000;
 const WEEK_SECONDS = 7 * 24 * 60 * 60;
@@ -30,8 +31,8 @@ export async function getMusicFromLastfm(
   fetchImpl: typeof fetch = fetch,
 ): Promise<MusicSnapshot> {
   const apiKey = env.LASTFM_API_KEY?.trim();
-  const user = env.LASTFM_USERNAME?.trim();
-  if (!apiKey || !user) return unavailableMusic();
+  const user = env.LASTFM_USERNAME?.trim() || DEFAULT_LASTFM_USERNAME;
+  if (!apiKey) return unavailableMusic();
 
   // Last.fm の period=7day は暦週ではなく直近7日。再生回数も同じ窓に揃える。
   const weekStart = Math.floor(Date.now() / 1000) - WEEK_SECONDS;

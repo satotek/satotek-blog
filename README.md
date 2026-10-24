@@ -76,23 +76,21 @@ bunx wrangler secret put GA4_PRIVATE_KEY -c workers/api/wrangler.jsonc
 
 ### 音楽（Last.fm）
 
-`/music` は Last.fm の公開プロフィールから、再生中の曲、直近の再生、直近7日の再生回数、アーティストと曲の上位を表示します。ブラウザは `GET /api/music` だけを呼び、API キーは API Worker から Last.fm へ出します。キーもユーザー名も未設定、または取得に失敗したときは、その欄を出しません。
+`/music` は Last.fm の公開プロフィールから、再生中の曲、直近の再生、直近7日の再生回数、アーティストと曲の上位を表示します。ブラウザは `GET /api/music` だけを呼び、API キーは API Worker から Last.fm へ出します。対象ユーザーは `nosuke912` です。キーが未設定、または取得に失敗したときは、その欄を出しません。
 
-ローカルでは `.dev.vars` に次を足します。
+ローカルでは `.dev.vars` に API キーだけ足します。
 
 ```dotenv
 LASTFM_API_KEY=
-LASTFM_USERNAME=
 ```
 
 本番の API Worker には、初回だけ次のコマンドで登録します。値はプロンプトから入力され、Git には保存されません。
 
 ```sh
 bunx wrangler secret put LASTFM_API_KEY -c workers/api/wrangler.jsonc
-bunx wrangler secret put LASTFM_USERNAME -c workers/api/wrangler.jsonc
 ```
 
-読み取りはユーザー認証不要です。`LASTFM_USERNAME` は自分の Last.fm ユーザー名です。応答は Worker で約60秒キャッシュします。
+読み取りはユーザー認証不要です。共有シークレットは使いません。別のユーザーを見るときは `LASTFM_USERNAME` で上書きできます。応答は Worker で約60秒キャッシュします。
 
 ### 記事・サイト画像（R2）
 
