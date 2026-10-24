@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Briefcase,
-  Cake,
   Laptop,
   MapPin,
   Monitor,
@@ -44,7 +43,7 @@ const socials: readonly { label: string; handle: string; href: string; icon: Sim
 ];
 
 const hobbies = ["旅行", "キャンプ", "読書", "ガジェットいじり"] as const;
-const interests = ["サイバーセキュリティ", "分割キーボード"] as const;
+const interests = ["サイバーセキュリティ", "分割キーボード", "Rust"] as const;
 
 const machineIcons: Record<MachineKind, LucideIcon> = {
   laptop: Laptop,
@@ -113,8 +112,8 @@ function Profile() {
 
       <section aria-labelledby="about-title">
         <SectionHeading title="About me" id="about-title" />
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-          <FactCard icon={Briefcase} label="職業" className="col-span-2 sm:col-span-1">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FactCard icon={Briefcase} label="職業">
             ソフトウェア開発者
           </FactCard>
           <FactCard icon={MapPin} label="拠点">
@@ -123,17 +122,10 @@ function Profile() {
               （神奈川県出身）
             </span>
           </FactCard>
-          <FactCard icon={Cake} label="年齢">
-            20代
-          </FactCard>
-          <FactCard icon={Tent} label="趣味" className="col-span-2 sm:col-span-1">
+          <FactCard icon={Tent} label="趣味">
             <Chips items={hobbies} />
           </FactCard>
-          <FactCard
-            icon={Sparkles}
-            label="最近気になっていること"
-            className="col-span-2 sm:col-span-1 lg:col-span-2"
-          >
+          <FactCard icon={Sparkles} label="最近気になっていること">
             <Chips items={interests} />
           </FactCard>
         </div>
