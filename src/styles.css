@@ -241,6 +241,33 @@
 }
 
 @layer components {
+  /* 記事一覧の絞り込みのタグ。モバイルでは折り返すとパネルが縦に伸び続けるので、
+     1行の横スクロールにして右端をフェードさせ、続きがあることを示す。 */
+  @media (max-width: 640px) {
+    /* 余白・折り返し・スクロールは Tailwind の max-sm: で指定している（utilities が勝つため）。 */
+    .post-filters__tags {
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      mask-image: linear-gradient(
+        to right,
+        transparent,
+        #000 0.75rem,
+        #000 calc(100% - 2.5rem),
+        transparent
+      );
+    }
+
+    .post-filters__tags::-webkit-scrollbar {
+      display: none;
+    }
+
+    .post-filters__tags > li {
+      flex: none;
+    }
+  }
+}
+
+@layer components {
   .post-layout {
     display: grid;
     gap: 2rem;
