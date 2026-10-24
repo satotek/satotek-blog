@@ -62,51 +62,55 @@ export function HomeSidebar({
         </section>
       )}
 
-      <section className="panel p-5" aria-labelledby="categories-title">
-        <h2 className="m-0 text-[0.78rem] font-bold text-muted" id="categories-title">
-          カテゴリ
-        </h2>
-        <ul className="m-0 mt-2.5 grid list-none gap-0.5 p-0">
-          {categories.map(({ slug, name, count }) => (
-            <li key={slug}>
-              <RouterLink
-                className="flex items-baseline justify-between rounded-[9px] px-2 py-[7px] text-[0.9rem] font-semibold no-underline transition-colors duration-150 hover:bg-hover hover:text-accent"
-                to="/categories/$slug"
-                params={{ slug }}
-              >
-                <span>{name}</span>
-                <span className="font-mono text-[0.74rem] tabular-nums text-muted">{count}</span>
-              </RouterLink>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="panel p-5" aria-labelledby="tags-title">
+      {/* カテゴリとタグは記事一覧の絞り込みが本体。ここは入口として1枚にまとめる。 */}
+      <section className="panel p-5" aria-labelledby="explore-title">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="m-0 text-[0.78rem] font-bold text-muted" id="tags-title">
-            タグ
+          <h2 className="m-0 text-[0.78rem] font-bold text-muted" id="explore-title">
+            記事を探す
           </h2>
           <RouterLink
             className="text-[0.78rem] font-semibold text-accent no-underline hover:underline"
-            to="/tags"
+            to="/posts"
           >
             すべて →
           </RouterLink>
         </div>
-        <ul className="m-0 mt-3 flex list-none flex-wrap gap-2 p-0">
-          {tags.slice(0, 8).map(({ name }) => (
-            <li key={name}>
-              <RouterLink
-                className="inline-block rounded-full border border-line px-2.5 py-[3px] text-[0.78rem] text-muted no-underline transition-colors duration-150 hover:border-accent-border hover:text-accent"
-                to="/tags/$tag"
-                params={{ tag: name }}
-              >
-                #{name}
-              </RouterLink>
-            </li>
-          ))}
+        <ul className="m-0 mt-3 flex list-none flex-wrap gap-1.5 p-0" aria-label="カテゴリ">
+          {categories
+            .filter(({ count }) => count > 0)
+            .map(({ slug, name, count }) => (
+              <li key={slug}>
+                <RouterLink
+                  className="inline-flex items-baseline gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-[0.84rem] font-semibold text-accent no-underline transition-colors duration-150 hover:bg-accent-hover"
+                  to="/categories/$slug"
+                  params={{ slug }}
+                >
+                  {name}
+                  <span className="font-mono text-[0.7rem] font-normal tabular-nums opacity-75">
+                    {count}
+                  </span>
+                </RouterLink>
+              </li>
+            ))}
         </ul>
+        {tags.length > 0 && (
+          <ul
+            className="m-0 mt-3 flex list-none flex-wrap gap-2 border-t border-line p-0 pt-3"
+            aria-label="タグ"
+          >
+            {tags.slice(0, 8).map(({ name }) => (
+              <li key={name}>
+                <RouterLink
+                  className="inline-block rounded-full border border-line px-2.5 py-[3px] text-[0.78rem] text-muted no-underline transition-colors duration-150 hover:border-accent-border hover:text-accent"
+                  to="/tags/$tag"
+                  params={{ tag: name }}
+                >
+                  #{name}
+                </RouterLink>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="panel flex items-center justify-between px-5 py-4" aria-label="購読">

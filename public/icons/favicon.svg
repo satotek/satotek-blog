@@ -1,16 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="satotek.dev">
   <style>
     :root {
-      --bg: #f3ece0;
-      --fg: #37322b;
-      --border: rgba(55, 50, 43, .12);
-      --accent: #ae543e;
+      --bg: #f2f3ff;
+      --fg: #292a38;
+      --border: rgba(41, 42, 56, .12);
+      --accent: #635fc2;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #1f1e1d;
-        --fg: #e8e2d8;
-        --border: rgba(232, 226, 216, .16);
+        --bg: #16161e;
+        --fg: #e6e7f1;
+        --border: rgba(230, 231, 241, .16);
+        --accent: #abaeff;
       }
     }
     text {

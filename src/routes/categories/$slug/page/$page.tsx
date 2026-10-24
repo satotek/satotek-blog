@@ -2,7 +2,7 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 import { CategoryPageContent } from "#/components/TaxonomyPage";
 import { postRepository } from "#/lib/posts/repository";
-import { categoryBySlug } from "#/data/navigation";
+import { categoryBySlug, getPostFilters } from "#/data/navigation";
 import { createPageHead, withSiteName } from "#/lib/site";
 import { parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
 
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/categories/$slug/page/$page")({
         throw: true,
       });
     }
-    return { posts };
+    return { posts, filters: await getPostFilters() };
   },
   head: ({ params }) => {
     const name = categoryBySlug(params.slug)?.name ?? "カテゴリ";
@@ -39,8 +39,10 @@ export const Route = createFileRoute("/categories/$slug/page/$page")({
 
 function CategoryNumberedPage() {
   const { slug, page: rawPage } = Route.useParams();
-  const { posts } = Route.useLoaderData();
+  const { posts, filters } = Route.useLoaderData();
   const page = parsePage(rawPage);
 
-  return page === null ? null : <CategoryPageContent slug={slug} page={page} posts={posts} />;
+  return page === null ? null : (
+    <CategoryPageContent slug={slug} page={page} posts={posts} filters={filters} />
+  );
 }

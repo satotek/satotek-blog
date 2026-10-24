@@ -7,7 +7,7 @@ on:
     types:
       - closed
     paths:
-      - content/posts/**/index.md
+      - src/content/posts/**/index.mdx
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
         uses: tj-actions/changed-files@v47
         with:
           files: |
-            content/posts/**/index.md
+            src/content/posts/**/index.mdx
 
       - name: Set up Bun
         if: steps.changed-files.outputs.any_changed == 'true'

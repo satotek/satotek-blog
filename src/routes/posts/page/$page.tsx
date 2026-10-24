@@ -1,9 +1,11 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
+import { PostFilters } from "#/components/PostFilters";
 import { PostList } from "#/components/PostList";
 import { Pagination, type PageLinkProps } from "#/components/Pagination";
 import { SectionHeading } from "#/components/SectionHeading";
 import { RouterLink } from "#/components/ui";
+import { getPostFilters, type PostFilters as PostFiltersData } from "#/data/navigation";
 import type { PostSummary } from "#/lib/posts/types";
 import { postRepository } from "#/lib/posts/repository";
 import { paginate, parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
@@ -12,7 +14,7 @@ import { createPageHead, withSiteName } from "#/lib/site";
 export const Route = createFileRoute("/posts/page/$page")({
   loader: async ({ params }): Promise<PostsPageLoaderData> => {
     const page = parsePage(params.page);
-    const posts = await postRepository.list();
+    const [posts, filters] = await Promise.all([postRepository.list(), getPostFilters()]);
     const total = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
 
     if (page === null || page > total) throw notFound();
@@ -30,6 +32,7 @@ export const Route = createFileRoute("/posts/page/$page")({
       current: paginated.current,
       total: paginated.total,
       totalPosts: posts.length,
+      filters,
     };
   },
   head: ({ params }) =>
@@ -42,7 +45,7 @@ export const Route = createFileRoute("/posts/page/$page")({
 });
 
 function PostsNumberedPage() {
-  const { slice, current, total, totalPosts } = Route.useLoaderData();
+  const { slice, current, total, totalPosts, filters } = Route.useLoaderData();
 
   return (
     <section>
@@ -51,6 +54,7 @@ function PostsNumberedPage() {
         title="記事一覧"
         description={`${totalPosts}件の記事 / ${current}ページ目`}
       />
+      <PostFilters filters={filters} totalPosts={totalPosts} />
       <PostList posts={slice} variant="grid" />
       <Pagination current={current} total={total} PageLink={PostsPageLink} className="mt-6" />
     </section>
@@ -62,6 +66,7 @@ type PostsPageLoaderData = {
   current: number;
   total: number;
   totalPosts: number;
+  filters: PostFiltersData;
 };
 
 function PostsPageLink({ page, className, children }: PageLinkProps) {
