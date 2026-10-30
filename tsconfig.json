@@ -6,6 +6,7 @@
     "packages/blog-core/src/**/*.ts",
     "scripts/**/*.ts",
     "scripts/**/*.tsx",
+    "vite-plugins/**/*.ts",
     "vite.config.ts"
   ],
   "compilerOptions": {
