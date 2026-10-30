@@ -1,0 +1,242 @@
+@layer components {
+  .panel {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--surface-shadow);
+  }
+
+  /* ホームの記事、記事一覧、プロフィールの塊を上から順に出す。
+     退場用のコピーでは再生しない。ドックの退場中は止め、新しいページが入る瞬間から始める。
+     backwards だけにして、終わったあとのホバー変形を残す。 */
+  @media (prefers-reduced-motion: no-preference) {
+    .post-enter,
+    .rise-enter {
+      animation: rise-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+      animation-delay: calc(var(--i, 0) * 55ms);
+    }
+
+    html[data-dock-transition="forward"] .post-enter,
+    html[data-dock-transition="back"] .post-enter,
+    html[data-dock-transition="fade"] .post-enter,
+    html[data-dock-transition="forward"] .rise-enter,
+    html[data-dock-transition="back"] .rise-enter,
+    html[data-dock-transition="fade"] .rise-enter {
+      animation-play-state: paused;
+    }
+  }
+
+  /* 透明度はページ側のフェードに任せる。ここでも 0 にすると、
+     見出しだけ先に出て本文が点いたようにちらつく。 */
+  @keyframes rise-enter {
+    from {
+      transform: translateY(12px);
+    }
+  }
+
+  [data-dock-hold],
+  [data-dock-hold] * {
+    animation: none !important;
+  }
+
+  /* 記事カードはライトでは枠を消して、地面と同じ色味の影だけで浮かせる。
+     ダークは影が潰れるので、枠と一段明るい面を残す。
+     角丸と枠はここで完結させる。ホームの各行が単独のカードになる。 */
+  .post-card {
+    overflow: hidden;
+    border: 1px solid light-dark(transparent, var(--border));
+    border-radius: var(--radius-site);
+    background: light-dark(var(--card), var(--surface));
+    box-shadow:
+      0 1px 2px light-dark(oklch(0.25 0.03 284 / 6%), transparent),
+      0 10px 18px -12px light-dark(oklch(0.25 0.03 284 / 28%), transparent);
+  }
+
+  .post-cover__fallback {
+    position: relative;
+    display: flex;
+    height: 100%;
+    min-height: inherit;
+    align-items: flex-end;
+    justify-content: space-between;
+    overflow: hidden;
+    padding: 1rem;
+    background:
+      linear-gradient(
+        135deg,
+        transparent 0 48%,
+        oklch(from var(--accent) l c h / 14%) 48% 49%,
+        transparent 49% 100%
+      ),
+      color-mix(in oklch, var(--accent) 9%, var(--bg));
+  }
+
+  .post-cover__fallback::before,
+  .post-cover__fallback::after {
+    position: absolute;
+    display: block;
+    border: 1px solid var(--accent-border);
+    border-radius: 999px;
+    content: "";
+  }
+
+  .post-cover__fallback::before {
+    top: 15%;
+    right: 12%;
+    width: 42%;
+    aspect-ratio: 1;
+  }
+
+  .post-cover__fallback::after {
+    right: -10%;
+    bottom: -34%;
+    width: 90%;
+    aspect-ratio: 1;
+  }
+
+  .post-cover__fallback-dot {
+    position: relative;
+    z-index: 1;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+
+  .post-cover__fallback-label {
+    position: relative;
+    z-index: 1;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+  }
+
+  .theme-toggle-glyph {
+    overflow: visible;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theme-toggle:hover .theme-toggle-glyph {
+    transform: rotate(16deg);
+  }
+
+  .theme-toggle:active .theme-toggle-glyph {
+    transform: rotate(28deg);
+  }
+
+  .theme-toggle-core,
+  .theme-toggle-cutout,
+  .theme-toggle-rays {
+    transform-box: view-box;
+    transform-origin: 12px 12px;
+    transition:
+      transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.35s ease;
+  }
+
+  /* テーマ切り替え中はページ全体が静止スナップショットになり、その間の
+     モーフは見えない。クロスフェードが終わってから太陽↔月を回す。 */
+  :root[data-theme-transition] .theme-toggle-core,
+  :root[data-theme-transition] .theme-toggle-cutout,
+  :root[data-theme-transition] .theme-toggle-rays {
+    transition-delay: 280ms;
+  }
+
+  /* --dark: 0（ライト＝太陽）→ 1（ダーク＝月）を補間する。 */
+  .theme-toggle-core {
+    transform: scale(calc(1 + 1.15 * var(--dark)));
+  }
+
+  .theme-toggle-cutout {
+    transform: translate(calc(8.5px - 2.9px * var(--dark)), calc(-8.5px + 5.3px * var(--dark)));
+  }
+
+  .theme-toggle-rays {
+    transform: rotate(calc(90deg * var(--dark))) scale(calc(1 - 0.85 * var(--dark)));
+    opacity: calc(1 - var(--dark));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle-glyph,
+    .theme-toggle-core,
+    .theme-toggle-cutout,
+    .theme-toggle-rays {
+      transition: none;
+    }
+  }
+}
+
+@layer components {
+  /* プロフィールのヒーロー。右上と左下にアクセント色の光をにじませ、カードに奥行きを出す。 */
+  .profile-hero {
+    background:
+      radial-gradient(circle at 100% 0%, oklch(from var(--accent) l c h / 22%), transparent 55%),
+      radial-gradient(
+        circle at 0% 100%,
+        oklch(from var(--nav-active-from) l c h / 55%),
+        transparent 50%
+      ),
+      var(--surface);
+  }
+
+  /* 右上の同心円は飾り。 */
+  .profile-hero::before,
+  .profile-hero::after {
+    position: absolute;
+    border: 1px solid var(--accent-border);
+    border-radius: 999px;
+    content: "";
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .profile-hero::before {
+    top: -90px;
+    right: -60px;
+    width: 260px;
+    aspect-ratio: 1;
+  }
+
+  .profile-hero::after {
+    top: -40px;
+    right: -10px;
+    width: 160px;
+    aspect-ratio: 1;
+  }
+
+  .profile-avatar {
+    border: 3px solid var(--card);
+    box-shadow:
+      0 0 0 1px var(--accent-border),
+      0 18px 32px -20px oklch(from var(--accent) l c h / 70%);
+  }
+}
+
+@layer components {
+  /* 記事一覧の絞り込みのタグ。モバイルでは折り返すとパネルが縦に伸び続けるので、
+     1行の横スクロールにして右端をフェードさせ、続きがあることを示す。 */
+  @media (max-width: 640px) {
+    /* 余白・折り返し・スクロールは Tailwind の max-sm: で指定している（utilities が勝つため）。 */
+    .post-filters__tags {
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      mask-image: linear-gradient(
+        to right,
+        transparent,
+        #000 0.75rem,
+        #000 calc(100% - 2.5rem),
+        transparent
+      );
+    }
+
+    .post-filters__tags::-webkit-scrollbar {
+      display: none;
+    }
+
+    .post-filters__tags > li {
+      flex: none;
+    }
+  }
+}

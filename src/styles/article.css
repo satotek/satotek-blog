@@ -1,0 +1,761 @@
+/* GitHub の Nix 文法は `"${...}"` を鍵にした属性の直後の = と ; を invalid として
+   拾う。文法側の都合でしかないので、赤い枠は出さず素の文字として見せる。
+   core.css はレイヤ外なので、打ち消す側もレイヤ外に置く必要がある。 */
+.pl-ii {
+  background-color: transparent;
+  color: inherit;
+}
+
+@layer components {
+  .post-layout {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .post-content {
+    min-width: 0;
+  }
+
+  .toc-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .toc-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition:
+      background 150ms ease,
+      color 150ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .toc-toggle:hover {
+    background: var(--hover);
+    color: var(--fg);
+  }
+
+  .toc-chevron {
+    transition: transform 200ms ease;
+  }
+
+  .toc-chevron--closed {
+    transform: rotate(180deg);
+  }
+
+  .toc-nav {
+    width: 100%;
+    margin-top: 8px;
+    border-left: 2px solid var(--border);
+  }
+
+  .toc-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc-list li {
+    margin: 0;
+  }
+
+  .toc-list li[data-level="3"] {
+    padding-left: 1rem;
+  }
+
+  .toc-list li[data-level="4"] {
+    padding-left: 2rem;
+  }
+
+  .toc-list a {
+    display: block;
+    margin-left: -2px;
+    padding: 5px 12px;
+    border-left: 2px solid transparent;
+    border-radius: 0 6px 6px 0;
+    /* 0.85rem の細字だと --muted のままでは背景に沈むので、本文色へ少し寄せる。 */
+    color: color-mix(in oklch, var(--muted) 60%, var(--fg));
+    font-size: 0.85rem;
+    line-height: 1.6;
+    text-decoration: none;
+    transition:
+      color 150ms ease,
+      border-color 150ms ease,
+      background 150ms ease;
+  }
+
+  .toc-list a:hover {
+    background: var(--hover);
+    color: var(--fg);
+  }
+
+  .toc-list a.is-active {
+    border-left-color: var(--accent);
+    background: oklch(from var(--accent) l c h / 12%);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .toc-mobile {
+    display: block;
+  }
+
+  .toc-mobile-trigger {
+    position: fixed;
+    z-index: 60;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    display: inline-flex;
+    width: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: var(--accent);
+    box-shadow: 0 8px 24px oklch(0.25 0.03 284 / 20%);
+    color: var(--bg);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transition:
+      background 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease,
+      transform 150ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .toc-mobile-trigger:hover,
+  .toc-mobile-trigger[aria-expanded="true"] {
+    background: color-mix(in oklch, var(--accent) 88%, var(--fg));
+    color: var(--bg);
+  }
+
+  .toc-mobile-trigger:active {
+    transform: scale(0.96);
+  }
+
+  .toc-sheet-overlay {
+    position: fixed;
+    z-index: 90;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    background: oklch(0 0 0 / 42%);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+
+  .toc-sheet {
+    width: 100%;
+    max-height: min(78dvh, 680px);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: var(--radius-site) var(--radius-site) 0 0;
+    background: var(--bg);
+    box-shadow: 0 -12px 32px oklch(0 0 0 / 24%);
+  }
+
+  .toc-sheet-dialog {
+    display: flex;
+    min-height: 0;
+    max-height: inherit;
+    flex-direction: column;
+    outline: none;
+  }
+
+  .toc-sheet-header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 12px 10px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toc-sheet-title {
+    margin: 0;
+    color: var(--fg);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .toc-sheet-close {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition:
+      background 150ms ease,
+      color 150ms ease,
+      transform 150ms ease;
+  }
+
+  .toc-sheet-close:hover {
+    background: var(--hover);
+    color: var(--fg);
+  }
+
+  .toc-sheet-close:active {
+    transform: scale(0.92);
+  }
+
+  .toc-sheet-body {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+
+  .toc-sheet-body .toc-nav {
+    margin-top: 0;
+  }
+
+  .toc-sheet-body .toc-list a {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    padding: 9px 12px;
+    line-height: 1.45;
+  }
+
+  @keyframes toc-sheet-fade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes toc-sheet-rise {
+    from {
+      transform: translateY(100%);
+    }
+
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .toc-sheet-overlay[data-entering] {
+    animation: toc-sheet-fade 200ms ease-out;
+  }
+
+  .toc-sheet-overlay[data-exiting] {
+    animation: toc-sheet-fade 200ms ease-in reverse;
+    animation-fill-mode: forwards;
+  }
+
+  .toc-sheet-overlay[data-entering] .toc-sheet {
+    animation: toc-sheet-rise 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .toc-sheet-overlay[data-exiting] .toc-sheet {
+    animation: toc-sheet-rise 200ms cubic-bezier(0.4, 0, 0.2, 1) reverse;
+    animation-fill-mode: forwards;
+  }
+
+  .toc-desktop {
+    display: none;
+  }
+
+  /* Zen Kaku Gothic New の 400 は線が細く、長い本文だと和文がかすれて見える。
+     本文だけ 500 にする。Geist は 400 / 700 しか無いので欧文は 400 のまま描かれる。 */
+  .markdown-body {
+    --mono: var(--font-mono);
+    overflow-wrap: anywhere;
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1.85;
+  }
+
+  .markdown-body code {
+    font-weight: 400;
+  }
+
+  .markdown-content {
+    position: relative;
+  }
+
+  .markdown-body > :first-child {
+    margin-top: 0;
+  }
+
+  .markdown-body > :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown-body p {
+    margin: 1.25em 0;
+  }
+
+  .markdown-body h1,
+  .markdown-body h2,
+  .markdown-body h3,
+  .markdown-body h4 {
+    position: relative;
+    margin-top: 2em;
+    color: var(--fg);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    scroll-margin-top: 120px;
+  }
+
+  .markdown-body h1 {
+    margin-bottom: 0.6em;
+    font-size: 1.8rem;
+  }
+
+  .markdown-body h2 {
+    margin-bottom: 0.7em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid var(--border);
+    font-size: 1.45rem;
+  }
+
+  .markdown-body h3 {
+    margin-bottom: 0.6em;
+    padding-bottom: 0.25em;
+    border-bottom: 1px solid var(--border);
+    font-size: 1.3rem;
+  }
+
+  .markdown-body h4 {
+    margin-bottom: 0.5em;
+    font-size: 1.15rem;
+  }
+
+  .markdown-body .heading-anchor {
+    margin-left: 0.4em;
+    color: var(--muted);
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  .markdown-body h1:hover .heading-anchor,
+  .markdown-body h2:hover .heading-anchor,
+  .markdown-body h3:hover .heading-anchor,
+  .markdown-body h4:hover .heading-anchor,
+  .markdown-body .heading-anchor:focus-visible {
+    opacity: 1;
+  }
+
+  .markdown-body a {
+    color: var(--accent);
+    text-decoration-color: oklch(from var(--accent) l c h / 48%);
+    text-underline-offset: 2px;
+  }
+
+  .markdown-body a[target="_blank"]::after {
+    margin-left: 0.12em;
+    color: currentColor;
+    /* エスケープで書く。非 ASCII リテラルは stylesheet の charset 解釈に依存する。 */
+    content: "\2197";
+    font-size: 0.8em;
+    opacity: 0.7;
+    text-decoration: none;
+  }
+
+  .markdown-body ul,
+  .markdown-body ol {
+    margin: 1.25em 0;
+    padding-left: 1.5em;
+  }
+
+  /* Tailwindのpreflightがol/ulのlist-styleをnoneに落とすので、本文だけ戻す。 */
+  .markdown-body ul {
+    list-style: disc;
+  }
+
+  .markdown-body ol {
+    list-style: decimal;
+  }
+
+  .markdown-body li > ul {
+    list-style: circle;
+  }
+
+  .markdown-body li > ul ul {
+    list-style: square;
+  }
+
+  .markdown-body li {
+    margin: 0.4em 0;
+  }
+
+  .markdown-body li::marker {
+    color: var(--muted);
+  }
+
+  .markdown-body li > ul,
+  .markdown-body li > ol {
+    margin: 0.4em 0;
+  }
+
+  .markdown-body li:has(> input[type="checkbox"]) {
+    margin-left: -1.4em;
+    list-style: none;
+  }
+
+  .markdown-body input[type="checkbox"] {
+    margin-right: 0.5em;
+    accent-color: var(--accent);
+  }
+
+  .markdown-body strong {
+    color: var(--fg);
+    font-weight: 700;
+  }
+
+  .markdown-body :not(pre) > code {
+    padding: 0.15em 0.4em;
+    border: 1px solid var(--code-border);
+    border-radius: 6px;
+    background: var(--code-surface);
+    font-family: var(--mono);
+    font-size: 0.875em;
+  }
+
+  .code-block {
+    --code-surface: light-dark(oklch(0.16 0.005 281), oklch(0.255 0.008 281));
+    --code-bar: light-dark(oklch(0.21 0.008 281), oklch(0.29 0.008 281));
+    --code-border: oklch(0.75 0.012 286 / 22%);
+    --code-fg: oklch(0.93 0.012 286);
+    --code-muted: oklch(0.68 0.018 282);
+    --code-accent: oklch(0.78 0.13 288);
+    --code-scrollbar: oklch(0.8 0.015 286 / 28%);
+    --code-add: oklch(0.78 0.16 150);
+    position: relative;
+    overflow: hidden;
+    margin: 1.75em 0;
+    border: 1px solid var(--code-border);
+    border-radius: var(--radius-site);
+    background: var(--code-surface);
+    /* 記事全体のテーマとは切り離し、コードは常に暗色の作業面で表示する。 */
+    color: var(--code-fg);
+    color-scheme: dark;
+  }
+
+  .code-block__bar {
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 12px 0 16px;
+    border-bottom: 1px solid var(--code-border);
+    background: var(--code-bar);
+  }
+
+  .code-block__actions {
+    position: absolute;
+    z-index: 1;
+    top: 10px;
+    right: 12px;
+  }
+
+  .code-block__meta {
+    display: inline-flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .code-block__filename {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+    overflow: hidden;
+    color: var(--code-muted);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .code-block__icon {
+    color: var(--code-accent);
+    font-size: 0.7rem;
+  }
+
+  .markdown-body pre {
+    overflow-x: auto;
+    margin: 0;
+    padding: 16px 18px 16px 8px;
+    border: 0;
+    background: transparent;
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    font-variant-ligatures: none;
+    scrollbar-color: var(--code-scrollbar) transparent;
+    scrollbar-width: thin;
+    tab-size: 2;
+  }
+
+  .code-block--untitled > pre {
+    padding-top: 21px;
+  }
+
+  .markdown-body pre code {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  .markdown-body pre code[data-line-numbers] {
+    display: grid;
+    min-width: max-content;
+    counter-reset: code-line;
+  }
+
+  .markdown-body pre code[data-line-numbers] > .code-line {
+    display: block;
+    min-height: 1.7em;
+    counter-increment: code-line;
+  }
+
+  .markdown-body pre code[data-line-numbers] > .code-line::before {
+    display: inline-block;
+    width: 1rem;
+    margin-right: 1.5rem;
+    color: var(--code-muted);
+    content: counter(code-line);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.58;
+    pointer-events: none;
+    text-align: right;
+    user-select: none;
+  }
+
+  .markdown-body pre code[data-line-numbers] .code-line__content {
+    white-space: inherit;
+  }
+
+  .markdown-body pre code[data-line-numbers] .code-line__break {
+    display: none;
+  }
+
+  .copy-btn {
+    display: inline-flex;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    background: var(--code-surface);
+    color: var(--code-muted);
+    cursor: pointer;
+    opacity: 0.6;
+    pointer-events: auto;
+    transition:
+      opacity 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .copy-btn:hover,
+  .copy-btn:focus-visible {
+    border-color: color-mix(in oklch, var(--code-fg) 32%, transparent);
+    color: var(--code-fg);
+    opacity: 1;
+  }
+
+  .copy-btn .icon-check {
+    color: var(--code-add);
+  }
+
+  /* display:block でテーブル自身を横スクロール枠にする。border-collapse は
+     separate のままにしないと、セルの境界線が角丸を上書きして角が四角く残る。 */
+  .markdown-body table {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    margin: 1.75em auto;
+    overflow-x: auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--surface-shadow);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    overscroll-behavior-x: contain;
+    scrollbar-color: var(--border) transparent;
+    scrollbar-width: thin;
+  }
+
+  /* 罫線は横方向だけ。縦罫と縞模様を足すと表計算の見た目になり、
+     本文の中で表だけが浮くので、行の区切りに絞る。 */
+  .markdown-body th,
+  .markdown-body td {
+    padding: 9px 14px;
+    border: 0;
+    border-bottom: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+    text-wrap: pretty;
+    vertical-align: top;
+  }
+
+  /* 和文はどこでも折り返せるので、狭い画面では列が数文字幅まで潰れて
+     1 語が縦に割れる。本文列に最低幅を持たせ、足りなければ表ごと横スクロールさせる。 */
+  .markdown-body td {
+    min-width: 7em;
+    max-width: 28em;
+  }
+
+  .markdown-body tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .markdown-body thead th {
+    position: relative;
+    border-bottom: 1px solid var(--accent-border);
+    background: light-dark(
+      color-mix(in oklch, var(--accent) 7%, var(--card)),
+      color-mix(in oklch, var(--accent) 11%, var(--card))
+    );
+    color: color-mix(in oklch, var(--fg) 82%, var(--accent));
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .markdown-body tbody tr {
+    transition: background-color 120ms ease;
+  }
+
+  .markdown-body tbody tr:hover {
+    background: var(--hover);
+  }
+
+  /* 1 列目が見出し扱いの表（先頭セルが空のヘッダ）でも読み筋が追えるよう、
+     行ラベルになりやすい先頭列だけ少し強くする。 */
+  .markdown-body tbody td:first-child {
+    background: color-mix(in oklch, var(--accent) 3%, transparent);
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  /* 行ラベルは途中で割れると読みにくいので、幅に余裕のある画面では折り返さない。
+     スマホでは長いラベルが本文列を押し出すので、最低幅だけ確保して折り返す。 */
+  @media (min-width: 641px) {
+    .markdown-body tbody td:first-child {
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .markdown-body tbody td:first-child {
+      min-width: 6.5em;
+    }
+  }
+
+  .markdown-body table code {
+    white-space: nowrap;
+  }
+
+  .markdown-body blockquote {
+    margin: 1.5em 0;
+    padding: 4px 20px;
+    border-left: 3px solid var(--accent);
+    color: var(--muted);
+  }
+
+  .markdown-body blockquote p {
+    margin: 0.5em 0;
+  }
+
+  .markdown-body hr {
+    margin: 2.5em 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .markdown-body kbd {
+    padding: 2px 7px;
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    background: var(--card);
+    font-family: var(--mono);
+    font-size: 0.8em;
+  }
+
+  .markdown-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-site);
+  }
+
+  .markdown-body picture {
+    display: block;
+  }
+
+  .post-cover > picture {
+    display: block;
+    height: 100%;
+  }
+
+  .markdown-body img.center,
+  .markdown-body figure img {
+    display: block;
+    margin-inline: auto;
+  }
+
+  .markdown-body img:not(.profile-avatar) {
+    cursor: zoom-in;
+  }
+
+  .markdown-body figure {
+    margin: 1.5em 0;
+  }
+
+  .markdown-body figcaption {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+  }
+}
