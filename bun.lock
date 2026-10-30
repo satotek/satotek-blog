@@ -5,6 +5,7 @@
     "": {
       "name": "satotek-blog",
       "dependencies": {
+        "@satotek/blog-core": "workspace:*",
         "@tanstack/react-router": "^1.170.46",
         "@tanstack/react-start": "^1.169.4",
         "lucide-react": "^1.64.0",
@@ -37,6 +38,9 @@
         "wrangler": "^4.155.0",
       },
     },
+    "packages/blog-core": {
+      "name": "@satotek/blog-core",
+    },
     "packages/content-pipeline": {
       "name": "@satotek/content-pipeline",
       "dependencies": {
@@ -62,6 +66,7 @@
     "workers/api": {
       "name": "@satotek/api",
       "dependencies": {
+        "@satotek/blog-core": "workspace:*",
         "elysia": "^1.4.30",
       },
     },
@@ -489,6 +494,8 @@
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.66.0", "", { "os": "win32", "cpu": "x64" }, "sha512-xA+neBh1bqkqaS3b48T2UHZnDsTIpb9B0h+TdBzynjF/ymCpYndhfY10RqW0qSKB1HqqQA83mINVhAdwA+mETg=="],
 
     "@satotek/api": ["@satotek/api@workspace:workers/api"],
+
+    "@satotek/blog-core": ["@satotek/blog-core@workspace:packages/blog-core"],
 
     "@satotek/content-pipeline": ["@satotek/content-pipeline@workspace:packages/content-pipeline"],
 

@@ -1,7 +1,7 @@
 import { Resvg } from "@resvg/resvg-js";
 import satori, { type Font as SatoriFont, type SatoriNode } from "satori";
 
-import type { PostSummary } from "../../src/lib/posts/types";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 
 export const imageWidth = 1200;
 export const imageHeight = 630;

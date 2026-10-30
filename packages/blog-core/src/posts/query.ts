@@ -1,7 +1,7 @@
-import { categories } from "../../data/categories";
-import type { PopularPost } from "../../analytics/types";
-import { SITE_URL } from "../site-url";
-import type { PostSummary } from "./types";
+import { categories } from "../categories.ts";
+import type { PopularPost } from "../analytics/types.ts";
+import { SITE_URL } from "../site-url.ts";
+import type { PostSummary } from "./types.ts";
 
 export const DEFAULT_POST_LIMIT = 10;
 export const MAX_POST_LIMIT = 10;

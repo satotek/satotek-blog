@@ -4,7 +4,7 @@ import {
   type MusicChartTrack,
   type MusicSnapshot,
   type MusicTrack,
-} from "../../../src/lib/music";
+} from "@satotek/blog-core/music";
 
 export type LastfmEnv = {
   LASTFM_API_KEY?: string;

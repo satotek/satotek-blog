@@ -3,6 +3,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "workers/api/src/**/*.ts",
+    "packages/blog-core/src/**/*.ts",
     "scripts/**/*.ts",
     "scripts/**/*.tsx",
     "vite.config.ts"

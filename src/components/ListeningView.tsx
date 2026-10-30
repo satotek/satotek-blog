@@ -11,7 +11,7 @@ import {
   type MusicChartTrack,
   type MusicSnapshot,
   type MusicTrack,
-} from "#/lib/music";
+} from "@satotek/blog-core/music";
 
 export function useMusicSnapshot() {
   const [snapshot, setSnapshot] = useState<MusicSnapshot | null>(null);

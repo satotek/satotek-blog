@@ -2,8 +2,8 @@ import { Bot, Rss } from "lucide-react";
 
 import { ListeningAside } from "#/components/ListeningView";
 import { Link as AriaLink, RouterLink } from "#/components/ui";
-import type { MusicSnapshot } from "#/lib/music";
-import type { PostSummary } from "#/lib/posts/types";
+import type { MusicSnapshot } from "@satotek/blog-core/music";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 import type { TagCount } from "./TagList";
 
 type CategoryCount = {

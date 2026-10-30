@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { PostSummary } from "#/lib/posts/types";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 import { RouterLink } from "#/components/ui";
 import { categoryBySlug, type PostFilters as PostFiltersData } from "#/data/navigation";
 import { paginate } from "#/lib/pagination";
