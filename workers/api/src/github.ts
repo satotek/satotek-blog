@@ -2,7 +2,7 @@ import {
   unavailableGithub,
   type GithubActivity,
   type GithubSnapshot,
-} from "../../../src/lib/github";
+} from "@satotek/blog-core/github";
 
 export type GithubEnv = {
   /** 未設定でも公開イベントは読める。設定すると取得上限が 60 回/時から上がる。 */

@@ -212,6 +212,8 @@ bun run preview
 
 `bun run check` は記事サマリの生成と、Vite+によるリポジトリ全体のフォーマット・Lint・TypeScriptの型検査を実行します。`bun run test` は Vite+ のテストランナー（`vite-plus/test`）で一度だけテストを実行し、`bun run test:watch` は監視モードで実行します。`bun run dev` は起動時に記事サマリを生成してから開発サーバーを起動し、起動後も `src/content/posts/*/index.mdx` の変更を検知して再生成・ブラウザ更新を行います。OGP画像の生成は `bun run generate-ogp:all` で個別に実行します。
 
+依存関係は Dependabot が毎週更新 PR を作ります（`.github/dependabot.yml`）。パッチ・マイナー更新は1本の PR にまとめ、描画結果が変わり得る `satori` と Vite+ の catalog は個別の PR にします。Bun のバージョンは `package.json` の `packageManager` だけで指定し、CI もそこから読みます。ローカルの Bun は Nix で入れているため、上げるときは nixpkgs の版と揃えてください。
+
 `bun install` 時の `prepare`（`vp config`）で `.vite-hooks/` の Git フックが設定されます。コミット時には pre-commit フックが `vp staged` を実行し、ステージした JS/TS ファイルへ `vp check --fix` をかけます。
 
 ### WebMCP PoC
@@ -230,29 +232,38 @@ Chrome Origin Trialを使う場合は、対象origin用のトークンを `.env.
 
 ```text
 scripts/                    記事サマリ・OGP画像の生成、R2へのアップロード
+└── ogp/                    OGPカードの描画（レイアウトのテスト付き）
+
+vite-plugins/               MDXの画像解決、記事の監視、開発時の /api 中継
 
 packages/
+├── blog-core/              @satotek/blog-core。記事の検索・型、音楽・GitHub・GA4 の型など、サイトと API が共有する純粋なモジュール
 └── content-pipeline/       MDXのビルド時変換と画像処理
 
 workers/
 └── api/                    @satotek/api。Elysia の /api Worker
 
 src/
-├── analytics/               ブラウザの計測と人気記事の型
+├── analytics/               ブラウザの計測
 ├── components/
 │   ├── article/             記事本文の構成部品（MDXのcomponentsマップ、目次）
+│   ├── games/               隠しゲーム（規則は描画から分けてテストする）
+│   ├── listening/           音楽ページとサイドバーの再生記録
 │   └── ui/                  React Ariaを使う操作部品
 ├── content/                 散文のみ
 │   ├── posts/               Git管理するMDX記事と、記事ごとの assets/ 画像原本
 │   └── .generated/          ビルド時に生成する一覧用サマリ
-├── data/                    カテゴリ・タグなどのサイト分類データ
+├── data/                    ナビゲーションとカテゴリ・タグの集計
 ├── lib/
 │   └── posts/               PostRepositoryとMDXソースの読み込み
 ├── routes/                  画面ルートと配信メタデータのサーバールート
 ├── server/                  RSS、サイトマップ、robotsなどのレスポンス生成
 ├── webmcp/                  WebMCPツールの定義と登録
-└── styles.css               Tailwind CSSのエントリーポイントとデザイントークン
+├── styles/                  領域ごとのCSS（トークン、本文、ナビゲーション、音楽、遷移など）
+└── styles.css               Tailwind CSSのエントリーポイント。styles/ を順に読み込む
 ```
+
+`workers/api` は記事や API の型を `@satotek/blog-core` から読みます。`src` を直接参照するのは、ビルド時に生成する記事サマリ（`src/content/.generated/summaries.json`）の1か所だけです。
 
 `scripts/generate-post-summaries.ts` は公開記事のfrontmatterを検証し、一覧用のサマリを `src/content/.generated/` に生成します。本文と目次はMDXモジュール自身が持つため、ここでは書き出しません。変換系の依存関係は `packages/content-pipeline` に閉じているため、ルートアプリの本番依存関係には含まれません。`scripts/generate-ogp.tsx` は記事のタイトル・カテゴリ・タグをOGPカードに描画し、ローカルPNGまたはR2へ出力します。`scripts/upload-media.ts` は記事の画像原本や `.r2-media/` の画像を派生画像と一緒にR2へアップロードします。生成先の `src/content/.generated/`、`.ogp/`、`.r2-media/` は生成物またはローカル作業用のためGit管理しません。`bun run build` のprerender処理で、記事・一覧・カテゴリ・タグ・RSSなどのHTML／テキストを `dist/client` に出力します。
 
@@ -268,4 +279,3 @@ bun run generate-routes
 
 - Headless CMSは、複数人編集・Web上の執筆・承認フローなどが必要になった段階でRepositoryアダプターとして追加する
 - 公開の読み取り API は `workers/api`（Elysia、`@satotek/api`）が担当する。管理 API や Webhook は、要件が出た段階で同じ Worker に足す
-- サイト内検索の画面（現在は API とWebMCPツールのみ）と隠しゲームを、どの順番で復元するか

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { aggregatePopularPosts, postPathToSlug } from "./popular-posts";
+import { aggregatePopularPosts, postPathToSlug } from "./popular-posts.ts";
 
 describe("popular posts", () => {
   it("normalizes GA4 post paths to slugs", () => {

@@ -1,7 +1,7 @@
 import "@tanstack/react-start/server-only";
 
 import { getPublishedPostSource, getPublishedPostSources } from "./post-sources.server";
-import type { PostSummary } from "./types";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 
 // 本文と目次は MDX モジュールが持ち、原文は llms-full.txt がサーバー側で直接読む。
 // ここからクライアントへ渡すのはサマリだけでよい。

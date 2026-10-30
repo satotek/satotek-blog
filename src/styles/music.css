@@ -1,0 +1,295 @@
+/* 音楽ページ。データは描画後に届くので、届いた時点で行ごとに少しずつずらして入れる。
+   動きはすべて prefers-reduced-motion で止める。 */
+@layer components {
+  .music-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  /* ジャケットをぼかして背景に敷く。色はジャケットから借り、文字は面の色で読ませる。 */
+  .music-hero__backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(48px) saturate(1.6);
+    opacity: 0.4;
+    transform: scale(1.4);
+  }
+
+  .music-hero::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      100deg,
+      oklch(from var(--card) l c h / 88%) 15%,
+      oklch(from var(--card) l c h / 50%) 100%
+    );
+    content: "";
+  }
+
+  .music-cover {
+    --music-cover-size: 104px;
+    position: relative;
+    flex-shrink: 0;
+    width: var(--music-cover-size);
+    height: var(--music-cover-size);
+    margin-right: calc(var(--music-cover-size) * 0.34);
+  }
+
+  @media (min-width: 641px) {
+    .music-cover {
+      --music-cover-size: 136px;
+    }
+  }
+
+  .music-cover__art {
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 18px 30px -18px oklch(0.2 0.03 284 / 60%);
+  }
+
+  /* ジャケットの後ろから覗くレコード。再生中だけ大きく出して回す。 */
+  .music-vinyl {
+    position: absolute;
+    top: 5%;
+    left: 22%;
+    width: 90%;
+    height: 90%;
+    border-radius: 999px;
+    background:
+      radial-gradient(
+        circle,
+        var(--accent) 0 14%,
+        oklch(0.18 0.005 281) 14.5% 16%,
+        transparent 16.5%
+      ),
+      repeating-radial-gradient(circle, oklch(0.2 0.005 281) 0 2px, oklch(0.26 0.005 281) 2px 3px);
+    box-shadow:
+      inset 0 0 0 1px oklch(1 0 0 / 8%),
+      0 10px 20px -12px oklch(0.15 0.02 284 / 60%);
+    transition: left 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .music-vinyl::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 30deg,
+      transparent 0 12%,
+      oklch(1 0 0 / 14%) 18%,
+      transparent 26% 62%,
+      oklch(1 0 0 / 9%) 68%,
+      transparent 76%
+    );
+    content: "";
+  }
+
+  .music-cover[data-live] .music-vinyl {
+    left: 40%;
+    animation: music-spin 3.2s linear infinite;
+  }
+
+  .music-eq {
+    display: inline-flex;
+    height: 12px;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .music-eq > span {
+    width: 3px;
+    height: 100%;
+    border-radius: 2px;
+    background: currentColor;
+    transform-origin: bottom;
+    animation: music-eq 0.9s ease-in-out infinite alternate;
+  }
+
+  .music-eq > span:nth-child(2) {
+    animation-duration: 0.7s;
+    animation-delay: -0.3s;
+  }
+
+  .music-eq > span:nth-child(3) {
+    animation-duration: 1.1s;
+    animation-delay: -0.5s;
+  }
+
+  .music-eq > span:nth-child(4) {
+    animation-duration: 0.8s;
+    animation-delay: -0.2s;
+  }
+
+  .music-stat {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .music-stat:hover {
+    transform: translateY(-2px);
+  }
+
+  .music-stat--accent {
+    background: linear-gradient(135deg, var(--nav-active-from), var(--nav-active-to));
+    color: var(--nav-active-fg);
+    box-shadow: 0 16px 30px -20px var(--nav-active-to);
+  }
+
+  .music-stat--ink {
+    border: 1px solid light-dark(transparent, var(--border));
+    background: light-dark(oklch(0.27 0.012 281), oklch(0.33 0.012 281));
+    color: oklch(0.96 0.01 286);
+    box-shadow: 0 16px 30px -22px oklch(0.2 0.02 284 / 70%);
+  }
+
+  /* 右上の同心円は飾り。 */
+  .music-stat::before {
+    position: absolute;
+    top: -45%;
+    right: -20%;
+    width: 75%;
+    aspect-ratio: 1;
+    border: 1px solid oklch(1 0 0 / 22%);
+    border-radius: 999px;
+    box-shadow: 0 0 0 20px oklch(1 0 0 / 5%);
+    content: "";
+    pointer-events: none;
+  }
+
+  .music-row {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid light-dark(transparent, var(--border));
+    border-radius: 14px;
+    background: light-dark(var(--card), var(--surface));
+    box-shadow:
+      0 1px 2px light-dark(oklch(0.25 0.03 284 / 6%), transparent),
+      0 8px 16px -14px light-dark(oklch(0.25 0.03 284 / 30%), transparent);
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.25s ease;
+  }
+
+  .music-row:hover {
+    border-color: var(--accent-border);
+    transform: translateY(-2px);
+  }
+
+  /* 画像が無いときの面。輪や背景の上に置くので、半透明のアクセントを不透明な面に重ねる。 */
+  .music-art {
+    background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--card);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .music-art__fallback {
+    background: linear-gradient(
+      135deg,
+      oklch(0.78 0.12 var(--hue, 284)),
+      oklch(0.6 0.15 calc(var(--hue, 284) + 35))
+    );
+    color: oklch(0.99 0.01 286);
+    text-shadow: 0 1px 2px oklch(0.2 0.03 var(--hue, 284) / 35%);
+  }
+
+  .music-row:hover .music-art {
+    transform: scale(1.06) rotate(-3deg);
+  }
+
+  /* 再生回数を行の背景に敷く棒。幅は --share（0〜1）で渡す。 */
+  .music-row__bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--share, 0) * 100%);
+    background: linear-gradient(90deg, transparent, var(--accent-soft));
+    transform-origin: left;
+    animation: music-bar 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 60ms + 250ms);
+    pointer-events: none;
+  }
+
+  /* アーティスト写真を囲む輪。1位に対する再生回数の割合だけ塗る。 */
+  .music-artist__ring {
+    background: conic-gradient(var(--accent) calc(var(--share, 0) * 360deg), var(--border) 0);
+  }
+
+  .music-enter {
+    animation: music-enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+
+  .music-slide {
+    animation: music-slide 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 45ms + 150ms);
+  }
+
+  @keyframes music-enter {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.985);
+    }
+  }
+
+  @keyframes music-slide {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+  }
+
+  @keyframes music-bar {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes music-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes music-eq {
+    from {
+      transform: scaleY(0.25);
+    }
+
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .music-enter,
+    .music-slide,
+    .music-row__bar,
+    .music-eq > span,
+    .music-cover[data-live] .music-vinyl {
+      animation: none;
+    }
+
+    .music-eq > span:nth-child(odd) {
+      transform: scaleY(0.55);
+    }
+
+    .music-vinyl,
+    .music-stat,
+    .music-row,
+    .music-art {
+      transition: none;
+    }
+
+    .music-stat:hover,
+    .music-row:hover,
+    .music-row:hover .music-art {
+      transform: none;
+    }
+  }
+}
