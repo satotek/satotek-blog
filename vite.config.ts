@@ -214,7 +214,12 @@ const config = defineConfig(({ mode }) => {
   return {
     resolve: { tsconfigPaths: true },
     test: {
-      include: ["src/**/*.test.ts", "packages/**/*.test.ts", "workers/**/*.test.ts"],
+      include: [
+        "src/**/*.test.ts",
+        "packages/**/*.test.ts",
+        "workers/**/*.test.ts",
+        "scripts/**/*.test.tsx",
+      ],
     },
     lint: {
       options: {
