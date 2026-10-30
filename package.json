@@ -31,24 +31,24 @@
   "dependencies": {
     "@tanstack/react-router": "^1.170.46",
     "@tanstack/react-start": "^1.169.4",
-    "lucide-react": "^1.61.0",
+    "lucide-react": "^1.64.0",
     "react": "^19.3.1",
     "react-aria-components": "^1.22.1",
     "react-dom": "^19.3.1",
-    "simple-icons": "^16.35.0",
+    "simple-icons": "^16.36.0",
     "yaml": "^2.9.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.1156.0",
-    "@cloudflare/vite-plugin": "^1.64.0",
+    "@aws-sdk/client-s3": "^3.1159.0",
+    "@cloudflare/vite-plugin": "^1.66.0",
     "@mdx-js/rollup": "^3.1.1",
     "@resvg/resvg-js": "^2.6.2",
     "@satotek/content-pipeline": "workspace:*",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/router-cli": "^1.167.46",
     "@types/mdx": "^2.0.14",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
@@ -58,7 +58,7 @@
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "webmcp-types": "^0.1.10",
-    "wrangler": "^4.152.0"
+    "wrangler": "^4.155.0"
   },
   "overrides": {
     "vite": "catalog:"
