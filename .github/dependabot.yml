@@ -1,0 +1,30 @@
+version: 2
+
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    groups:
+      # Patch and minor releases ride together; CI's check, test, and build
+      # are enough to review them as one PR.
+      dependencies:
+        update-types: [minor, patch]
+        exclude-patterns:
+          # 0.x minors change the rendered OGP card. Review them alone.
+          - satori
+          # The Vite toolchain moves as one catalog entry in package.json.
+          - vite-plus
+          - "@voidzero-dev/vite-plus-core"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      timezone: Asia/Tokyo
+    groups:
+      actions:
+        patterns: ["*"]
