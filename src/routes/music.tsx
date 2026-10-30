@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ListeningPage, useMusicSnapshot } from "#/components/ListeningView";
+import { ListeningPage, useMusicSnapshot } from "#/components/listening";
 import { createPageHead, withSiteName } from "#/lib/site";
 
 export const Route = createFileRoute("/music")({

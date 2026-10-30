@@ -1,6 +1,6 @@
 import { Bot, Rss } from "lucide-react";
 
-import { ListeningAside } from "#/components/ListeningView";
+import { ListeningAside } from "#/components/listening";
 import { Link as AriaLink, RouterLink } from "#/components/ui";
 import type { MusicSnapshot } from "@satotek/blog-core/music";
 import type { PostSummary } from "@satotek/blog-core/posts/types";
