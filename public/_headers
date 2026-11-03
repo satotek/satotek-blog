@@ -8,6 +8,13 @@
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
+# The @font-face definitions are not content-hashed, so they cannot be immutable.
+# The default must-revalidate, though, forces a 304 round trip before the faces
+# apply, and repeat visitors keep the fallback typeface until it returns. A day
+# is short enough that a font swap cannot leave stale definitions behind.
+/fonts.css
+  Cache-Control: public, max-age=86400
+
 # Prerendered text routes are served as static assets, so the charset that the
 # server route sets is lost and Wrangler infers a bare MIME type from the
 # extension. Without charset, browsers decode the Japanese text as Latin-1.

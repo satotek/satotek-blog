@@ -63,7 +63,7 @@ export const machines: readonly Machine[] = [
     note: "電気代が高くなりすぎたので、今は止めています。",
     inactive: true,
     specs: [
-      { label: "CPU", value: "Intel Xeon E5-2687W ×2" },
+      { label: "CPU", value: "Intel Xeon E5-2687W v3 ×2" },
       { label: "GPU", value: "NVIDIA Quadro K2200" },
       { label: "RAM", value: "64GB" },
       { label: "Storage", value: "SSD 512GB / HDD 2TB" },
