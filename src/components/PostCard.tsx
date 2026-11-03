@@ -151,7 +151,7 @@ export function PostCover({
 function PostTitle({ post, className }: { post: PostSummary; className: string }) {
   return (
     <RouterLink
-      className={`font-semibold leading-[1.3] tracking-[-0.015em] no-underline transition-colors hover:text-accent ${className}`}
+      className={`min-h-6 font-semibold leading-[1.3] tracking-[-0.015em] no-underline transition-colors hover:text-accent ${className}`}
       to="/posts/$slug"
       params={{ slug: post.slug }}
     >
@@ -166,7 +166,7 @@ export function PostMeta({ post, category }: { post: PostSummary; category: stri
       <time dateTime={post.date}>{formatDate(post.date)}</time>
       <span aria-hidden="true">/</span>
       <RouterLink
-        className="text-accent no-underline hover:underline"
+        className="inline-flex min-h-6 min-w-6 items-center text-accent no-underline hover:underline"
         to="/categories/$slug"
         params={{ slug: post.category }}
       >

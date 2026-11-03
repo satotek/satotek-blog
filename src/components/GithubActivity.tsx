@@ -71,7 +71,7 @@ export function GithubActivity() {
         action={
           snapshot.profileUrl ? (
             <AriaLink
-              className="inline-flex items-center gap-1.5 text-[0.85rem] font-semibold text-accent no-underline hover:underline"
+              className="inline-flex min-h-6 items-center gap-1.5 text-[0.85rem] font-semibold text-accent no-underline hover:underline"
               href={snapshot.profileUrl}
               target="_blank"
               rel="noreferrer"

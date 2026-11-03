@@ -39,7 +39,11 @@ export function SiteChrome({ children }: { children: ReactNode }) {
 
       <footer className="mx-auto mt-16 max-w-[1120px] border-t border-line px-4 py-8 text-[0.85rem] text-muted sm:px-6">
         <small>
-          © 2026 <RouterLink to="/profile">nosuke</RouterLink>. All Rights Reserved.
+          © 2026{" "}
+          <RouterLink className="inline-flex min-h-6 min-w-6 items-center" to="/profile">
+            nosuke
+          </RouterLink>
+          . All Rights Reserved.
         </small>
       </footer>
 
