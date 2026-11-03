@@ -83,10 +83,7 @@ function Profile() {
             />
           </Button>
           <div className="min-w-0">
-            <p className="m-0 font-mono text-[0.7rem] font-medium uppercase tracking-[0.16em] text-accent">
-              Software developer
-            </p>
-            <h1 className="m-0 mt-1.5 text-[clamp(2rem,6vw,2.6rem)] font-bold leading-[1.1] tracking-[-0.04em]">
+            <h1 className="m-0 text-[clamp(2rem,6vw,2.6rem)] font-bold leading-[1.1] tracking-[-0.04em]">
               nosuke
             </h1>
             <p className="m-0 mt-3 max-w-[560px] text-[1rem] leading-[1.8] text-muted">
