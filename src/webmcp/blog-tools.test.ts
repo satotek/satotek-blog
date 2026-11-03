@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import type { PostSummary } from "#/lib/posts/types";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 
 import { createApp } from "../../workers/api/src/app";
 import { createBlogWebMcpTools } from "./blog-tools";

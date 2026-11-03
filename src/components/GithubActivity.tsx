@@ -21,7 +21,7 @@ import {
   type GithubActivity as Activity,
   type GithubActivityKind,
   type GithubSnapshot,
-} from "#/lib/github";
+} from "@satotek/blog-core/github";
 
 const kindIcons: Record<GithubActivityKind, LucideIcon> = {
   push: Upload,

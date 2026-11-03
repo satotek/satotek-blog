@@ -1,0 +1,30 @@
+@layer base {
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply m-0 bg-page font-sans leading-[1.75] text-ink antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-color: var(--border);
+    text-underline-offset: 3px;
+    transition: color 150ms ease;
+  }
+
+  a:hover {
+    color: var(--accent);
+  }
+
+  button {
+    font: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+}

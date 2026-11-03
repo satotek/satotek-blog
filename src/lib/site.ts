@@ -1,4 +1,4 @@
-import { SITE_URL } from "./site-url";
+import { SITE_URL } from "@satotek/blog-core/site-url";
 
 export { SITE_URL };
 export const SITE_NAME = "satotek.dev";

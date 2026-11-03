@@ -1,0 +1,18 @@
+{
+  "name": "@satotek/blog-core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./analytics": "./src/analytics/popular-posts.ts",
+    "./analytics/types": "./src/analytics/types.ts",
+    "./categories": "./src/categories.ts",
+    "./github": "./src/github.ts",
+    "./music": "./src/music.ts",
+    "./posts/query": "./src/posts/query.ts",
+    "./posts/types": "./src/posts/types.ts",
+    "./site-url": "./src/site-url.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

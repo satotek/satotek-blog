@@ -1,8 +1,8 @@
 import { postRepository } from "#/lib/posts/repository";
 
-import { categories } from "./categories";
+import { categories } from "@satotek/blog-core/categories";
 
-export { categories, type Category, type CategorySlug } from "./categories";
+export { categories, type Category, type CategorySlug } from "@satotek/blog-core/categories";
 
 export async function getCategories() {
   const posts = await postRepository.list();

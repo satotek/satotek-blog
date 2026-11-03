@@ -1,6 +1,8 @@
 import { Elysia, type ElysiaAdapter } from "elysia";
 
-import type { PopularPost } from "../../../src/analytics/types";
+import type { PopularPost } from "@satotek/blog-core/analytics/types";
+// The posts are content, not code, so they stay with the site. This is the
+// API's only reach into src; tests pass their own list through createApp.
 import summaries from "../../../src/content/.generated/summaries.json";
 import {
   DEFAULT_POST_LIMIT,
@@ -10,14 +12,14 @@ import {
   rankPublishedPosts,
   searchPublishedPosts,
   taxonomyForPosts,
-} from "../../../src/lib/posts/query";
-import type { PostSummary } from "../../../src/lib/posts/types";
+} from "@satotek/blog-core/posts/query";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 import type { ApiEnv } from "./env";
 import { getPopularPostsFromGa4, getPostViewsFromGa4 } from "./ga4";
 import { getGithubActivity } from "./github";
 import { getMusicFromLastfm } from "./lastfm";
-import { unavailableGithub, type GithubSnapshot } from "../../../src/lib/github";
-import { unavailableMusic, type MusicSnapshot } from "../../../src/lib/music";
+import { unavailableGithub, type GithubSnapshot } from "@satotek/blog-core/github";
+import { unavailableMusic, type MusicSnapshot } from "@satotek/blog-core/music";
 import { currentRequestState } from "./request-context";
 
 const POPULAR_CACHE_SECONDS = 60 * 60;

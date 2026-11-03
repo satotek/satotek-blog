@@ -7,6 +7,7 @@
     "./dev": "./src/dev.ts"
   },
   "dependencies": {
+    "@satotek/blog-core": "workspace:*",
     "elysia": "^1.4.30"
   }
 }

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import type { PopularPost } from "#/analytics/types";
-import type { MusicSnapshot } from "#/lib/music";
-import type { PostSummary } from "#/lib/posts/types";
+import type { PopularPost } from "@satotek/blog-core/analytics/types";
+import type { MusicSnapshot } from "@satotek/blog-core/music";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 
 import { createApp } from "./app";
 

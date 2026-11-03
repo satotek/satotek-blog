@@ -1,4 +1,4 @@
-import type { PostSummary } from "#/lib/posts/types";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 
 import { PostCard, type PostCardVariant } from "./PostCard";
 

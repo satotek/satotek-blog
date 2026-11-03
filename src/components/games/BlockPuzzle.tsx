@@ -2,83 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "#/components/ui";
 
-// 404 ページのブロックパズル。Canvas + 命令的なゲームループ。
-// ルール（落下・ライン消去）は一般的な仕組みで、名称・配色・見た目は独自。
+import { COLS, createPuzzle, ROWS, SHAPES } from "./block-puzzle";
 
-type Shape = { color: string; cells: readonly (readonly [number, number])[] };
-type Piece = { key: string; color: string; cells: [number, number][]; x: number; y: number };
+// 404 ページのブロックパズル。Canvas + 命令的なゲームループ。規則は block-puzzle.ts。
 
-const COLS = 10;
-const ROWS = 20;
 const CELL = 24;
-
-// 配色はサイトに合わせたアーストーン。
-const SHAPES: Record<string, Shape> = {
-  I: {
-    color: "#4a8c8c",
-    cells: [
-      [0, 1],
-      [1, 1],
-      [2, 1],
-      [3, 1],
-    ],
-  },
-  O: {
-    color: "#c99a3f",
-    cells: [
-      [1, 0],
-      [2, 0],
-      [1, 1],
-      [2, 1],
-    ],
-  },
-  T: {
-    color: "#8d6a8e",
-    cells: [
-      [1, 0],
-      [0, 1],
-      [1, 1],
-      [2, 1],
-    ],
-  },
-  S: {
-    color: "#7a8b4f",
-    cells: [
-      [1, 0],
-      [2, 0],
-      [0, 1],
-      [1, 1],
-    ],
-  },
-  Z: {
-    color: "#bd5a36",
-    cells: [
-      [0, 0],
-      [1, 0],
-      [1, 1],
-      [2, 1],
-    ],
-  },
-  J: {
-    color: "#8a6d4f",
-    cells: [
-      [0, 0],
-      [0, 1],
-      [1, 1],
-      [2, 1],
-    ],
-  },
-  L: {
-    color: "#c4756b",
-    cells: [
-      [2, 0],
-      [0, 1],
-      [1, 1],
-      [2, 1],
-    ],
-  },
-};
-const KEYS = Object.keys(SHAPES);
 
 /** ゲームループから React に返す操作の口。ボタン UI はこれ越しに叩く。 */
 type PuzzleApi = {
@@ -109,73 +37,12 @@ export function BlockPuzzle() {
     nextCanvas.width = 4 * CELL;
     nextCanvas.height = 4 * CELL;
 
-    let board: (string | null)[][] = [];
-    let current: Piece;
-    let nextPiece: string | null = null;
-    let score = 0;
-    let lines = 0;
-    let level = 1;
-    let gameOver = false;
+    const puzzle = createPuzzle({ onHudChange: setHud });
+    const { state } = puzzle;
     let paused = false;
-    let dropMs = 600;
     let dropAcc = 0;
     let lastT = 0;
     let rafId = 0;
-
-    const emptyBoard = () =>
-      Array.from({ length: ROWS }, () => Array.from<string | null>({ length: COLS }).fill(null));
-
-    const spawn = (): Piece => {
-      const key = nextPiece ?? KEYS[(Math.random() * KEYS.length) | 0]!;
-      nextPiece = KEYS[(Math.random() * KEYS.length) | 0]!;
-      const shape = SHAPES[key]!;
-      return {
-        key,
-        color: shape.color,
-        cells: shape.cells.map((c) => [c[0], c[1]] as [number, number]),
-        x: 3,
-        y: -1,
-      };
-    };
-
-    // 4x4 の枠内で時計回りに回転（O は回さない）。
-    const rotated = (piece: Piece): [number, number][] =>
-      piece.key === "O" ? piece.cells : piece.cells.map((c) => [3 - c[1], c[0]]);
-
-    const collides = (cells: [number, number][], ox: number, oy: number) =>
-      cells.some(([cx, cy]) => {
-        const x = cx + ox;
-        const y = cy + oy;
-        if (x < 0 || x >= COLS || y >= ROWS) return true;
-        return y >= 0 && Boolean(board[y]?.[x]);
-      });
-
-    const lock = () => {
-      for (const [cx, cy] of current.cells) {
-        const y = cy + current.y;
-        if (y >= 0) board[y]![cx + current.x] = current.color;
-      }
-
-      let cleared = 0;
-      for (let y = ROWS - 1; y >= 0; y--) {
-        if (board[y]!.every(Boolean)) {
-          board.splice(y, 1);
-          board.unshift(Array.from<string | null>({ length: COLS }).fill(null));
-          cleared++;
-          y++;
-        }
-      }
-      if (cleared) {
-        score += [0, 100, 300, 500, 800][cleared]! * level;
-        lines += cleared;
-        level = 1 + ((lines / 10) | 0);
-        dropMs = Math.max(90, 600 - (level - 1) * 45);
-      }
-
-      current = spawn();
-      if (collides(current.cells, current.x, current.y)) gameOver = true;
-      setHud({ score, lines, level });
-    };
 
     const drawCell = (g: CanvasRenderingContext2D, x: number, y: number, color: string) => {
       g.fillStyle = color;
@@ -202,8 +69,8 @@ export function BlockPuzzle() {
 
     const drawNext = () => {
       nctx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-      if (!nextPiece) return;
-      const shape = SHAPES[nextPiece]!;
+      if (!state.nextPiece) return;
+      const shape = SHAPES[state.nextPiece]!;
       for (const [cx, cy] of shape.cells) drawCell(nctx, cx, cy + 0.5, shape.color);
     };
 
@@ -230,15 +97,15 @@ export function BlockPuzzle() {
 
       for (let y = 0; y < ROWS; y++) {
         for (let x = 0; x < COLS; x++) {
-          const color = board[y]![x];
+          const color = state.board[y]![x];
           if (color) drawCell(ctx, x, y, color);
         }
       }
 
-      if (current && !gameOver) {
+      const { current } = state;
+      if (!state.gameOver) {
         // ゴースト（落下予測位置）
-        let ghostY = current.y;
-        while (!collides(current.cells, current.x, ghostY + 1)) ghostY++;
+        const ghostY = puzzle.ghostY();
         ctx.globalAlpha = 0.22;
         for (const [cx, cy] of current.cells) {
           if (cy + ghostY >= 0) drawCell(ctx, cx + current.x, cy + ghostY, current.color);
@@ -250,66 +117,45 @@ export function BlockPuzzle() {
       }
 
       drawNext();
-      if (gameOver) overlay("GAME OVER", "Rでリスタート");
+      if (state.gameOver) overlay("GAME OVER", "Rでリスタート");
       else if (paused) overlay("PAUSE", "Pで再開");
     };
 
     const move = (dx: number) => {
-      if (!collides(current.cells, current.x + dx, current.y)) {
-        current.x += dx;
-        draw();
-      }
+      if (puzzle.move(dx)) draw();
     };
 
     const rotate = () => {
-      const next = rotated(current);
-      for (const kick of [0, -1, 1, -2, 2]) {
-        if (!collides(next, current.x + kick, current.y)) {
-          current.cells = next;
-          current.x += kick;
-          draw();
-          return;
-        }
-      }
+      if (puzzle.rotate()) draw();
     };
 
     const softDrop = () => {
-      if (!collides(current.cells, current.x, current.y + 1)) current.y++;
-      else lock();
+      puzzle.softDrop();
       draw();
     };
 
     const hardDrop = () => {
-      while (!collides(current.cells, current.x, current.y + 1)) current.y++;
-      lock();
+      puzzle.hardDrop();
       draw();
     };
 
     const loop = (t: number) => {
       rafId = requestAnimationFrame(loop);
-      if (gameOver || paused) return;
+      if (state.gameOver || paused) return;
       if (!lastT) lastT = t;
       dropAcc += t - lastT;
       lastT = t;
-      if (dropAcc >= dropMs) {
+      if (dropAcc >= state.dropMs) {
         dropAcc = 0;
         softDrop();
       }
     };
 
     const reset = () => {
-      board = emptyBoard();
-      nextPiece = null;
-      score = 0;
-      lines = 0;
-      level = 1;
-      dropMs = 600;
+      puzzle.reset();
       dropAcc = 0;
       lastT = 0;
-      gameOver = false;
       paused = false;
-      current = spawn();
-      setHud({ score, lines, level });
       draw();
       if (!rafId) rafId = requestAnimationFrame(loop);
     };
@@ -326,7 +172,7 @@ export function BlockPuzzle() {
         draw();
         return;
       }
-      if (gameOver || paused) return;
+      if (state.gameOver || paused) return;
       if (GAME_KEYS.has(key)) event.preventDefault();
 
       // 矢印キーと vim 風(h/j/k/l)の両対応。

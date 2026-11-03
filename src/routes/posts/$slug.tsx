@@ -9,7 +9,7 @@ import { useToc } from "#/components/article/useToc";
 import { RouterLink } from "#/components/ui";
 import { getPostBySlug } from "#/lib/posts/posts.functions";
 import { postRepository } from "#/lib/posts/repository";
-import { type PostSummary, type TocItem } from "#/lib/posts/types";
+import { type PostSummary, type TocItem } from "@satotek/blog-core/posts/types";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
 import { createPageHead, generatedPostOgImageUrl, withSiteName } from "#/lib/site";

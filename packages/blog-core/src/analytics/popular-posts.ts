@@ -1,4 +1,4 @@
-import type { PopularPost } from "./types";
+import type { PopularPost } from "./types.ts";
 
 export function postPathToSlug(path: string) {
   const pathname = path.split(/[?#]/, 1)[0] ?? path;

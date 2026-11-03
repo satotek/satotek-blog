@@ -7,7 +7,7 @@ import { Pagination, type PageLinkProps } from "#/components/Pagination";
 import { SectionHeading } from "#/components/SectionHeading";
 import { RouterLink } from "#/components/ui";
 import { getPostFilters, type PostFilters as PostFiltersData } from "#/data/navigation";
-import type { PostSummary } from "#/lib/posts/types";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 import { postRepository } from "#/lib/posts/repository";
 import { paginate, parsePage, POSTS_PER_PAGE } from "#/lib/pagination";
 import { createPageHead, withSiteName } from "#/lib/site";

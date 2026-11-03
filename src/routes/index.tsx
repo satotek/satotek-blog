@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { HomeHero } from "#/components/HomeHero";
 import { HomeSidebar } from "#/components/HomeSidebar";
-import { useMusicSnapshot } from "#/components/ListeningView";
+import { useMusicSnapshot } from "#/components/listening";
 import { PostList } from "#/components/PostList";
 import { RouterLink } from "#/components/ui";
 import { getCategories, getTags } from "#/data/navigation";

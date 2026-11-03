@@ -2,7 +2,7 @@ import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button, Input, SearchField } from "react-aria-components";
 
-import type { PostSummary } from "#/lib/posts/types";
+import type { PostSummary } from "@satotek/blog-core/posts/types";
 
 import { PostList } from "./PostList";
 
