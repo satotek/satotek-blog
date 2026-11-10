@@ -171,7 +171,10 @@
     }
   }
 
-  @media (max-width: 999px) {
+  /* ドックの無い幅では右下のボタンが本文の最後の行に残る。
+     末尾だけ空けて、その行をボタンの上まで送れるようにする。
+     640px以下はボタンをドックと同じ段へ入れるので、この余白は足さない。 */
+  @media (max-width: 999px) and (min-width: 641px) {
     .post-layout--has-toc {
       padding-bottom: 4.5rem;
     }
@@ -183,7 +186,18 @@
     }
 
     .toc-mobile-trigger {
-      bottom: calc(var(--dock-space) + 12px);
+      /* 画面右の余白で、ドックと同じ高さの帯に置く。
+         ドックの上に浮かせると和文の行末を円が隠す。
+         円はドックの高さの内側に収まるので、本文は追加で持ち上げない。 */
+      right: max(var(--toc-fab-inset), env(safe-area-inset-right));
+      bottom: calc(
+        var(--dock-offset) + (var(--dock-height) - var(--toc-fab)) / 2 +
+          env(safe-area-inset-bottom)
+      );
+      width: var(--toc-fab);
+      min-width: var(--toc-fab);
+      height: var(--toc-fab);
+      min-height: var(--toc-fab);
     }
 
     .markdown-body {

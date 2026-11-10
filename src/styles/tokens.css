@@ -67,7 +67,10 @@
   --nav-active-from: light-dark(oklch(0.93 0.045 292), oklch(0.44 0.075 292));
   --nav-active-to: light-dark(oklch(0.87 0.068 270), oklch(0.38 0.083 270));
   --nav-active-fg: light-dark(oklch(0.38 0.12 282), oklch(0.95 0.03 282));
-  /* 画面下に固定したドックの上端まで。本文と目次ボタンをこの分だけ持ち上げる。 */
+  /* ドックの下端余白と、項目 52px + 内側余白 12px の高さ。目次ボタンの垂直位置もここを見る。 */
+  --dock-offset: 14px;
+  --dock-height: 64px;
+  /* 画面下に固定したドックの上端まで。本文の末尾をこの分だけ持ち上げる。 */
   --dock-space: 0px;
   --surface-shadow:
     0 1px 2px light-dark(oklch(0.25 0.03 284 / 8%), transparent),
@@ -92,10 +95,13 @@
   --dark: 0;
 }
 
-/* トークンはレイヤ外なので、上書きもレイヤ外に置かないと負ける。
-   ドック本体 64px（項目 52px + 内側余白 12px）と下の余白 14px。 */
+/* トークンはレイヤ外なので、上書きもレイヤ外に置かないと負ける。 */
 @media (max-width: 640px) {
   :root {
-    --dock-space: calc(78px + env(safe-area-inset-bottom));
+    --dock-space: calc(var(--dock-offset) + var(--dock-height) + env(safe-area-inset-bottom));
+    /* 目次ボタンをドックの右隣に置くときの寸法。狭い画面ではこの分だけドックの項目を縮める。 */
+    --toc-fab: 44px;
+    --toc-fab-inset: 10px;
+    --toc-fab-gap: 10px;
   }
 }
