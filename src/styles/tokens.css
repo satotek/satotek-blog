@@ -100,8 +100,17 @@
   :root {
     --dock-space: calc(var(--dock-offset) + var(--dock-height) + env(safe-area-inset-bottom));
     /* 目次ボタンをドックの右隣に置くときの寸法。狭い画面ではこの分だけドックの項目を縮める。 */
+    --toc-fab-size: 44px;
     --toc-fab: 44px;
     --toc-fab-inset: 10px;
     --toc-fab-gap: 10px;
+  }
+}
+
+/* 「目次」の文字幅。アイコン 16 + 間隔 6 + 文字 26 + 左右余白 22。
+   これより狭いとドックの「Articles」が欠けるので、円だけにする。 */
+@media (min-width: 360px) and (max-width: 640px) {
+  :root {
+    --toc-fab: 72px;
   }
 }

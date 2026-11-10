@@ -116,38 +116,42 @@
     right: max(16px, env(safe-area-inset-right));
     bottom: max(16px, env(safe-area-inset-bottom));
     display: inline-flex;
-    width: 48px;
     min-width: 48px;
     height: 48px;
     min-height: 48px;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    gap: 6px;
+    padding: 0 14px 0 12px;
     border: 0;
     border-radius: 999px;
-    color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 8px 20px oklch(0.32 0.1 284 / 30%);
+    color: var(--bg);
     cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
     transition:
       background 150ms ease,
-      color 150ms ease,
       transform 150ms ease;
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* .glass は後から position: relative を当てる。詳細度で固定配置を残す。 */
-  .toc-mobile-trigger.glass {
-    position: fixed;
+  .toc-mobile-label {
+    line-height: 1;
   }
 
   @media (hover: hover) {
     .toc-mobile-trigger:hover {
-      color: var(--fg);
+      background: color-mix(in oklch, var(--accent) 86%, var(--fg));
     }
   }
 
   .toc-mobile-trigger[aria-expanded="true"] {
-    background: linear-gradient(160deg, var(--nav-active-from), var(--nav-active-to));
-    color: var(--nav-active-fg);
+    background: color-mix(in oklch, var(--accent) 78%, var(--fg));
+    color: var(--bg);
   }
 
   .toc-mobile-trigger:active {

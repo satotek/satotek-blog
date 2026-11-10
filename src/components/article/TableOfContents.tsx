@@ -70,11 +70,12 @@ export function MobileTableOfContents({ toc }: { toc: TocState }) {
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label={isOpen ? "目次を閉じる" : "目次を開く"}
-        className="toc-mobile-trigger glass"
+        className="toc-mobile-trigger"
         onPress={() => setIsOpen((open) => !open)}
         type="button"
       >
-        <AlignLeft aria-hidden="true" className="size-5" />
+        <AlignLeft aria-hidden="true" className="size-4" />
+        <span className="toc-mobile-label">目次</span>
       </Button>
 
       <ModalOverlay
