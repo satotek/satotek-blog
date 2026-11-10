@@ -288,11 +288,7 @@
     body:has(.toc-mobile) .site-nav--dock .site-nav__list > li {
       width: min(
         64px,
-        calc(
-          (
-              100dvw - 2 * (var(--toc-fab) + var(--toc-fab-inset) + var(--toc-fab-gap)) - 12px
-            ) / 4
-        )
+        calc((100dvw - 2 * (var(--toc-fab) + var(--toc-fab-inset) + var(--toc-fab-gap)) - 12px) / 4)
       );
     }
   }
