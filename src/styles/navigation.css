@@ -169,7 +169,7 @@
     position: fixed;
     z-index: 50;
     right: 0;
-    bottom: calc(14px + env(safe-area-inset-bottom));
+    bottom: calc(var(--dock-offset) + env(safe-area-inset-bottom));
     left: 0;
     width: max-content;
     max-width: calc(100% - 24px);
@@ -221,7 +221,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 58px;
+    width: min(58px, calc(100% - 6px));
     height: 52px;
     border-radius: 24px;
     background: linear-gradient(160deg, var(--nav-active-from), var(--nav-active-to));
@@ -278,6 +278,18 @@
   @media (min-width: 641px) {
     .site-nav--dock {
       display: none;
+    }
+  }
+
+  /* 目次ボタンが右端に来る記事だけ、円とラベルが重ならない幅まで項目を縮める。
+     ドックは中央のままなので、右に空ける分だけ左も空き、幅は両側ぶん縮む。
+     足りている幅では 64px のまま変わらない。 */
+  @media (max-width: 640px) {
+    body:has(.toc-mobile) .site-nav--dock .site-nav__list > li {
+      width: min(
+        64px,
+        calc((100dvw - 2 * (var(--toc-fab) + var(--toc-fab-inset) + var(--toc-fab-gap)) - 12px) / 4)
+      );
     }
   }
 }

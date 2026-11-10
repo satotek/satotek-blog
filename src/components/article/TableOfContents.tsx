@@ -75,6 +75,7 @@ export function MobileTableOfContents({ toc }: { toc: TocState }) {
         type="button"
       >
         <AlignLeft aria-hidden="true" className="size-4" />
+        <span className="toc-mobile-label">目次</span>
       </Button>
 
       <ModalOverlay
