@@ -1,7 +1,14 @@
 import { AlignLeft, ChevronDown, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { Button, Dialog, Link as AriaLink, Modal, ModalOverlay } from "#/components/ui";
+import {
+  Button,
+  Link as AriaLink,
+  Sheet,
+  SheetBackdrop,
+  SheetContent,
+  SheetOverlay,
+} from "#/components/ui";
 import type { TocState } from "#/components/article/useToc";
 
 function scrollableAncestor(from: HTMLElement) {
@@ -78,14 +85,11 @@ export function MobileTableOfContents({ toc }: { toc: TocState }) {
         <span className="toc-mobile-label">目次</span>
       </Button>
 
-      <ModalOverlay
-        className="toc-sheet-overlay"
-        isDismissable
-        isOpen={isOpen}
-        onOpenChange={setIsOpen}
-      >
-        <Modal className="toc-sheet">
-          <Dialog aria-labelledby={titleId} className="toc-sheet-dialog" id={dialogId}>
+      {/* 下方向のスワイプで閉じる。移動は Sheet が持つスクロールで、translate は足さない。 */}
+      <SheetOverlay className="toc-sheet-overlay" isOpen={isOpen} onOpenChange={setIsOpen}>
+        <SheetBackdrop className="toc-sheet-backdrop" swipeAnimation="toc-sheet-fade" />
+        <Sheet className="toc-sheet">
+          <SheetContent aria-labelledby={titleId} className="toc-sheet-dialog" id={dialogId}>
             <div className="toc-sheet-header">
               <h2 className="toc-sheet-title" id={titleId}>
                 目次
@@ -102,9 +106,9 @@ export function MobileTableOfContents({ toc }: { toc: TocState }) {
             <div className="toc-sheet-body">
               <TocList id={listId} onNavigate={close} toc={toc} />
             </div>
-          </Dialog>
-        </Modal>
-      </ModalOverlay>
+          </SheetContent>
+        </Sheet>
+      </SheetOverlay>
     </>
   );
 }
