@@ -244,12 +244,13 @@
   @media (prefers-reduced-motion: reduce) {
     .lightbox-overlay[data-entering],
     .lightbox-overlay[data-exiting],
-    .lightbox-overlay[data-entering] .lightbox-figure,
-    .toc-sheet-overlay[data-entering],
-    .toc-sheet-overlay[data-exiting],
-    .toc-sheet-overlay[data-entering] .toc-sheet,
-    .toc-sheet-overlay[data-exiting] .toc-sheet {
+    .lightbox-overlay[data-entering] .lightbox-figure {
       animation: none;
+    }
+
+    /* Sheet が背景のフェードを inline の animation で付けるので、止めるには important が要る。 */
+    .toc-sheet-backdrop {
+      animation: none !important;
     }
 
     .site-nav__indicator {
