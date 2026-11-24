@@ -23,7 +23,10 @@ export const loader = defineHandler(async (c) => {
   const tag = decodeParam(rawTag);
   const page = parsePage(String(rawPage));
   const posts = await postRepository.list({ tag });
-  if (posts.length === 0 || page === null || page < 2) throw new HTTPException(404);
+  if (posts.length === 0 || page === null || page < 2) {
+    c.set("headDefaults", { title: withSiteName("ページが見つかりません") });
+    throw new HTTPException(404);
+  }
   return { tag, page, posts, filters: await getPostFilters() };
 });
 

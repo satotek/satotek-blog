@@ -19,7 +19,10 @@ export const loader = defineHandler(async (c) => {
   const { tag: raw } = c.req.param() as PageParams<"/tags/[tag]">;
   const tag = decodeParam(raw);
   const posts = await postRepository.list({ tag });
-  if (posts.length === 0) throw new HTTPException(404);
+  if (posts.length === 0) {
+    c.set("headDefaults", { title: withSiteName("ページが見つかりません") });
+    throw new HTTPException(404);
+  }
   return { tag, posts, filters: await getPostFilters() };
 });
 

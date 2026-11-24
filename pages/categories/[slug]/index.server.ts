@@ -23,7 +23,10 @@ export const loader = defineHandler(async (c) => {
   sharePage(c);
   const { slug } = c.req.param() as PageParams<"/categories/[slug]">;
   const category = categoryBySlug(slug);
-  if (!category) throw new HTTPException(404);
+  if (!category) {
+    c.set("headDefaults", { title: withSiteName("ページが見つかりません") });
+    throw new HTTPException(404);
+  }
   const [posts, filters] = await Promise.all([
     postRepository.list({ category: category.slug }),
     getPostFilters(),
