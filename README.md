@@ -13,12 +13,12 @@
 - 記事タイトル・カテゴリ・タグから生成する1200×630のOGP画像
 - レスポンシブ対応、キーボードフォーカス、OSのダークモード対応
 
-記事データは `PostRepository` の境界越しに取得しています。現在はGit管理のMDXをViteのglob importで取り込み、frontmatterを検証したうえで、ビルド時にReactコンポーネントと目次へ変換しています。画面とテキスト配信物はビルド時に静的HTMLへ書き出し、ブラウザで動く部分だけを island として読み込みます。`/api/*` と一部の loader だけが Worker で動きます。CMSを導入する場合も、画面ルートから取得元を切り離したままアダプターを追加できます。
+記事データは `PostRepository` の境界越しに取得しています。現在はGit管理のMDXをViteのglob importで取り込み、frontmatterを検証したうえで、ビルド時にReactコンポーネントと目次へ変換しています。画面とテキスト配信物はビルド時に静的HTMLへ書き出し、ブラウザではページ全体を hydrate して、サイト内の移動を Void Router のクライアント遷移にしています。`/api/*` と一部の loader だけが Worker で動きます。CMSを導入する場合も、画面ルートから取得元を切り離したままアダプターを追加できます。
 
 ## 技術スタック
 
 - Vite+ 1.7 — `vp dev` / `vp build` / `vp check` / `vp test` / `vp staged` で開発サーバー・ビルド・フォーマット・Lint・型検査・テスト・コミットフックをまとめて扱う
-- Void 1.11 — ページ（island と `.server.ts` の loader）、`/api/*` の Hono ルート、静的書き出し、Cloudflare へのデプロイ
+- Void 1.11 — ページ（通常ページと `.server.ts` の loader、Void Router）、`/api/*` の Hono ルート、静的書き出し、Cloudflare へのデプロイ
 - React 19 / TypeScript 7.0
 - pnpm 12 / Node.js 26 — パッケージ管理とスクリプト実行。Nix の devShell と direnv で用意する
 - sops（GCP KMS）— シークレットを暗号化して Git で管理する
@@ -225,7 +225,7 @@ Chrome Origin Trialを使う場合は、対象origin用のトークンを `publi
 
 ```text
 void.config.ts              head、リダイレクト、Worker と Cloudflare の設定
-pages/                      画面。*.island.tsx が描画、*.server.ts がビルド時（または Worker）の loader
+pages/                      画面。*.tsx が描画、*.server.ts がビルド時（または Worker）の loader
 routes/                     /api/* の Hono ルート。処理は src/server/api/service.ts に寄せる
 scripts/                    記事サマリ・OGP画像の生成、R2へのアップロード
 └── ogp/                    OGPカードの描画（レイアウトのテスト付き）
@@ -244,7 +244,7 @@ src/
 │   └── .generated/         ビルド時に生成する一覧用サマリ
 ├── core/                   記事の検索・型、音楽・GitHub・GA4 の型など。React にも Worker にも依存しない
 ├── data/                   ナビゲーションとカテゴリ・タグの集計
-├── islands/                ブラウザで動かす部品。pages/ から `with { island }` で読み込む
+├── islands/                ブラウザの API や状態を使う部品（island 構成だった頃の名残の置き場所）
 ├── lib/
 │   └── posts/              PostRepositoryとMDXソースの読み込み
 ├── server/                 RSS、サイトマップ、robotsなどのレスポンス生成
