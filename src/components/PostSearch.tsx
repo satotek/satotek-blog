@@ -1,5 +1,5 @@
 import { Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Input, SearchField } from "react-aria-components";
 
 import type { PostSummary } from "#/core/posts/types";
@@ -25,35 +25,49 @@ const idleState: SearchState = { result: null, pending: false, error: false };
  * 一覧と結果の切り替えもそこまで待つ。prerender した HTML と食い違わないよう、
  * URL の ?q= は hydrate のあとで読む。
  */
-export function usePostSearch() {
+export function usePostSearch(syncKey?: unknown) {
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState("");
   const [state, setState] = useState<SearchState>(idleState);
+  // URL から同期した直後の描画で、古い searched が URL を上書きするのを防ぐ。
+  const sourceRef = useRef<"url" | "input">("url");
 
   useEffect(() => {
-    const initial = new URLSearchParams(window.location.search).get("q")?.trim();
-    if (initial) {
-      setQuery(initial);
-      setSearched(initial);
-    }
-  }, []);
+    const syncFromUrl = () => {
+      const next = new URLSearchParams(window.location.search).get("q")?.trim() ?? "";
+      sourceRef.current = "url";
+      setQuery(next);
+      setSearched(next);
+    };
+
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, [syncKey]);
 
   // 消したときはすぐ一覧へ戻し、打っている間は止まるまで待つ。
   useEffect(() => {
     const trimmed = query.trim();
+    if (trimmed === searched) return;
     if (!trimmed) {
+      sourceRef.current = "input";
       setSearched("");
       return;
     }
-    const timer = window.setTimeout(() => setSearched(trimmed), SEARCH_DELAY_MS);
+    const timer = window.setTimeout(() => {
+      sourceRef.current = "input";
+      setSearched(trimmed);
+    }, SEARCH_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [query]);
+  }, [query, searched]);
 
   useEffect(() => {
-    const url = new URL(window.location.href);
-    if (searched) url.searchParams.set("q", searched);
-    else url.searchParams.delete("q");
-    window.history.replaceState(window.history.state, "", url);
+    if (sourceRef.current === "input") {
+      const url = new URL(window.location.href);
+      if (searched) url.searchParams.set("q", searched);
+      else url.searchParams.delete("q");
+      window.history.replaceState(window.history.state, "", url);
+    }
 
     if (!searched) {
       setState(idleState);

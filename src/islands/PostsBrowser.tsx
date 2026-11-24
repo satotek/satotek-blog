@@ -14,7 +14,7 @@ export default function PostsBrowser({
   posts: readonly PostSummary[];
   filters: PostFiltersData;
 }) {
-  const search = usePostSearch();
+  const search = usePostSearch(posts);
 
   return (
     <>
