@@ -13,7 +13,7 @@ const REST_CX = 11.5;
  * スクロールに追従してロゴを畳むアニメーション。
  * スクロールごとの再レンダーを避けるため、React の state ではなく DOM を直接触る。
  */
-function useLogoCollapse(rootRef: React.RefObject<HTMLElement | null>) {
+function useLogoCollapse(rootRef: React.RefObject<Element | null>) {
   useEffect(() => {
     const logo = rootRef.current;
     if (!logo) return;
@@ -116,17 +116,17 @@ function useLogoCollapse(rootRef: React.RefObject<HTMLElement | null>) {
 }
 
 export function SiteLogo() {
-  const ref = useRef<HTMLAnchorElement>(null);
+  const ref = useRef<SVGSVGElement>(null);
   useLogoCollapse(ref);
 
   return (
     <RouterLink
-      ref={ref}
       className="inline-flex w-[clamp(150px,42vw,190px)] text-ink no-underline"
       to="/"
       aria-label="satotek.dev home"
     >
       <svg
+        ref={ref}
         className="block h-auto w-full overflow-visible"
         viewBox="0 0 110 16"
         width="110"
