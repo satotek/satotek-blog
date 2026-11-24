@@ -2,10 +2,19 @@ import { HTTPException } from "hono/http-exception";
 import { defineHandler, defineHead, type InferProps } from "void";
 import type { PageParams } from "void/routes";
 
+import type { TocItem } from "#/core/posts/types";
 import { createPageHead, generatedPostOgImageUrl, withSiteName } from "#/lib/site";
 import { listPostSummaries } from "#/lib/posts/post-summaries";
 import { sharePage } from "../../src/page-context";
 import { relatedPosts } from "../../src/posts";
+
+type ArticleMetaModule = {
+  toc: readonly TocItem[];
+};
+
+const articleMeta = import.meta.glob<ArticleMetaModule>("../../src/content/posts/*/index.mdx", {
+  eager: true,
+});
 
 export type Props = InferProps<typeof loader>;
 
@@ -19,7 +28,8 @@ export const loader = defineHandler((c) => {
   const posts = listPostSummaries();
   const post = posts.find((summary) => summary.slug === slug);
   if (!post) throw new HTTPException(404);
-  return { post, relatedPosts: relatedPosts(post, posts) };
+  const toc = articleMeta[`../../src/content/posts/${post.slug}/index.mdx`]?.toc ?? [];
+  return { post, relatedPosts: relatedPosts(post, posts), toc };
 });
 
 export const head = defineHead<Props>((_c, { post }) => {

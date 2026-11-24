@@ -1,7 +1,7 @@
 import { NotFound } from "#/components/NotFound";
-import BlockPuzzle from "../src/islands/BlockPuzzle" with { island: "visible" };
+import BlockPuzzle from "../src/islands/BlockPuzzle";
 
-// 404 はその場で遊べるようにしてある。ゲームは画面に入ってから読む。
+// 404 はその場で遊べるようにしてある。
 export default function NotFoundPage() {
   return (
     <NotFound

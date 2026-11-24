@@ -1,7 +1,7 @@
 import type { ErrorPageProps } from "@void/react";
 
 import { NotFound } from "#/components/NotFound";
-import BugHunt from "../src/islands/BugHunt" with { island: "visible" };
+import BugHunt from "../src/islands/BugHunt";
 
 // loader や描画が想定外に失敗したとき、素のエラー画面ではなく 404 と同じトーンで見せる。
 // 本番の error.message は Void が伏せた汎用文なので、画面には出さない。

@@ -57,6 +57,11 @@ export function MobileTableOfContents({ toc }: { toc: TocState }) {
 
   const close = () => setIsOpen(false);
 
+  // クライアント遷移で目次が変わったときに古いシートが開いたまま残らないようにする。
+  useEffect(() => {
+    setIsOpen(false);
+  }, [toc.items]);
+
   // モバイルで開いたまま横向き回転やウィンドウ拡大で desktop 幅になったら閉じる。
   // CSSだけで隠すと、再びモバイル幅へ戻ったときに古いシートが突然開く。
   useEffect(() => {
