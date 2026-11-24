@@ -28,6 +28,12 @@ export type PostListResult = {
   posts: readonly PublicPost[];
 };
 
+export type PostSearchResult = {
+  query: string;
+} & PostListResult;
+
+export type TaxonomyResult = ReturnType<typeof taxonomyForPosts>;
+
 export type ListPostsFilters = {
   category?: string;
   tag?: string;

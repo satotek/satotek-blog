@@ -19,7 +19,10 @@ export const loader = defineHandler(async (c) => {
   const page = parsePage(String(raw));
   const [posts, filters] = await Promise.all([postRepository.list(), getPostFilters()]);
   const { slice, current, total } = paginate(posts, page ?? 0);
-  if (page === null || page < 2 || page > total) throw new HTTPException(404);
+  if (page === null || page < 2 || page > total) {
+    c.set("headDefaults", { title: withSiteName("ページが見つかりません") });
+    throw new HTTPException(404);
+  }
   return { slice, current, total, totalPosts: posts.length, filters };
 });
 

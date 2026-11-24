@@ -27,7 +27,10 @@ export const loader = defineHandler((c) => {
   const { slug } = c.req.param() as PageParams<"/posts/[slug]">;
   const posts = listPostSummaries();
   const post = posts.find((summary) => summary.slug === slug);
-  if (!post) throw new HTTPException(404);
+  if (!post) {
+    c.set("headDefaults", { title: withSiteName("ページが見つかりません") });
+    throw new HTTPException(404);
+  }
   const toc = articleMeta[`../../src/content/posts/${post.slug}/index.mdx`]?.toc ?? [];
   return { post, relatedPosts: relatedPosts(post, posts), toc };
 });
