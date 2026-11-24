@@ -18,9 +18,10 @@ export default function ArticleTocIsland({
 }) {
   const contentRef = useRef<HTMLElement | null>(null);
   // useToc の見出し追従（useEffect）より先に本文を掴んでおく。
+  // クライアント遷移で items が差し替わった場合も本文要素を引き直す。
   useLayoutEffect(() => {
     contentRef.current = document.getElementById("post-body");
-  }, []);
+  }, [items]);
   const toc = useToc(contentRef, items);
 
   useLayoutEffect(() => {
