@@ -20,7 +20,8 @@
 - Vite+ 1.7 — `vp dev` / `vp build` / `vp check` / `vp test` / `vp staged` で開発サーバー・ビルド・フォーマット・Lint・型検査・テスト・コミットフックをまとめて扱う
 - Void 1.11 — ページ（island と `.server.ts` の loader）、`/api/*` の Hono ルート、静的書き出し、Cloudflare へのデプロイ
 - React 19 / TypeScript 7.0
-- pnpm 12 / Node.js 24 — パッケージ管理とスクリプト実行
+- pnpm 12 / Node.js 26 — パッケージ管理とスクリプト実行。Nix の devShell と direnv で用意する
+- sops（GCP KMS）— シークレットを暗号化して Git で管理する
 - Tailwind CSS 4 — ViteプラグインでユーティリティCSSを生成
 - React Aria Components — キーボード操作・フォーカス管理を考慮した操作部品
 - lucide-react — RSS、メニュー、テーマ切替などのUIアイコン
@@ -28,12 +29,35 @@
 
 ## 開発
 
+Node.js・pnpm・sops は `flake.nix` の devShell にあり、direnv（`.envrc`）が読み込みます。pnpm は `package.json` の `packageManager` に書いた版へ自動で切り替わります。
+
 ```sh
+direnv allow
+gcloud auth application-default login  # secrets.sops.env の復号に使う
 pnpm install
 pnpm run dev
 ```
 
 開発サーバーは `http://localhost:3000` で起動します。
+
+### 環境変数
+
+| ファイル           | 中身                                                                                   | Git        |
+| ------------------ | -------------------------------------------------------------------------------------- | ---------- |
+| `public.env`       | ブラウザへ公開してよい値（`VITE_*`）。ビルドに埋め込む                                 | 管理する   |
+| `secrets.sops.env` | GA4・Last.fm などのシークレット。sops で GCP KMS の鍵（dotfiles と同じ）を使って暗号化 | 管理する   |
+| `.env`             | `.envrc` が作る、キー名だけのファイル                                                  | 管理しない |
+
+direnv はどちらも環境変数に載せ、復号した値をファイルには書きません。Void の開発サーバーは `.env` にあるキーだけをローカルの Worker に渡し、値はシェルのもので上書きするので、`.env` にはキー名だけを置きます。Void は `.env` 以外の `.env.*` や `.dev.vars` があるとビルドを止めるため、ファイル名はこの形にしています。
+
+シークレットを足す・変えるときは `sops secrets.sops.env` で編集し、本番の Worker `satotek` へまとめて登録します。
+
+```sh
+sops secrets.sops.env
+pnpm run secrets:push
+```
+
+`secrets:push` は値を引数に載せず一時ファイル経由で `cf workers secrets bulk-edit` に渡します。ファイルに無いシークレットは消しません。`void secret put` は `env.ts` が無いと本番の値を受け付けないため使いません。
 
 ### Analytics
 
@@ -42,12 +66,7 @@ pnpm run dev
 - [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/) — ゾーン側ダッシュボードで有効化します。Cookie を使わず、このリポジトリに測定IDは不要です。ブラウザへは Cloudflare がビーコンを自動挿入します。
 - [Google Analytics 4](https://developers.google.com/analytics) — ビルド時の `VITE_GA_MEASUREMENT_ID` で gtag を埋め込みます。測定IDはブラウザへ公開される値なので、Worker Secret ではなく環境変数です。
 
-```dotenv
-# .env
-VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-```
-
-Void のビルドは、手元の値が本番に混ざらないよう `.env` の `VITE_*` を埋め込まず、シェルの環境変数だけを使います。`void deploy` はビルドからやり直すので、`pnpm run deploy` は `scripts/with-public-env.ts` で `.env` の `VITE_*` だけを環境変数に載せて `void deploy` を起動します。測定IDを変えたら、再ビルドしてからデプロイしてください。ローカルで ID を空にすると gtag は出ません。
+測定IDは `public.env` の `VITE_GA_MEASUREMENT_ID` です。Void のビルドは `.env` の `VITE_*` を埋め込まず、シェルの環境変数だけを使います。direnv が `public.env` を環境変数に載せるので、`pnpm run build` と `pnpm run deploy` にはそのまま入ります。Workers Builds ではビルド設定の環境変数で渡します。
 
 ホームページの人気記事は、表示後に `GET /api/posts/popular` を取ります。サイトの Worker が GA4 Data API の `screenPageViews` で、直近7日間の `/posts/<slug>` を PV 降順で最大10件並べ、順位だけを返します。閲覧数はレスポンスに含めません。GA4 の認証情報は Worker `satotek` の Secret からのみ読み、ブラウザへは渡しません。認証情報が未設定、取得失敗、該当記事が無いときは、人気記事の欄は出ません。ビルド済みの HTML にも載せていません。
 
@@ -55,21 +74,7 @@ Void のビルドは、手元の値が本番に混ざらないよう `.env` の 
 
 記事ページの見出しの下には、`GET /api/posts/<slug>/views` で公開以来の累計閲覧数を出します。同じく GA4 の `screenPageViews` を Worker が読み、1時間キャッシュします。取得できないとき、または 0 回のときは表示しません。
 
-ローカルでGA4連携まで確認する場合は、サービスアカウントへ対象GA4プロパティの閲覧権限を付与し、`.env` に足します。Void が読むローカルの環境変数ファイルはこの1つだけで、`.env.local` や `.dev.vars` は使えません（置くとビルドが止まります）。
-
-```dotenv
-GA4_PROPERTY_ID=123456789
-GA4_CLIENT_EMAIL=analytics-reader@your-project.iam.gserviceaccount.com
-GA4_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
-```
-
-本番のシークレットは `void secret put` で Worker `satotek` に登録します。値は対話入力で渡し、コマンドラインには書きません。`void deploy` は `.env` をアップロードしません。
-
-```sh
-pnpm exec void secret put GA4_PROPERTY_ID
-pnpm exec void secret put GA4_CLIENT_EMAIL
-pnpm exec void secret put GA4_PRIVATE_KEY
-```
+GA4 の認証情報（`GA4_PROPERTY_ID`、`GA4_CLIENT_EMAIL`、`GA4_PRIVATE_KEY`）は `secrets.sops.env` にあります。サービスアカウントには対象GA4プロパティの閲覧権限が要ります。`GA4_PRIVATE_KEY` は改行を `\\n` にした1行で書きます。
 
 ホームを含むページは prerender した HTML のままです。人気記事の順位だけ、表示後に API から足します。
 
@@ -77,19 +82,13 @@ pnpm exec void secret put GA4_PRIVATE_KEY
 
 `/music` は Last.fm の公開プロフィールから、再生中の曲、直近の再生、直近7日の再生回数、アーティストと曲の上位を表示します。ブラウザは `GET /api/music` だけを呼び、API キーは Worker から Last.fm へ出します。対象ユーザーは `nosuke912` です。キーが未設定、または取得に失敗したときは、その欄を出しません。
 
-ローカルでは `.env` に API キーだけ足します。
-
-```dotenv
-LASTFM_API_KEY=
-```
-
-本番には、上の GA4 と同じく `void secret put LASTFM_API_KEY` で登録します。
+API キー `LASTFM_API_KEY` は `secrets.sops.env` にあります。
 
 ### GitHub の最近の活動
 
 `/profile` の GitHub 欄は `GET /api/github` を取ります。Worker が `satotek` の公開イベントを読み、push・PR・Issue・リリース・Star などを最大8件の一行にまとめて10分キャッシュします。同じリポジトリへの続けての push は1行にまとめます。取得に失敗したとき、活動が無いときは欄を出しません。
 
-トークンは無くても動きますが、未認証だと GitHub API は IP ごとに 60 回/時です。上限に当たるようなら、権限なしの fine-grained token を `GITHUB_TOKEN` として、上の GA4 と同じく `void secret put` で登録します。
+トークンは無くても動きますが、未認証だと GitHub API は IP ごとに 60 回/時です。上限に当たるようなら、権限なしの fine-grained token を `GITHUB_TOKEN` として `secrets.sops.env` に足し、`pnpm run secrets:push` で登録します。
 
 読み取りはユーザー認証不要です。共有シークレットは使いません。別のユーザーを見るときは `LASTFM_USERNAME` で上書きできます。応答は Worker で約60秒キャッシュします。
 
@@ -186,12 +185,12 @@ pnpm run deploy
 
 旧構成はサイト Worker `satotek`（TanStack Start、`cf deploy`）と、`satotek.dev/api/*` を受ける API Worker `satotek-api`（Elysia）の2つでした。切り替えるときは次の順に進めます。
 
-1. `void secret put` で、`satotek-api` に登録していた `GA4_PROPERTY_ID`、`GA4_CLIENT_EMAIL`、`GA4_PRIVATE_KEY`、`LASTFM_API_KEY`、`GITHUB_TOKEN` を Worker `satotek` に登録する。
+1. `pnpm run secrets:push` で、`satotek-api` に登録していた `GA4_PROPERTY_ID`、`GA4_CLIENT_EMAIL`、`GA4_PRIVATE_KEY`、`LASTFM_API_KEY`、`GITHUB_TOKEN` を Worker `satotek` に登録する。
 2. `void deploy --platform cloudflare` でデプロイする。既存の `satotek` は Void 製ではないため、紐付けの確認が出たら内容を読んでから進める。
 3. `satotek.dev/api/*` のルートを `satotek-api` から外す。残っていると、`/api/*` が新しい Worker まで届かない。
 4. 動作を確かめたら `satotek-api` を削除する。
 
-`.env`、`.env.*`、`.dev.vars*` はGit管理対象外です。APIキー、秘密鍵、サービスアカウント認証情報などをリポジトリへ追加しないでください。
+APIキー、秘密鍵、サービスアカウント認証情報などは、平文でリポジトリへ追加しないでください。`secrets.sops.env` に暗号化して置きます。
 
 旧サイトで使っていたリアクション・PV用のD1は、新アプリケーションからは参照していません。このリポジトリのデプロイ処理にD1データベースを削除する操作は含まれていません。
 
@@ -220,7 +219,7 @@ pnpm run preview
 
 WebMCP非対応ブラウザでは何もせず、通常のサイトとして動作します。ローカルで試す場合はChromeで `chrome://flags/#enable-webmcp-testing` を有効にしてから `http://localhost:3000` を開き、Model Context Tool Inspectorなどでツールを確認してください。
 
-Chrome Origin Trialを使う場合は、対象origin用のトークンを `.env` の `VITE_WEBMCP_ORIGIN_TRIAL_TOKEN` に設定します。この値はページへ公開されるため、秘密情報として扱う必要はありません。
+Chrome Origin Trialを使う場合は、対象origin用のトークンを `public.env` の `VITE_WEBMCP_ORIGIN_TRIAL_TOKEN` に設定します。この値はページへ公開されるため、秘密情報として扱う必要はありません。
 
 ## ディレクトリ構成
 

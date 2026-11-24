@@ -11,3 +11,7 @@ overrides:
 allowBuilds:
   esbuild: true
   workerd: true
+
+minimumReleaseAgeExclude:
+  # Cloudflare の cf CLI は rc しか出ておらず、公開から日が浅い版を使う。
+  - cf@1.0.0-rc.4

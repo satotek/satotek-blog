@@ -1,0 +1,4 @@
+creation_rules:
+  # dotfiles と同じ GCP KMS の鍵で暗号化する。age の鍵ファイルを配らずに済む。
+  - path_regex: secrets\.sops\.env$
+    gcp_kms: projects/nosuke-net/locations/global/keyRings/sops/cryptoKeys/dotfiles
