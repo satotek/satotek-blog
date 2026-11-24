@@ -33,8 +33,7 @@ export function loadGoogleAnalytics() {
   gtag("js", new Date());
   gtag("config", GA_MEASUREMENT_ID, { send_page_view: false });
 
-  // ページは毎回ドキュメントごと読み直すので、gtag のスタブを作った直後に
-  // 現在のページビューを積む。
+  // gtag のスタブを作った直後に現在のページビューを積む（以降の SPA 遷移は DeferredAnalytics が送る）。
   trackPageView(window.location.pathname);
 
   const script = document.createElement("script");
