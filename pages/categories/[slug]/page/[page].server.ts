@@ -27,7 +27,10 @@ export const loader = defineHandler(async (c) => {
   const { slug, page: raw } = c.req.param() as PageParams<"/categories/[slug]/page/[page]">;
   const category = categoryBySlug(slug);
   const page = parsePage(String(raw));
-  if (!category || page === null || page < 2) throw new HTTPException(404);
+  if (!category || page === null || page < 2) {
+    c.set("headDefaults", { title: withSiteName("ページが見つかりません") });
+    throw new HTTPException(404);
+  }
   const [posts, filters] = await Promise.all([
     postRepository.list({ category: category.slug }),
     getPostFilters(),
