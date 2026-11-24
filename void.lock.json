@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "source": {
+    "name": "satotek",
+    "routes": [
+      {
+        "pattern": "satotek.dev",
+        "custom_domain": true
+      }
+    ],
+    "workers_dev": false,
+    "preview_urls": true,
+    "observability": {
+      "enabled": true,
+      "logs": {
+        "enabled": true,
+        "invocation_logs": true,
+        "head_sampling_rate": 1
+      }
+    }
+  },
+  "resolved": {
+    "name": "satotek",
+    "routes": [
+      {
+        "pattern": "satotek.dev",
+        "custom_domain": true
+      }
+    ],
+    "account_id": "c20893a758828a123d96bda36ef29469",
+    "kv_namespaces": [
+      {
+        "binding": "ISR_CACHE",
+        "id": "3dfa1b662f474af1bb34d295a4f90e76"
+      }
+    ],
+    "workers_dev": false,
+    "preview_urls": true,
+    "observability": {
+      "enabled": true,
+      "logs": {
+        "enabled": true,
+        "invocation_logs": true,
+        "head_sampling_rate": 1
+      }
+    },
+    "compatibility_date": "2026-02-24"
+  },
+  "text": "{\n  \"name\": \"satotek\",\n  \"routes\": [\n    {\n      \"pattern\": \"satotek.dev\",\n      \"custom_domain\": true\n    }\n  ],\n  \"account_id\": \"c20893a758828a123d96bda36ef29469\",\n  \"kv_namespaces\": [\n    {\n      \"binding\": \"ISR_CACHE\",\n      \"id\": \"3dfa1b662f474af1bb34d295a4f90e76\"\n    }\n  ],\n  \"workers_dev\": false,\n  \"preview_urls\": true,\n  \"observability\": {\n    \"enabled\": true,\n    \"logs\": {\n      \"enabled\": true,\n      \"invocation_logs\": true,\n      \"head_sampling_rate\": 1\n    }\n  },\n  \"compatibility_date\": \"2026-02-24\"\n}\n"
+}

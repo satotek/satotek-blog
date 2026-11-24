@@ -127,7 +127,7 @@ export async function llmsResponse() {
   return textResponse(
     `# satotek.dev
 
-> nosuke の個人ブログ・技術メモ。技術・ガジェット・旅行・日常について気ままに書いています。Cloudflare Workers + TanStack Start で構築しています。
+> nosuke の個人ブログ・技術メモ。技術・ガジェット・旅行・日常について気ままに書いています。Cloudflare Workers + Void で構築しています。
 
 ## 主要ページ
 ${pages.join("\n")}

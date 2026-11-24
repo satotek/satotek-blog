@@ -1,5 +1,5 @@
 import { RouterLink } from "#/components/ui";
-import type { MusicSnapshot } from "@satotek/blog-core/music";
+import type { MusicSnapshot } from "#/core/music";
 
 import { Artwork, Equalizer, TrackText } from "./parts";
 

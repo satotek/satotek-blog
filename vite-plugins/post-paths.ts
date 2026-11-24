@@ -1,6 +1,10 @@
 import { join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
-export const contentPostsDirectory = resolve(process.cwd(), "src/content/posts");
+// cwd 基準だと apps/ 配下など別ディレクトリから Vite を起動したときにずれる。
+export const contentPostsDirectory = fileURLToPath(
+  new URL("../src/content/posts", import.meta.url),
+);
 
 function postSegments(file: string) {
   return relative(contentPostsDirectory, resolve(file)).split(sep);

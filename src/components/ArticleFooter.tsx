@@ -1,9 +1,10 @@
 import { ExternalLink, FileText } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { DeferredShareButton } from "#/components/DeferredShareButton";
 import { PostList } from "#/components/PostList";
 import { Link as AriaLink } from "#/components/ui";
-import type { PostSummary } from "@satotek/blog-core/posts/types";
+import type { PostSummary } from "#/core/posts/types";
 import { postSourceUrl, SITE_URL } from "#/lib/site";
 
 const actionLinkClass =
@@ -12,9 +13,12 @@ const actionLinkClass =
 export function ArticleFooter({
   post,
   relatedPosts,
+  share,
 }: {
   post: PostSummary;
   relatedPosts: readonly PostSummary[];
+  /** 共有ボタンの差し替え口。省略時はアイドル時に読み込む既定のボタン。 */
+  share?: ReactNode;
 }) {
   const postUrl = `${SITE_URL}/posts/${post.slug}`;
 
@@ -30,7 +34,7 @@ export function ArticleFooter({
             Article tools
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <DeferredShareButton title={post.title} url={postUrl} />
+            {share ?? <DeferredShareButton title={post.title} url={postUrl} />}
             <AriaLink
               className={actionLinkClass}
               href={postSourceUrl(post.slug)}

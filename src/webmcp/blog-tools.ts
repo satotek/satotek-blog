@@ -5,7 +5,7 @@ import {
   type ListPostsFilters,
   type PostListResult,
   type PublicPost,
-} from "@satotek/blog-core/posts/query";
+} from "#/core/posts/query";
 import { SITE_URL } from "#/lib/site";
 
 export { DEFAULT_POST_LIMIT };

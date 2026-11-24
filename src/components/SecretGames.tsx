@@ -93,8 +93,8 @@ export function SecretGames() {
   );
 }
 
-// TanStack RouterのRouterLinkではなくReact AriaのLinkを使う。片方は存在しないURL、片方は意図的な
-// 500 で、どちらもクライアント遷移ではなくサーバーへの往復をさせたいため。
+// RouterLink ではなく素の Link を使う。片方は存在しない URL、片方は意図的な 500 で、
+// どちらもルート定義に載らないため。
 function GameLink({
   to,
   emoji,

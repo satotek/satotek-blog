@@ -7,11 +7,7 @@ const DISABLED_CLASS = "text-muted/45";
 
 export type PageLinkProps = { page: number; className: string; children: ReactNode };
 
-/**
- * ページ番号からリンクを作る部品。リンク先はルートごとに違うので呼び出し側が渡す。
- * TanStack Router の `to` は型付きリテラルなので、文字列を受け渡すより
- * コンポーネントごと注入したほうが型安全になる。
- */
+/** ページ番号からリンクを作る部品。リンク先はルートごとに違うので呼び出し側が渡す。 */
 export type PageLinkComponent = (props: PageLinkProps) => ReactNode;
 
 export function Pagination({

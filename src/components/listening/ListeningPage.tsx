@@ -4,7 +4,7 @@ import { siLastdotfm } from "simple-icons";
 
 import { BrandIcon } from "#/components/BrandIcon";
 import { Link as AriaLink } from "#/components/ui";
-import type { MusicSnapshot } from "@satotek/blog-core/music";
+import type { MusicSnapshot } from "#/core/music";
 
 import { motionStyle } from "./motion";
 import { ArtistTile, ChartTrack, CountStat, FeaturedTrack, RecentTrack } from "./tracks";

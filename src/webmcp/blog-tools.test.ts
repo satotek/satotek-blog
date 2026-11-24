@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import type { PostSummary } from "@satotek/blog-core/posts/types";
+import type { PostSummary } from "#/core/posts/types";
 
-import { createApp } from "../../workers/api/src/app";
+import { respond } from "../../routes/_api";
+import { createApi } from "../server/api/service";
 import { createBlogWebMcpTools } from "./blog-tools";
 
 const posts: readonly PostSummary[] = [
@@ -35,12 +36,19 @@ const posts: readonly PostSummary[] = [
   },
 ];
 
-const api = createApp({ posts });
+const api = createApi({ posts });
 const requested: string[] = [];
 
+/** ツールが使う3つの API だけを、routes/api/* と同じ respond() でさばく。 */
 function fetchApi(path: string) {
   requested.push(path);
-  return api.handle(new Request(`http://localhost${path}`));
+  const url = new URL(path, "http://localhost");
+  const query = Object.fromEntries(url.searchParams);
+  if (url.pathname === "/api/search") return respond(() => api.search(query));
+  if (url.pathname === "/api/posts") return respond(() => api.listPosts(query));
+  const slug = url.pathname.match(/^\/api\/posts\/([^/]+)$/)?.[1];
+  if (slug) return respond(() => api.post(decodeURIComponent(slug)));
+  return Promise.resolve(Response.json({ error: "not found" }, { status: 404 }));
 }
 
 function toolNamed(name: string, options: Parameters<typeof createBlogWebMcpTools>[0] = {}) {

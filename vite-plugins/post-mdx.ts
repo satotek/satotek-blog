@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 
 import mdx from "@mdx-js/rollup";
-import { createMdxPlugins, readImageDimensions } from "@satotek/content-pipeline";
+import { createMdxPlugins, readImageDimensions } from "./content-pipeline";
 
 import { createResponsiveMedia } from "../src/lib/media-variants";
 import { mediaUrlForKey } from "../src/lib/posts/post-assets";

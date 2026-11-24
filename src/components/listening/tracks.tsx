@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { formatRelativeTime } from "#/lib/date";
-import type { MusicArtist, MusicChartTrack, MusicTrack } from "@satotek/blog-core/music";
+import type { MusicArtist, MusicChartTrack, MusicTrack } from "#/core/music";
 
 import { motionStyle, useCountUp } from "./motion";
 import { Artwork, Equalizer, MaybeLink, TrackText } from "./parts";

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { isMusicSnapshot, type MusicSnapshot } from "@satotek/blog-core/music";
+import { isMusicSnapshot, type MusicSnapshot } from "#/core/music";
 
 export type MusicStatus = "loading" | "ready" | "error";
 

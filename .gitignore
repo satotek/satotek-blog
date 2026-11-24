@@ -9,13 +9,8 @@ dist-ssr
 *.local
 .dev.vars*
 !.dev.vars.example
-.nitro
-.tanstack
 .wrangler
 .vite-hooks/_/
-worker-configuration.d.ts
-.output
-.vinxi
 .design-home
 src/content/.generated/
 .ogp/
@@ -23,5 +18,7 @@ src/content/.generated/
 .playwright-mcp/
 __unconfig*
 todos.json
-src/routeTree.gen.ts
 .vitest/
+.cloudflare
+.void
+.void-wrangler.jsonc

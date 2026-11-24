@@ -33,8 +33,8 @@ export function loadGoogleAnalytics() {
   gtag("js", new Date());
   gtag("config", GA_MEASUREMENT_ID, { send_page_view: false });
 
-  // 初期マウント時は SiteChrome の effect より後にここへ到達するため、
-  // gtag のスタブを作った直後に現在のページビューを積む。
+  // ページは毎回ドキュメントごと読み直すので、gtag のスタブを作った直後に
+  // 現在のページビューを積む。
   trackPageView(window.location.pathname);
 
   const script = document.createElement("script");
