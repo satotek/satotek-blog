@@ -1,7 +1,14 @@
+import { Link as VoidLink, useNavigation, useRouter } from "@void/react";
 import { House, Music, Newspaper, UserRound, type LucideIcon } from "lucide-react";
-import type { CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 
-import { dockIndex, dockSections, type DockPath } from "#/lib/nav";
+import {
+  clearDockTransition,
+  dockIndex,
+  dockSections,
+  prepareDockTransition,
+  type DockPath,
+} from "#/lib/nav";
 
 const icons: Record<DockPath, LucideIcon> = {
   "/": House,
@@ -18,12 +25,24 @@ const labels: Record<DockPath, string> = {
 };
 
 /**
- * ドックとヘッダーのバー。選択位置はビルド時にパスから決める。
- * タイルの移動は JS ではなく、ページをまたぐ View Transition に任せる
- * （styles/transitions.css でタイルに名前を付け、新旧の位置をブラウザが補間する）。
+ * ドックとヘッダーのバー。選択位置は現在のパスから決める。
+ * クリック時に進行方向の View Transition 型を付け、styles/transitions.css で
+ * タイルと本文のアニメーションを切り替える。
  */
 export function SiteNav({ variant, path }: { variant: "dock" | "bar"; path: string }) {
+  const router = useRouter();
+  const navigation = useNavigation();
   const activeIndex = dockIndex(path);
+
+  useEffect(() => {
+    if (navigation.state === "idle") {
+      clearDockTransition();
+      return;
+    }
+    if (navigation.location) {
+      clearDockTransition(navigation.location.pathname);
+    }
+  }, [navigation.state, navigation.location]);
 
   return (
     <nav
@@ -48,16 +67,19 @@ export function SiteNav({ variant, path }: { variant: "dock" | "bar"; path: stri
           const Icon = icons[to];
           return (
             <li key={to}>
-              <a
+              <VoidLink
                 href={to}
                 className="site-nav__item"
                 data-active={index === activeIndex || undefined}
                 aria-current={index === activeIndex ? "page" : undefined}
                 data-dock-link=""
+                onNavigate={() => {
+                  prepareDockTransition(path || router.path, to);
+                }}
               >
                 <Icon className="site-nav__icon" aria-hidden="true" />
                 <span>{labels[to]}</span>
-              </a>
+              </VoidLink>
             </li>
           );
         })}

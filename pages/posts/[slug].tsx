@@ -1,86 +1,94 @@
-import type { TocItem } from "#/core/posts/types";
-import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
+import { Suspense, use, type ReactElement } from "react";
 
 import { Article, articleComponents } from "#/components/article/Article";
 import { ArticleFooter } from "#/components/ArticleFooter";
 import { RouterLink } from "#/components/ui";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
-import { SITE_URL } from "#/lib/site";
-import ArticleImage from "../../src/islands/ArticleImage" with { island: "visible" };
-import ArticleToc from "../../src/islands/ArticleToc" with { island: "load" };
-import CopyCodeButton from "../../src/islands/CopyCodeButton" with { island: "visible" };
-import PostViews from "../../src/islands/PostViews" with { island: "idle" };
-import ShareButton from "../../src/islands/ShareButton" with { island: "idle" };
+import ArticleToc from "../../src/islands/ArticleToc";
+import PostViews from "../../src/islands/PostViews";
 import type { Props } from "./[slug].server";
 
 type ArticleModule = {
   default: (props: { components?: typeof articleComponents }) => ReactElement;
-  toc: readonly TocItem[];
 };
 
-// island ページのコンポーネントはサーバーでしか動かず、ブラウザへは送られない。
-// そのため eager に全記事を読んでも、クライアントのチャンクは膨らまない。
-const articles = import.meta.glob<ArticleModule>("../../src/content/posts/*/index.mdx", {
-  eager: true,
-});
+const ssrArticles = import.meta.env.SSR
+  ? import.meta.glob<ArticleModule>("../../src/content/posts/*/index.mdx", { eager: true })
+  : undefined;
 
-/**
- * 共有の CodeBlock はコピー状態を自前で持つので、island ページでは死んだボタンになる。
- * 枠と <pre> は静的に描き、ボタンだけを island として差し込む。
- * island の import 属性は page / layout ファイルでしか拾われないため、ここで定義する。
- */
-function CodeBlock({
-  children,
-  ...props
-}: HTMLAttributes<HTMLPreElement> & { "data-title"?: string }) {
-  const filename = props["data-title"];
+const clientArticleLoaders = !import.meta.env.SSR
+  ? import.meta.glob<ArticleModule>("../../src/content/posts/*/index.mdx")
+  : undefined;
+
+const articleCache = new Map<string, ArticleModule>();
+const articlePromises = new Map<string, Promise<ArticleModule | undefined>>();
+
+function articlePath(slug: string) {
+  return `../../src/content/posts/${slug}/index.mdx`;
+}
+
+function loadClientArticle(slug: string): Promise<ArticleModule | undefined> {
+  const cached = articlePromises.get(slug);
+  if (cached) return cached;
+  const loader = clientArticleLoaders?.[articlePath(slug)];
+  if (!loader) return Promise.resolve(undefined);
+  const promise = loader().then((mod) => {
+    articleCache.set(slug, mod);
+    return mod;
+  });
+  articlePromises.set(slug, promise);
+  return promise;
+}
+
+// 初回アクセス時は hydrateRoot より前に当該記事 1 本だけ先読みし、
+// SSR 済み HTML とのハイドレーションで Suspense fallback へ戻らないようにする。
+if (!import.meta.env.SSR && typeof window !== "undefined") {
+  const match = window.location.pathname.match(/^\/posts\/([^/]+?)(?:\.html)?$/);
+  if (match) {
+    try {
+      await loadClientArticle(decodeURIComponent(match[1]));
+    } catch {
+      // 読み込み失敗時は再描画時の Suspense 境界に任せる。
+    }
+  }
+}
+
+function LazyArticleBody({ slug }: { slug: string }) {
+  const module = use(loadClientArticle(slug));
+  const Body = module?.default;
+  return Body ? <Body components={articleComponents} /> : null;
+}
+
+function ArticleBody({ slug }: { slug: string }) {
+  const module = import.meta.env.SSR ? ssrArticles?.[articlePath(slug)] : articleCache.get(slug);
+  if (module) {
+    const Body = module.default;
+    return <Body components={articleComponents} />;
+  }
+  if (import.meta.env.SSR) return null;
   return (
-    <div className={`code-block${filename ? "" : " code-block--untitled"}`}>
-      {filename ? (
-        <div className="code-block__bar">
-          <span className="code-block__meta">
-            <span className="code-block__filename">
-              <span aria-hidden="true" className="code-block__icon">
-                ▸
-              </span>
-              {filename}
-            </span>
-          </span>
-          <CopyCodeButton />
-        </div>
-      ) : (
-        <div className="code-block__actions">
-          <CopyCodeButton />
-        </div>
-      )}
-      <pre {...props}>{children}</pre>
-    </div>
+    <Suspense fallback={<p className="text-muted">読み込み中…</p>}>
+      <LazyArticleBody slug={slug} />
+    </Suspense>
   );
 }
 
-// island の import は JSX として使われた箇所だけが差し替わるので、components マップへ直接は渡せない。
-function Image(props: ComponentProps<typeof ArticleImage>) {
-  return <ArticleImage {...props} />;
-}
-
-const components = { ...articleComponents, pre: CodeBlock, img: Image };
-
-export default function PostPage({ post, relatedPosts }: Props) {
-  const article = articles[`../../src/content/posts/${post.slug}/index.mdx`];
-  const Body = article?.default;
+export default function PostPage({ post, relatedPosts, toc }: Props) {
   const category = categoryBySlug(post.category);
-  const toc = article?.toc ?? [];
   // useToc と同じく、見出しが3つ未満なら目次を出さない。
   const hasToc = toc.length >= 3;
   const body = (
     <div className="markdown-content" id="post-body">
-      <Article>{Body ? <Body components={components} /> : null}</Article>
+      <Article>
+        <ArticleBody slug={post.slug} />
+      </Article>
     </div>
   );
 
   return (
-    <article className="w-full">
+    // クライアント遷移で別の記事へ移ったとき、目次シートやライトボックス等の記事内状態を持ち越さない。
+    <article className="w-full" key={post.slug}>
       <header className="mb-10 mt-3 border-b border-line pb-6">
         <h1 className="m-0 mb-3 text-[clamp(1.9rem,5vw,2.6rem)] font-bold leading-[1.15] tracking-[-0.02em]">
           {post.title}
@@ -140,11 +148,7 @@ export default function PostPage({ post, relatedPosts }: Props) {
         body
       )}
 
-      <ArticleFooter
-        post={post}
-        relatedPosts={relatedPosts}
-        share={<ShareButton title={post.title} url={`${SITE_URL}/posts/${post.slug}`} />}
-      />
+      <ArticleFooter post={post} relatedPosts={relatedPosts} />
     </article>
   );
 }

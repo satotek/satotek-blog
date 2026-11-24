@@ -1,7 +1,7 @@
 import { HomeHero } from "#/components/HomeHero";
 import { PostList } from "#/components/PostList";
 import { RouterLink } from "#/components/ui";
-import HomeSidebar from "../src/islands/HomeSidebar" with { island: "visible" };
+import HomeSidebar from "../src/islands/HomeSidebar";
 import type { Props } from "./index.server";
 
 export default function HomePage({ posts, categories, tags }: Props) {
