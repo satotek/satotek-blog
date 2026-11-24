@@ -8,6 +8,7 @@ import {
 import type { Href } from "void/routes";
 
 import { clearDockTransition } from "#/lib/nav";
+import { preloadArticle } from "#/lib/posts/article-modules";
 
 const baseClass =
   "touch-manipulation [-webkit-tap-highlight-color:transparent] motion-reduce:transition-none";
@@ -33,7 +34,11 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
   );
 });
 
-type RouterLinkProps = Omit<ComponentProps<typeof VoidLink>, "href"> & {
+// 記事の先読みに使うので、呼び出し側からは上書きさせない。
+type RouterLinkProps = Omit<
+  ComponentProps<typeof VoidLink>,
+  "href" | "onPointerEnter" | "onFocus" | "onTouchStart"
+> & {
   to: string;
   params?: Record<string, string | number>;
   search?: unknown;
@@ -57,12 +62,18 @@ export function RouterLink({
     encodeURIComponent(String(params?.[name] ?? "")),
   );
   const href = (hash ? `${path}#${hash}` : path) as Href;
+  // Void の prefetch と同じきっかけで、記事本文のチャンクも先に取りに行く。
+  const articleSlug = to === "/posts/$slug" ? String(params?.slug ?? "") : "";
+  const preload = articleSlug ? () => preloadArticle(articleSlug) : undefined;
 
   return (
     <VoidLink
       {...props}
       href={href}
       className={[baseClass, className].filter(Boolean).join(" ")}
+      onPointerEnter={preload}
+      onFocus={preload}
+      onTouchStart={preload}
       onNavigate={(event) => {
         clearDockTransition();
         onNavigate?.(event);

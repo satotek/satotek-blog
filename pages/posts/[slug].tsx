@@ -1,67 +1,23 @@
-import { Suspense, use, type ReactElement } from "react";
+import { Suspense, use } from "react";
 
 import { Article, articleComponents } from "#/components/article/Article";
 import { ArticleFooter } from "#/components/ArticleFooter";
 import { RouterLink } from "#/components/ui";
 import { categoryBySlug } from "#/data/navigation";
 import { formatDate } from "#/lib/date";
+import { getLoadedArticle, loadArticle } from "#/lib/posts/article-modules";
 import ArticleToc from "../../src/islands/ArticleToc";
 import PostViews from "../../src/islands/PostViews";
 import type { Props } from "./[slug].server";
 
-type ArticleModule = {
-  default: (props: { components?: typeof articleComponents }) => ReactElement;
-};
-
-const ssrArticles = import.meta.env.SSR
-  ? import.meta.glob<ArticleModule>("../../src/content/posts/*/index.mdx", { eager: true })
-  : undefined;
-
-const clientArticleLoaders = !import.meta.env.SSR
-  ? import.meta.glob<ArticleModule>("../../src/content/posts/*/index.mdx")
-  : undefined;
-
-const articleCache = new Map<string, ArticleModule>();
-const articlePromises = new Map<string, Promise<ArticleModule | undefined>>();
-
-function articlePath(slug: string) {
-  return `../../src/content/posts/${slug}/index.mdx`;
-}
-
-function loadClientArticle(slug: string): Promise<ArticleModule | undefined> {
-  const cached = articlePromises.get(slug);
-  if (cached) return cached;
-  const loader = clientArticleLoaders?.[articlePath(slug)];
-  if (!loader) return Promise.resolve(undefined);
-  const promise = loader().then((mod) => {
-    articleCache.set(slug, mod);
-    return mod;
-  });
-  articlePromises.set(slug, promise);
-  return promise;
-}
-
-// 初回アクセス時は hydrateRoot より前に当該記事 1 本だけ先読みし、
-// SSR 済み HTML とのハイドレーションで Suspense fallback へ戻らないようにする。
-if (!import.meta.env.SSR && typeof window !== "undefined") {
-  const match = window.location.pathname.match(/^\/posts\/([^/]+?)(?:\.html)?$/);
-  if (match) {
-    try {
-      await loadClientArticle(decodeURIComponent(match[1]));
-    } catch {
-      // 読み込み失敗時は再描画時の Suspense 境界に任せる。
-    }
-  }
-}
-
 function LazyArticleBody({ slug }: { slug: string }) {
-  const module = use(loadClientArticle(slug));
+  const module = use(loadArticle(slug));
   const Body = module?.default;
   return Body ? <Body components={articleComponents} /> : null;
 }
 
 function ArticleBody({ slug }: { slug: string }) {
-  const module = import.meta.env.SSR ? ssrArticles?.[articlePath(slug)] : articleCache.get(slug);
+  const module = getLoadedArticle(slug);
   if (module) {
     const Body = module.default;
     return <Body components={articleComponents} />;

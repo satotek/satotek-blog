@@ -30,6 +30,6 @@ export default defineConfig(({ mode }) => ({
           tailwindcss(),
           siteFiles(),
           voidPlugin(),
-          voidReact({ viewTransitions: true }),
+          voidReact({ viewTransitions: true, prefetch: { defaultStrategy: "hover" } }),
         ],
 }));
