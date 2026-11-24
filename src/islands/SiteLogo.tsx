@@ -1,6 +1,6 @@
 import { SiteLogo } from "#/components/SiteLogo";
 
-// スクロールでロゴを畳む処理があるので、ロゴだけハイドレートする。
+// 共有レイアウトでロゴを描画する。スクロールに応じてロゴを畳む。
 export default function SiteLogoIsland() {
   return <SiteLogo />;
 }

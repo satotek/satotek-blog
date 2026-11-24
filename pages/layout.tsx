@@ -1,21 +1,23 @@
-import { useShared } from "@void/react";
+import { RouterContext, useShared } from "@void/react";
 import { Bot, Rss } from "lucide-react";
-import type { ReactNode } from "react";
+import { useContext, type ReactNode } from "react";
 
-import { Link as AriaLink, RouterLink, iconButtonClass } from "#/components/ui";
 import { SiteNav } from "#/components/SiteNav";
-import Analytics from "../src/islands/Analytics" with { island: "idle" };
-import SiteLogo from "../src/islands/SiteLogo" with { island: "idle" };
-import ThemeToggle from "../src/islands/ThemeToggle" with { island: "idle" };
-import WebMcp from "../src/islands/WebMcp" with { island: "idle" };
+import { Link as AriaLink, RouterLink, iconButtonClass } from "#/components/ui";
+import Analytics from "../src/islands/Analytics";
+import SiteLogo from "../src/islands/SiteLogo";
+import ThemeToggle from "../src/islands/ThemeToggle";
+import WebMcp from "../src/islands/WebMcp";
 import "./styles.css";
 
 /**
- * 全ページ共通の枠。ナビは静的に描き、選択位置は loader が積んだパスから決める。
- * JS が要るのはロゴ（スクロールで畳む）とテーマ切替、遅延読み込みの2つだけ。
+ * 全ページ共通のレイアウト。クライアント遷移中もマウントを維持し、
+ * ナビの選択位置は Void Router の現在パス（未接続の island ページでは shared）から決める。
  */
 export default function Layout({ children }: { children: ReactNode }) {
-  const path = useShared()?.path ?? "";
+  const shared = useShared();
+  const router = useContext(RouterContext);
+  const path = router?.path ?? shared?.path ?? "";
 
   return (
     <>

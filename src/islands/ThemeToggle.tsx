@@ -1,6 +1,6 @@
 import { ThemeToggle } from "#/components/ThemeToggle";
 
-// island の import 属性は default export を対象にするので、共有コンポーネントを包み直す。
+// 共有レイアウトのテーマ切替ボタン。共有コンポーネントに既定のクラスを補う。
 export default function ThemeToggleIsland() {
   return <ThemeToggle className="inline-flex" />;
 }
