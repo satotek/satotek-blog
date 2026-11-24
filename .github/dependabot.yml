@@ -1,7 +1,7 @@
 version: 2
 
 updates:
-  - package-ecosystem: bun
+  - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
@@ -16,9 +16,12 @@ updates:
         exclude-patterns:
           # 0.x minors change the rendered OGP card. Review them alone.
           - satori
-          # The Vite toolchain moves as one catalog entry in package.json.
+          # The Vite toolchain moves as one catalog entry in pnpm-workspace.yaml.
           - vite-plus
           - "@voidzero-dev/vite-plus-core"
+          # Void and its React adapter are pinned to the same exact version.
+          - void
+          - "@void/react"
 
   - package-ecosystem: github-actions
     directory: /

@@ -1,1 +1,1 @@
-export type { PopularPost } from "@satotek/blog-core/analytics/types";
+export type { PopularPost } from "#/core/analytics/types";

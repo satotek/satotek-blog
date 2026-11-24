@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import type { PostSummary } from "@satotek/blog-core/posts/types";
+import type { PostSummary } from "#/core/posts/types";
 
 function post(index: number, overrides: Partial<PostSummary> = {}): PostSummary {
   const day = String(28 - (index % 28)).padStart(2, "0");

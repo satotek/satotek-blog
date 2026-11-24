@@ -1,6 +1,6 @@
 @import "tailwindcss";
 /* pl-* クラスの色規則と固定ダークのトークン色は highlight.css で読み込む。 */
-@import "@satotek/content-pipeline/highlight.css";
+@import "./styles/highlight.css";
 
 @import "./styles/tokens.css";
 @import "./styles/components.css";

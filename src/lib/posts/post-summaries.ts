@@ -1,8 +1,4 @@
-import type {
-  PostListOptions,
-  PostSummary,
-  PostSummaryRepository,
-} from "@satotek/blog-core/posts/types";
+import type { PostListOptions, PostSummary, PostSummaryRepository } from "#/core/posts/types";
 
 // 一覧が使うのは generate-content が書き出したサマリだけ。原文と
 // フロントマター検証はサーバー側（markdown-sources.server.ts）に閉じている。

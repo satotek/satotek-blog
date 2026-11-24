@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { MEDIA_BASE_URL } from "../site";
 import { mediaUrlForKey, postAssetKey } from "./post-assets";
-import { countReadingMinutes, type PostSummary } from "@satotek/blog-core/posts/types";
+import { countReadingMinutes, type PostSummary } from "#/core/posts/types";
 
 const postFrontmatterSchema = z
   .object({

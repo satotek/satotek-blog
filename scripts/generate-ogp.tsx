@@ -36,10 +36,10 @@ type R2Uploader = {
 
 function printUsage() {
   console.log(`Usage:
-  bun run generate-ogp -- --file src/content/posts/<slug>/index.mdx
-  bun run generate-ogp -- --all
-  bun run generate-ogp -- --file <path> --upload
-  bun run generate-ogp -- --all --upload
+  pnpm run generate-ogp --file src/content/posts/<slug>/index.mdx
+  pnpm run generate-ogp --all
+  pnpm run generate-ogp --file <path> --upload
+  pnpm run generate-ogp --all --upload
 
 Options:
   --all                 Generate every published post.

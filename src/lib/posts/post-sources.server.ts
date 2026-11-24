@@ -1,10 +1,8 @@
-import "@tanstack/react-start/server-only";
-
 import { parsePostSource, type PostSource } from "./post-source";
 
 // Markdown 原文の読み込みとフロントマターの検証はここだけで行う。
 // このモジュールはサーバー限定。クライアントへ漏れると原文・yaml・zod を
-// まるごとバンドルに載せてしまうため、必ず server-only 側に置く。
+// まるごとバンドルに載せてしまうため、island からは import しない。
 const sources = import.meta.glob<string>("../../content/posts/*/index.mdx", {
   eager: true,
   import: "default",

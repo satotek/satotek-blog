@@ -1,4 +1,4 @@
-import { SITE_URL } from "@satotek/blog-core/site-url";
+import { SITE_URL } from "#/core/site-url";
 
 export { SITE_URL };
 export const SITE_NAME = "satotek.dev";
@@ -88,8 +88,9 @@ type PageHeadOptions = Omit<SocialMetaOptions, "url"> & {
 };
 
 /**
- * ルートの head() 用。title / description / canonical / OGP の組み立てを1箇所にまとめる。
- * 各ルートで meta 配列を手書きすると canonical のエンコード漏れなどがズレるため。
+ * ページの head（Void の defineHead）用。title / description / canonical / OGP の組み立てを
+ * 1箇所にまとめる。各ページで meta 配列を手書きすると canonical のエンコード漏れなどがズレるため。
+ * title はサイト名まで含めた完成形を渡す（ホームはサイト名だけにしたいので、テンプレートは使わない）。
  */
 export function createPageHead({
   title,
@@ -102,12 +103,12 @@ export function createPageHead({
   const url = absoluteUrl(path).replace(/\/+$/, "");
 
   return {
+    title,
     meta: [
-      { title },
       { name: "description", content: description },
       ...createSocialMeta({ ...social, title: socialTitle ?? title, description, url }),
     ],
-    links: [{ rel: "canonical", href: url }],
+    link: [{ rel: "canonical", href: url }],
   };
 }
 

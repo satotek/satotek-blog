@@ -6,7 +6,7 @@ import { contentPostsDirectory, isMarkdownPost, postAsset, postMarkdownFor } fro
 
 function regeneratePostContent() {
   return new Promise<void>((resolvePromise, reject) => {
-    const child = spawn("bun", ["run", "generate-summaries"], {
+    const child = spawn("pnpm", ["run", "generate-summaries"], {
       cwd: process.cwd(),
       stdio: "inherit",
     });

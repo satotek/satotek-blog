@@ -7,22 +7,12 @@
   }
 
   /* ホームの記事、記事一覧、プロフィールの塊を上から順に出す。
-     退場用のコピーでは再生しない。ドックの退場中は止め、新しいページが入る瞬間から始める。
      backwards だけにして、終わったあとのホバー変形を残す。 */
   @media (prefers-reduced-motion: no-preference) {
     .post-enter,
     .rise-enter {
       animation: rise-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) backwards;
       animation-delay: calc(var(--i, 0) * 55ms);
-    }
-
-    html[data-dock-transition="forward"] .post-enter,
-    html[data-dock-transition="back"] .post-enter,
-    html[data-dock-transition="fade"] .post-enter,
-    html[data-dock-transition="forward"] .rise-enter,
-    html[data-dock-transition="back"] .rise-enter,
-    html[data-dock-transition="fade"] .rise-enter {
-      animation-play-state: paused;
     }
   }
 
@@ -32,11 +22,6 @@
     from {
       transform: translateY(12px);
     }
-  }
-
-  [data-dock-hold],
-  [data-dock-hold] * {
-    animation: none !important;
   }
 
   /* 記事カードはライトでは枠を消して、地面と同じ色味の影だけで浮かせる。

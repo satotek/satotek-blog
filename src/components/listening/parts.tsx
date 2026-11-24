@@ -1,7 +1,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { Link as AriaLink } from "#/components/ui";
-import type { MusicTrack } from "@satotek/blog-core/music";
+import type { MusicTrack } from "#/core/music";
 
 import { hueFor, initialOf } from "./artwork";
 

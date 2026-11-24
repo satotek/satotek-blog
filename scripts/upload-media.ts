@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 
-import { generateMediaVariants, mediaVariantKeys } from "@satotek/content-pipeline";
+import { generateMediaVariants, mediaVariantKeys } from "../vite-plugins/content-pipeline";
 
 const projectRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const defaultBucket = "satotek-media";
@@ -42,10 +42,10 @@ type Upload = {
 
 function printUsage() {
   console.log(`Usage:
-  bun run upload-media -- --posts
-  bun run upload-media -- --post <slug>
-  bun run upload-media -- --file <path> --key <r2-key>
-  bun run upload-media -- --directory <path> [--prefix <r2-prefix>]
+  pnpm run upload-media --posts
+  pnpm run upload-media --post <slug>
+  pnpm run upload-media --file <path> --key <r2-key>
+  pnpm run upload-media --directory <path> [--prefix <r2-prefix>]
 
 Options:
   --posts             Upload every src/content/posts/*/assets/ file, keyed by slug.
@@ -290,11 +290,10 @@ function publicUrl(key: string) {
 
 function uploadWithWrangler(upload: Upload, bucket: string) {
   return new Promise<void>((resolvePromise, reject) => {
+    // process.execPath は実行環境の Node を指すだけなので、ローカルの wrangler を直接起動する。
     const child = spawn(
-      process.execPath,
+      join(projectRoot, "node_modules", ".bin", "wrangler"),
       [
-        "run",
-        "wrangler",
         "r2",
         "object",
         "put",

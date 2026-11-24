@@ -7,7 +7,7 @@ type CodeBlockProps = HTMLAttributes<HTMLPreElement> & {
   "data-title"?: string;
 };
 
-async function copyText(text: string) {
+export async function copyText(text: string) {
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(text);
