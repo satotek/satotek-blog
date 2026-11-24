@@ -2,13 +2,18 @@ import { Pagination, type PageLinkProps } from "#/components/Pagination";
 import { PostFilters } from "#/components/PostFilters";
 import { PostList } from "#/components/PostList";
 import { SectionHeading } from "#/components/SectionHeading";
+import { RouterLink } from "#/components/ui";
 import type { Props } from "./[page].server";
 
 function PostsPageLink({ page, className, children }: PageLinkProps) {
-  return (
-    <a className={className} href={page === 1 ? "/posts" : `/posts/page/${page}`}>
+  return page === 1 ? (
+    <RouterLink className={className} to="/posts">
       {children}
-    </a>
+    </RouterLink>
+  ) : (
+    <RouterLink className={className} to="/posts/page/$page" params={{ page: String(page) }}>
+      {children}
+    </RouterLink>
   );
 }
 

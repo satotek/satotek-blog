@@ -1,5 +1,5 @@
 import { SectionHeading } from "#/components/SectionHeading";
-import PostsBrowser from "../../src/islands/PostsBrowser" with { island: "load" };
+import PostsBrowser from "../../src/islands/PostsBrowser";
 import type { Props } from "./index.server";
 
 export default function PostsIndexPage({ posts, filters }: Props) {

@@ -4,10 +4,10 @@ import type { ReactNode } from "react";
 
 import { Link as AriaLink, RouterLink, iconButtonClass } from "#/components/ui";
 import { SiteNav } from "#/components/SiteNav";
-import Analytics from "../src/islands/Analytics" with { island: "idle" };
-import SiteLogo from "../src/islands/SiteLogo" with { island: "idle" };
-import ThemeToggle from "../src/islands/ThemeToggle" with { island: "idle" };
-import WebMcp from "../src/islands/WebMcp" with { island: "idle" };
+import Analytics from "../src/islands/Analytics";
+import SiteLogo from "../src/islands/SiteLogo";
+import ThemeToggle from "../src/islands/ThemeToggle";
+import WebMcp from "../src/islands/WebMcp";
 import "./styles.css";
 
 /**
