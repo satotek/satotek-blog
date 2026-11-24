@@ -64,5 +64,5 @@
     "webmcp-types": "^0.2.0",
     "wrangler": "^4.166.0"
   },
-  "packageManager": "pnpm@12.9.0"
+  "packageManager": "pnpm@12.23.0"
 }
