@@ -46,6 +46,8 @@ type PendingDockTransition = {
 let pendingDockTransition: PendingDockTransition | null = null;
 let patchedStartViewTransition: Document["startViewTransition"] | null = null;
 
+// Void 1.11 の Router は startViewTransition を自前で呼び、types を渡す口が無い。
+// そのため呼び出しを包んで型を足す。Void が types を受け取れるようになったら、この上書きは消す。
 function ensureViewTransitionPatch() {
   if (typeof document === "undefined" || typeof document.startViewTransition !== "function") {
     return;
