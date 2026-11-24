@@ -1,15 +1,10 @@
-/* ページ遷移。ページは毎回ドキュメントごと読み直すので、ブラウザの cross-document
-   View Transition でつなぐ。本文だけを名前付きスナップショットにして、ヘッダー・フッターは
-   動かさない（同じ要素なので動かすとちらつく）。
+/* ページ遷移。Void Router の View Transitions（document.startViewTransition）でつなぐ。
+   本文だけを名前付きスナップショットにして、ヘッダー・フッターは動かさない。
    Void はページを <div id="app"> で包むので、その直下の <main> を指す。index.tsx が
    <main> を入れ子にしているため、子孫ではなく直下に限る。
    テーマ切り替え中は名前を外す。名前付き要素は root のスナップショットから
    抜けてしまい、円形ワイプが本文を覆えなくなるため。 */
 @media (prefers-reduced-motion: no-preference) {
-  @view-transition {
-    navigation: auto;
-  }
-
   :root:not([data-theme-transition]) #app > main {
     view-transition-name: page;
   }
@@ -51,7 +46,7 @@
 
 /* ドックは本文の上に固定されているが、名前が無いと root のスナップショットに入り、
    遷移中は上の層に描かれる page に覆われてちらつく。後から描かれる名前付きの層へ分け、
-   旧スナップショットは捨てて新しいページのものだけ見せる。テーマ切り替え中は page と同じ理由で名前を外す。 */
+   旧スナップショットは捨てて新しい状態だけ見せる。テーマ切り替え中は page と同じ理由で名前を外す。 */
 :root:not([data-theme-transition]) .site-nav--dock {
   view-transition-name: site-dock;
 }
@@ -65,7 +60,7 @@
   display: none;
 }
 
-/* ドックとバーのクリックは、lib/dock-transition-script.ts が遷移に向き（types）を付ける。
+/* ドックとバーのクリックは、SiteNav が遷移に向き（types）を付ける。
    通常リンクの縦フェードの代わりに、タブの方向へ 24px 横に滑らせる。 */
 @media (prefers-reduced-motion: no-preference) {
   html:active-view-transition-type(dock-forward) {
@@ -92,14 +87,20 @@
     animation: dock-fade-in 160ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
   }
 
-  /* 選択タイルとバーの選択項目に名前を付けると、旧ページの位置から新ページの位置へ
-     ブラウザが補間する。ページをまたいでも JS なしでスライドして見える。 */
-  .site-nav__indicator[data-visible] {
+  /* 選択タイルとバーの選択項目に名前を付けると、旧位置から新位置へブラウザが補間する。
+     SPA 遷移中はレイアウトが生き続けるため、CSS transition を一時的に止めて
+     新スナップショットが移動後の位置で撮られるようにする。 */
+  :root:not([data-theme-transition]) .site-nav__indicator[data-visible] {
     view-transition-name: dock-indicator;
   }
 
-  .site-nav--bar .site-nav__item[data-active] {
+  :root:not([data-theme-transition]) .site-nav--bar .site-nav__item[data-active] {
     view-transition-name: bar-active;
+  }
+
+  html:active-view-transition .site-nav__indicator,
+  html:active-view-transition .site-nav--bar .site-nav__item {
+    transition: none;
   }
 
   ::view-transition-group(dock-indicator),

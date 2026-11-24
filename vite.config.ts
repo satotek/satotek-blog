@@ -24,5 +24,12 @@ export default defineConfig(({ mode }) => ({
   plugins:
     mode === "test"
       ? []
-      : [postMdx(), postContentWatcher(), tailwindcss(), siteFiles(), voidPlugin(), voidReact()],
+      : [
+          postMdx(),
+          postContentWatcher(),
+          tailwindcss(),
+          siteFiles(),
+          voidPlugin(),
+          voidReact({ viewTransitions: true }),
+        ],
 }));

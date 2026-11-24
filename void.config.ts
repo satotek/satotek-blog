@@ -4,7 +4,6 @@ import { DEFERRED_FONTS_SCRIPT, FONTS_HREF } from "./src/lib/fonts";
 import { SITE_URL } from "./src/core/site-url";
 import { SITE_DESCRIPTION, SITE_NAME, createSocialMeta } from "./src/lib/site";
 import { THEME_COLOR, THEME_INIT_SCRIPT } from "./src/lib/theme";
-import { DOCK_TRANSITION_SCRIPT } from "./src/lib/dock-transition-script";
 
 export default defineConfig({
   // 記事は全部ビルド時に決まるので静的に書き出し、loader や API のあるところだけ Worker で動かす。
@@ -63,11 +62,7 @@ export default defineConfig({
     ],
     // middleware で headDefaults を入れると全ページが Worker 経由になり、
     // 静的配信の利点が消える。描画前に効かせたいスクリプトは config に置く。
-    script: [
-      { innerHTML: THEME_INIT_SCRIPT },
-      { innerHTML: DOCK_TRANSITION_SCRIPT },
-      { innerHTML: DEFERRED_FONTS_SCRIPT },
-    ],
+    script: [{ innerHTML: THEME_INIT_SCRIPT }, { innerHTML: DEFERRED_FONTS_SCRIPT }],
   },
   worker: {
     compatibility_date: "2026-08-22",
