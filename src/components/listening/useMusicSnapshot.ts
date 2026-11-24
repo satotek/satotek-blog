@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetch } from "void/client";
 
 import { isMusicSnapshot, type MusicSnapshot } from "#/core/music";
 
@@ -12,10 +13,6 @@ export function useMusicSnapshot() {
     let cancelled = false;
 
     void fetch("/api/music")
-      .then(async (response) => {
-        if (!response.ok) throw new Error("music request failed");
-        return (await response.json()) as unknown;
-      })
       .then((body) => {
         if (cancelled) return;
         if (!isMusicSnapshot(body)) {

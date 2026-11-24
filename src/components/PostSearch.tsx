@@ -1,6 +1,7 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button, Input, SearchField } from "react-aria-components";
+import { fetch } from "void/client";
 
 import type { PostSummary } from "#/core/posts/types";
 
@@ -76,18 +77,14 @@ export function usePostSearch(syncKey?: unknown) {
 
     const controller = new AbortController();
     setState((current) => ({ ...current, pending: true }));
-    void fetch(`/api/search?${new URLSearchParams({ q: searched })}`, {
+    void fetch("/api/search", {
+      query: { q: searched },
       signal: controller.signal,
     })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("search request failed");
-        const body = (await response.json()) as {
-          total?: number;
-          posts?: readonly { slug?: string }[];
-        };
-        const slugs = (body.posts ?? []).flatMap((post) => (post.slug ? [post.slug] : []));
+      .then((body) => {
+        const slugs = body.posts.map((post) => post.slug);
         setState({
-          result: { query: searched, slugs, total: body.total ?? slugs.length },
+          result: { query: searched, slugs, total: body.total },
           pending: false,
           error: false,
         });

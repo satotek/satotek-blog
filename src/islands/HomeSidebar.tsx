@@ -1,5 +1,6 @@
 import type { PostSummary } from "#/core/posts/types";
 import { useEffect, useState, type ComponentProps } from "react";
+import { fetch } from "void/client";
 
 import { HomeSidebar } from "#/components/HomeSidebar";
 import { useMusicSnapshot } from "#/components/listening";
@@ -18,13 +19,10 @@ export default function HomeSidebarIsland({ posts, categories, tags }: Props) {
   useEffect(() => {
     let cancelled = false;
     void fetch("/api/posts/popular")
-      .then(async (response) => {
-        if (!response.ok) return [];
-        const body = (await response.json()) as { posts?: readonly { slug?: string }[] };
-        return (body.posts ?? []).flatMap((post) => (post.slug ? [post.slug] : []));
-      })
-      .then((slugs) => {
-        if (!cancelled) setPopularSlugs(slugs);
+      .then((body) => {
+        if (!cancelled) {
+          setPopularSlugs(Array.isArray(body?.posts) ? body.posts.map((post) => post.slug) : []);
+        }
       })
       .catch(() => {
         if (!cancelled) setPopularSlugs([]);

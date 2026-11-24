@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { fetch } from "void/client";
 
 /**
  * 記事の累計閲覧数。数は GA4 から API Worker が読むので、prerender した HTML には
@@ -11,14 +12,11 @@ export function PostViews({ slug }: { slug: string }) {
     let cancelled = false;
     setViews(null);
 
-    void fetch(`/api/posts/${encodeURIComponent(slug)}/views`)
-      .then(async (response) => {
-        if (!response.ok) return null;
-        const body = (await response.json()) as { views?: unknown };
-        return typeof body.views === "number" && body.views > 0 ? body.views : null;
-      })
-      .then((count) => {
-        if (!cancelled) setViews(count);
+    void fetch("/api/posts/[slug]/views", { params: { slug } })
+      .then((body) => {
+        if (!cancelled) {
+          setViews(typeof body.views === "number" && body.views > 0 ? body.views : null);
+        }
       })
       .catch(() => {
         if (!cancelled) setViews(null);

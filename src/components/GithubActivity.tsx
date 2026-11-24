@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { siGithub } from "simple-icons";
+import { fetch } from "void/client";
 
 import { BrandIcon } from "#/components/BrandIcon";
 import { SectionHeading } from "#/components/SectionHeading";
@@ -40,7 +41,6 @@ function useGithubSnapshot() {
     let cancelled = false;
 
     void fetch("/api/github")
-      .then(async (response) => (response.ok ? ((await response.json()) as unknown) : null))
       .then((body) => {
         if (!cancelled && isGithubSnapshot(body)) setSnapshot(body);
       })
